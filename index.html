@@ -1,0 +1,99 @@
+<html>
+<head>
+  <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+  
+<script type="text/javascript" charset="utf-8">
+  google.load("swfobject", "2.1");
+  google.load("jquery", "1.4.2");
+  
+  // The "main method" of this sample. Called when someone clicks "Run".
+  function loadPlayer() {
+
+      currentVideoId = '_2c5Fh3kfrI'; // YT Instant Logo video
+
+      // Lets Flash from another domain call JavaScript
+      var params = { allowScriptAccess: "always" };
+      // The element id of the Flash embed
+      var atts = { id: "ytPlayer",
+                   allowFullScreen: "true"};
+
+      // Embeddable player
+      swfobject.embedSWF("http://www.youtube.com/v/" + currentVideoId + "&enablejsapi=1&playerapiid=ytplayer" + 
+                         "&rel=0&autoplay=0&egm=0&loop=0&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1", 
+                         "innerVideoDiv", "720", "405", "8", null, null, params, atts);
+  }
+  
+  function onYouTubePlayerReady(playerId) {
+      ytplayer = document.getElementById("ytPlayer");
+      ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
+
+      $('td').first().click();    
+  }
+  
+  function getTopSearchResult(keyword) {
+      // Restrict search to embeddable videos with &format=5.
+      var the_url = 'http://gdata.youtube.com/feeds/api/videos?q='+encodeURIComponent(keyword)+'&format=5&max-results=10&v=2&alt=jsonc';
+
+      $.ajax({
+          type: "GET",
+          url: the_url,
+          dataType: "jsonp",
+          success: function(responseData, textStatus, XMLHttpRequest) {
+                      if (responseData.data.items) {
+                          var videos = responseData.data.items;
+                          console.log(videos);
+                          loadAndPlayVideo(videos[0].id);
+                      } else {
+                          updateSuggestedKeyword('No results for "'+keyword+'"');
+                          doneWorking();
+                      }
+                   }
+          });
+  }
+  
+  function loadAndPlayVideo(videoId) {
+      if (ytplayer) {
+          ytplayer.loadVideoById(videoId);
+      }
+  }
+  
+  function run() {
+    
+    $('tr').bind('click', function(e) {
+      var searchTerm = '';
+      $(this).children().each(function() {
+        searchTerm += $(this).html() + ' ';
+      });
+      getTopSearchResult(searchTerm);
+    });
+    
+    loadPlayer();
+  }
+</script>
+</head>
+<body onload="run()">
+  <div id="videoDiv">
+  <div id="innerVideoDiv">
+      Loading...
+  </div>
+  </div>
+  <table id="playlist">
+    <tr>
+      <th>Title</th>
+      <th>Artist</th>
+    </tr>
+    <tr>
+      <td>Wavin Flag</td>
+      <td>Knaan</td>
+    </tr>
+    <tr>
+      <td>Still Alive</td>
+      <td>GLADOS</td>
+    </tr>
+    <tr>
+      <td>Valley of the Damned</td>
+      <td>Dragonforce</td>
+    </tr>
+  </table>
+</body>
+</html>
