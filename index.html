@@ -1,99 +1,98 @@
-<html>
+<!doctype html>  
+
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
 <head>
-  <script src="http://www.google.com/jsapi" type="text/javascript"></script>
-  
-<script type="text/javascript" charset="utf-8">
-  google.load("swfobject", "2.1");
-  google.load("jquery", "1.4.2");
-  
-  // The "main method" of this sample. Called when someone clicks "Run".
-  function loadPlayer() {
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-      currentVideoId = '_2c5Fh3kfrI'; // YT Instant Logo video
+  <title></title>
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-      // Lets Flash from another domain call JavaScript
-      var params = { allowScriptAccess: "always" };
-      // The element id of the Flash embed
-      var atts = { id: "ytPlayer",
-                   allowFullScreen: "true"};
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-      // Embeddable player
-      swfobject.embedSWF("http://www.youtube.com/v/" + currentVideoId + "&enablejsapi=1&playerapiid=ytplayer" + 
-                         "&rel=0&autoplay=0&egm=0&loop=0&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1", 
-                         "innerVideoDiv", "720", "405", "8", null, null, params, atts);
-  }
-  
-  function onYouTubePlayerReady(playerId) {
-      ytplayer = document.getElementById("ytPlayer");
-      ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
+  <link rel="stylesheet" href="css/style.css?v=2">
+  <script src="js/libs/modernizr-1.6.min.js"></script>
 
-      $('td').first().click();    
-  }
-  
-  function getTopSearchResult(keyword) {
-      // Restrict search to embeddable videos with &format=5.
-      var the_url = 'http://gdata.youtube.com/feeds/api/videos?q='+encodeURIComponent(keyword)+'&format=5&max-results=10&v=2&alt=jsonc';
-
-      $.ajax({
-          type: "GET",
-          url: the_url,
-          dataType: "jsonp",
-          success: function(responseData, textStatus, XMLHttpRequest) {
-                      if (responseData.data.items) {
-                          var videos = responseData.data.items;
-                          console.log(videos);
-                          loadAndPlayVideo(videos[0].id);
-                      } else {
-                          updateSuggestedKeyword('No results for "'+keyword+'"');
-                          doneWorking();
-                      }
-                   }
-          });
-  }
-  
-  function loadAndPlayVideo(videoId) {
-      if (ytplayer) {
-          ytplayer.loadVideoById(videoId);
-      }
-  }
-  
-  function run() {
-    
-    $('tr').bind('click', function(e) {
-      var searchTerm = '';
-      $(this).children().each(function() {
-        searchTerm += $(this).html() + ' ';
-      });
-      getTopSearchResult(searchTerm);
-    });
-    
-    loadPlayer();
-  }
-</script>
 </head>
-<body onload="run()">
-  <div id="videoDiv">
-  <div id="innerVideoDiv">
-      Loading...
-  </div>
-  </div>
-  <table id="playlist">
-    <tr>
-      <th>Title</th>
-      <th>Artist</th>
-    </tr>
-    <tr>
-      <td>Wavin Flag</td>
-      <td>Knaan</td>
-    </tr>
-    <tr>
-      <td>Still Alive</td>
-      <td>GLADOS</td>
-    </tr>
-    <tr>
-      <td>Valley of the Damned</td>
-      <td>Dragonforce</td>
-    </tr>
-  </table>
+
+<body>
+
+  <div id="container">
+    <header>
+
+    </header>
+    
+    <div id="main">
+      <div id="videoDiv">
+          Loading...
+      </div>
+      <table id="playlist">
+        <tr>
+          <th>Title</th>
+          <th>Artist</th>
+        </tr>
+        <tr>
+          <td>Wavin Flag</td>
+          <td>Knaan &amp; Nancy Ajram</td>
+        </tr>
+        <tr>
+          <td>Still Alive</td>
+          <td>GLADOS</td>
+        </tr>
+        <tr>
+          <td>Valley of the Damned</td>
+          <td>Dragonforce</td>
+        </tr>
+      </table>
+    </div>
+    
+    <footer>
+
+    </footer>
+  </div> <!-- end of #container -->
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="js/libs/jquery-1.4.2.js"%3E%3C/script%3E'))</script>
+  <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js
+  "></script>
+  <script>!window.swfobject && document.write(unescape('%3Cscript src="js/libs/swfobject.js"%3E%3C/script%3E'))</script>
+  
+  <!-- scripts concatenated and minified via ant build script-->
+  <script src="js/plugins.js"></script>
+  <script src="js/script.js"></script>
+  <!-- end concatenated and minified scripts-->
+  
+  
+  <!--[if lt IE 7 ]>
+    <script src="js/libs/dd_belatedpng.js"></script>
+    <script> DD_belatedPNG.fix('img, .png_bg'); </script>
+  <![endif]-->
+
+  <!-- yui profiler and profileviewer - remove for production -->
+  <script src="js/profiling/yahoo-profiling.min.js"></script>
+  <script src="js/profiling/config.js"></script>
+  <!-- end profiling code -->
+
+
+  <!-- change the UA-XXXXX-X to be your site's ID -->
+  <script>
+   var _gaq = [['_setAccount', 'UA-XXXXX-X'], ['_trackPageview']];
+   (function(d, t) {
+    var g = d.createElement(t),
+        s = d.getElementsByTagName(t)[0];
+    g.async = true;
+    g.src = ('https:' == location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g, s);
+   })(document, 'script');
+  </script>
+  
 </body>
 </html>
