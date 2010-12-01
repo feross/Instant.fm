@@ -82,16 +82,23 @@ button {  width: auto; overflow: visible; }
 .clearfix { zoom: 1; }
 
 
- /* Primary Styles
-    Author: 
- */
+/* Primary Styles */
 
+body {
+    text-align: center;
+}
 
+#videoDiv {
+    height: 405px;
+    width: 720px;
+}
 
-
-
-
-
+#drop {
+    border: 2px dashed red;
+    height: 100px;
+    width: 300px;
+    margin-bottom: 30px;
+}
 
 
 

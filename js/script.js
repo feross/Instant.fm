@@ -3,14 +3,20 @@ var ytplayer;
 
 $(document).ready(function() {
     controller = new Controller();
+    controller.loadPlaylist(playlist);
+    new uploader('drop', 'status', 'http://dev.instant.fm:8888/upload', null);
     
     $('#playlist tr').click(function(e) {
         var searchTerm = '';
-        $(this).children().each(function() {
+        $(this).children().not('th').each(function() {
             searchTerm += $(this).html() + ' ';
         });
-        controller.playVideoBySearchTerm(searchTerm);
-    });
+        if (searchTerm) {
+            controller.playVideoBySearchTerm(searchTerm); 
+        }
+    });    
+    
+    // Autoload first song
     $('#playlist td').first().click();
 });
 
@@ -22,6 +28,10 @@ function onYouTubePlayerReady(playerId) {
 
 var Controller = function() {
     this.isPlayerInitialized = false; // have we called initPlayer?
+}
+
+Controller.prototype.loadPlaylist = function(playlist) {
+    alert(playlist);
 }
 
 Controller.prototype.initPlayer = function(firstVideoId) {
@@ -53,7 +63,6 @@ Controller.prototype.playVideoBySearchTerm = function(keyword) {
         success: function(responseData, textStatus, XMLHttpRequest) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
-                console.log(videos);
                 controller.loadAndPlayVideo(videos[0].id);
             } else {
                 console.log('No results for "' + keyword + '"');
@@ -74,4 +83,8 @@ Controller.prototype.loadAndPlayVideo = function(videoId) {
             controller.loadAndPlayVideo(videoId);
         }, 500);
     }
+}
+
+function parseResponse(playlist) {
+    controller.loadPlaylist(playlist);
 }
