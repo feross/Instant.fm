@@ -1,23 +1,12 @@
 var controller;
 var ytplayer;
 
-$(document).ready(function() {
-    controller = new Controller();
-    controller.loadPlaylist(playlist);
-    new uploader('drop', 'status', 'http://dev.instant.fm:8888/upload', null);
+$(function() {
+    controller = new Controller([{t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
+    controller.playlist.render();
+    controller.playlist.playSong(0); // Auto-play
     
-    $('#playlist tr').click(function(e) {
-        var searchTerm = '';
-        $(this).children().not('th').each(function() {
-            searchTerm += $(this).html() + ' ';
-        });
-        if (searchTerm) {
-            controller.playVideoBySearchTerm(searchTerm); 
-        }
-    });    
-    
-    // Autoload first song
-    $('#playlist td').first().click();
+    // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
 });
 
 // Automatically called when player is ready
@@ -26,19 +15,18 @@ function onYouTubePlayerReady(playerId) {
     ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
 }
 
-var Controller = function() {
+/**
+ * Instant.fm Controller
+ */
+var Controller = function(playlist) {
     this.isPlayerInitialized = false; // have we called initPlayer?
+    this.playlist = new Playlist(playlist);
 }
-
-Controller.prototype.loadPlaylist = function(playlist) {
-    alert(playlist);
-}
-
+/**
+ * Controller.initPlayer() - Initialize the YouTube player
+ */
 Controller.prototype.initPlayer = function(firstVideoId) {
     this.isPlayerInitialized = true;
-    if (!firstVideoId) {
-        firstVideoId = '_2c5Fh3kfrI';
-    }
     var params = {
         allowScriptAccess: "always"
     };
@@ -49,12 +37,16 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     swfobject.embedSWF("http://www.youtube.com/v/" + firstVideoId +
     "&enablejsapi=1&playerapiid=ytplayer&rel=0&autoplay=1&egm=0&loop=0" +
     "&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1",
-    "videoDiv", "720", "405", "8", null, null, params, atts);
+    "videoDiv", "360", "215", "8", null, null, params, atts);
 }
 
-Controller.prototype.playVideoBySearchTerm = function(keyword) {
+/**
+ * Controller.playVideoBySearch(q) - Play top video for given search query
+ * @q - search query
+ */
+Controller.prototype.playVideoBySearch = function(q) {
     // Restrict search to embeddable videos with &format=5.
-    var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(keyword) + '&format=5&max-results=1&v=2&alt=jsonc';
+    var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc';
 
     $.ajax({
         type: "GET",
@@ -63,28 +55,61 @@ Controller.prototype.playVideoBySearchTerm = function(keyword) {
         success: function(responseData, textStatus, XMLHttpRequest) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
-                controller.loadAndPlayVideo(videos[0].id);
+                controller.playVideoById(videos[0].id);
             } else {
-                console.log('No results for "' + keyword + '"');
+                log('No results for "' + q + '"');
             }
         }
     });
 }
 
-Controller.prototype.loadAndPlayVideo = function(videoId) {
+/**
+ * Controller.playVideoById(q) - Play video with given Id
+ * @id - video id
+ */
+Controller.prototype.playVideoById = function(id) {
     if (ytplayer) {
-        ytplayer.loadVideoById(videoId);
+        ytplayer.loadVideoById(id);
     } else {
-        console.log('Initing player...');
+        log('Initing player...');
         if (!this.isPlayerInitialized) {
-            this.initPlayer(videoId);
+            this.initPlayer(id);
         }
         window.setTimeout(function() {
-            controller.loadAndPlayVideo(videoId);
+            controller.playVideoById(id);
         }, 500);
     }
 }
 
-function parseResponse(playlist) {
-    controller.loadPlaylist(playlist);
+/**
+ * Instant.fm Playlist
+ */
+var Playlist = function(songs) {
+    this.songs = songs || [];
+}
+
+/**
+ * Playlist.playSong(i) - Play a song by index
+ * @i - song index
+ */
+Playlist.prototype.playSong = function(i) {
+    var s = this.songs[i];
+    var q = s.t + ' ' + s.a;
+    controller.playVideoBySearch(q); 
+}
+
+/**
+ * Playlist.render() - Updates the playlist table
+ */
+Playlist.prototype.render = function() {
+    var p = $('#playlist');
+    p.find('.song').remove();
+    
+    $.each(this.songs, function(i, v) {
+        $('<tr class="song pointer" id="song'+i+'"><td>'+v.t+'</td><td>'+v.a+'</td></tr>').appendTo(p);
+    });
+    
+    p.find('.song').click(function(e) {
+        controller.playlist.playSong(parseInt(e.currentTarget.id.charAt(4)));
+    });
 }

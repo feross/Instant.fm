@@ -9,7 +9,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title></title>
+  <title>Instant.fm - Share Playlists Instantly</title>
   <meta name="description" content="">
   <meta name="author" content="">
 
@@ -19,16 +19,22 @@
 
   <link rel="stylesheet" href="css/style.css?v=2">
   <script src="js/libs/modernizr-1.6.min.js"></script>
-  <script>
-    var playlist = {status: "ok", data:[{t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]};
-  </script>
 
 </head>
 
 <body>
-
   <div id="container">
-    <header>
+    <header class="clearfix" id="header">
+      <header>
+        <a class="ir" href="/" id="headerLogo">Instant.fm</a>
+      </header>
+      
+      <div id="headerMenu">
+        <a href="#">FAQ</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Contact</a>
+      </div>
+      <!-- <section id="dropWrapper">
         <div id="drop">
             Drop stuff here...
         </div>
@@ -38,30 +44,21 @@
         <div id="list">
           List
         </div>
+      </section> -->
     </header>
     
     <div id="main">
-      <div id="videoDiv">
+      <section id="videoDiv">
           Loading...
-      </div>
-      <table id="playlist">
-        <tr>
-          <th>Title</th>
-          <th>Artist</th>
-        </tr>
-        <tr>
-          <td>Wavin Flag</td>
-          <td>Nancy Ajram</td>
-        </tr>
-        <tr>
-          <td>Still Alive</td>
-          <td>GLADOS</td>
-        </tr>
-        <tr>
-          <td>Valley of the Damned</td>
-          <td>Dragonforce</td>
-        </tr>
-      </table>
+      </section>
+      <section id="playlistWrapper">
+        <table cellspacing="0" id="playlist">
+          <tr>
+            <th class="col1">Title</th>
+            <th class="col2">Artist</th>
+          </tr>
+        </table>
+      </section>
     </div>
     
     <footer>
