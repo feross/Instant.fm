@@ -6,9 +6,24 @@ var controller;
 var ytplayer;
 
 $(function() {
-    controller = new Controller([{t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
+    controller = new Controller([{t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 2", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 3", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 4", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
+    
+    var videoDisplayOffset = $('#videoDisplay').offset().top;
+    var playlistDisplay = $('#playlistDisplay');
+    
+    $(window).scroll(function(){
+        if ($(window).scrollTop() > videoDisplayOffset) {
+            playlistDisplay.addClass('fixedVideo');
+        } else {
+            playlistDisplay.removeClass('fixedVideo');
+        }        
+    });
+    
+    window.setTimeout(function() {
+        $('<fb:comments xid="1" numposts="10" width="420" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?9"></fb:comments>').appendTo('#comments');
+    }, 100);
     
     // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
 });
@@ -41,7 +56,7 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     swfobject.embedSWF("http://www.youtube.com/v/" + firstVideoId +
     "&enablejsapi=1&playerapiid=ytplayer&rel=0&autoplay=1&egm=0&loop=0" +
     "&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1",
-    "videoDiv", "360", "215", "8", null, null, params, atts);
+    "player", "500", "290", "8", null, null, params, atts);
 }
 
 /**
@@ -108,12 +123,12 @@ Playlist.prototype.render = function() {
     $('.song').remove();
     
     $.each(this.songs, function(i, v) {
-        $('<tr class="song pointer" id="song'+i+'"><td>&nbsp;</td> <td>'+v.t+'</td><td>'+v.a+'</td></tr>').appendTo($('#playlist'));
+        $('<tr class="song pointer" id="song'+i+'"><td class="icon">&nbsp;</td> <td class="title">'+v.t+'</td><td class="artist">'+v.a+'</td></tr>').appendTo($('#playlist'));
     });
     
     $('.song:odd').addClass('odd');
     
-    $('.song').bind('click', function(e) {
+    $('.song').click(function(e) {
         controller.playlist.playSong(parseInt(e.currentTarget.id.charAt(4)));
     });
 }

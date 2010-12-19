@@ -25,42 +25,50 @@
 <body>
   <div id="container">
     <header class="clearfix" id="header">
-      <header>
+      <h1>
         <a class="ir" href="/" id="headerLogo">Instant.fm</a>
-      </header>
-      
-      <div id="headerMenu">
+      </h1>
+      <nav id="headerMenu">
         <a href="#">FAQ</a> |
         <a href="#">Blog</a> |
         <a href="#">Contact</a>
-      </div>
-      <!-- <section id="dropWrapper">
-        <div id="drop">
-            Drop stuff here...
-        </div>
-        <div id="status">
-          Status
-        </div>
-        <div id="list">
-          List
-        </div>
-      </section> -->
+      </nav>
     </header>
     
-    <div id="main">
-      <section id="videoDiv">
-          Loading...
-      </section>
-      <section id="playlistWrapper">
+    <div class="clearfix" id="main">
+      
+      <div id="songDisplay">
+        <section id="songInfo">
+          <h2 id="playlistName">Feross's Party Mix</h2>
+          <div id="share">
+            <!-- <fb:like href="http://instant.fm" show_faces="true" width="300" colorscheme="dark" ref="fblike"></fb:like> -->
+          </div>
+          <!-- <h2 id="songTitle">Song Title</h2>
+          <h3 id="artistName">Artist Name</h3> -->
+        </section> <!-- end of #songInfo -->
+        
+        <section id="comments">
+          <h3>Add a comment...</h3>
+          
+          <!-- <fb:comments xid="1" numposts="10" width="420" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?9"></fb:comments> -->
+        </section> <!-- end of #comments -->
+        
+      </div> <!-- end of #songDisplay -->
+      
+      <div id="playlistDisplay">
+        <div id="outerVideoDisplay"><div id="videoDisplay">
+          <div id="player">&nbsp;</div>
+        </div></div>
         <table cellspacing="0" id="playlist">
-          <tr>
-            <th class="col1">&nbsp;</th>
-            <th class="col2">Title</th>
-            <th class="col3">Artist</th>
-          </tr>
+          <!-- <tr>
+            <th class="icon">&nbsp;</th>
+            <th class="title">Title</th>
+            <th class="artist">Artist</th>
+          </tr> -->
         </table>
-      </section>
-    </div>
+      </div> <!-- end of #playlistDisplay -->
+
+    </div> <!-- end of #main -->
     
     <footer>
 
@@ -78,6 +86,23 @@
   <!-- scripts concatenated and minified via ant build script-->
   <script src="js/plugins.js"></script>
   <script src="js/script.js"></script>
+  <!-- <script src="http://connect.facebook.net/en_US/all.js#appId=114871205247916&amp;xfbml=1"></script> -->
+  
+  <div id="fb-root"></div>
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({appId: '114871205247916', status: true, cookie: true,
+               xfbml: true});
+    };
+    (function() {
+      var e = document.createElement('script');
+      e.type = 'text/javascript';
+      e.src = document.location.protocol +
+        '//connect.facebook.net/en_US/all.js';
+      e.async = true;
+      document.getElementById('fb-root').appendChild(e);
+    }());
+  </script>
   <!-- end concatenated and minified scripts-->
   
   
