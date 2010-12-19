@@ -23,6 +23,7 @@
 </head>
 
 <body>
+  <div id="fb-root"></div>
   <div id="container">
     <header class="clearfix" id="header">
       <h1>
@@ -39,18 +40,15 @@
       
       <div id="songDisplay">
         <section id="songInfo">
-          <h2 id="playlistName">Feross's Party Mix</h2>
-          <div id="share">
-            <!-- <fb:like href="http://instant.fm" show_faces="true" width="300" colorscheme="dark" ref="fblike"></fb:like> -->
-          </div>
-          <!-- <h2 id="songTitle">Song Title</h2>
-          <h3 id="artistName">Artist Name</h3> -->
+          <h2>Feross's Party Mix</h2>
+          <h4 id="songTitle">Song Title</h2>
+          <h4 id="artistName">Artist Name</h3>
+        
         </section> <!-- end of #songInfo -->
         
         <section id="comments">
           <h3>Add a comment...</h3>
-          
-          <!-- <fb:comments xid="1" numposts="10" width="420" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?9"></fb:comments> -->
+          <fb:comments xid="1" numposts="3" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?11"></fb:comments>
         </section> <!-- end of #comments -->
         
       </div> <!-- end of #songDisplay -->
@@ -86,13 +84,15 @@
   <!-- scripts concatenated and minified via ant build script-->
   <script src="js/plugins.js"></script>
   <script src="js/script.js"></script>
-  <!-- <script src="http://connect.facebook.net/en_US/all.js#appId=114871205247916&amp;xfbml=1"></script> -->
+  <!-- end concatenated and minified scripts-->
   
-  <div id="fb-root"></div>
+    <!-- <script src="http://connect.facebook.net/en_US/all.js#appId=114871205247916&amp;xfbml=1"></script> -->
   <script>
+   /**
+    * Facebook JavaScript SDK
+    */
     window.fbAsyncInit = function() {
-      FB.init({appId: '114871205247916', status: true, cookie: true,
-               xfbml: true});
+        FB.init({appId: '114871205247916', status: true, cookie: true, xfbml: true});
     };
     (function() {
       var e = document.createElement('script');
@@ -103,7 +103,6 @@
       document.getElementById('fb-root').appendChild(e);
     }());
   </script>
-  <!-- end concatenated and minified scripts-->
   
   
   <!--[if lt IE 7 ]>

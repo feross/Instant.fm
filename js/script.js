@@ -1,12 +1,21 @@
-// TODO
+// TODO:
+// Add fb:comments after video is loaded so we don't block
 // Auto-advance to next song
-// Add 'play' buttons
+// Keyboard shortcuts
+
+// FB login to save all your playlists
+// FB login to see your friends' playlists
+// FB login to see recommended playlists based on Likes
+
+// Show currently playing song info, album art, links to buy
+
+// Bug: Firefox restarts video on scroll
 
 var controller;
 var ytplayer;
 
 $(function() {
-    controller = new Controller([{t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 2", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 3", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 4", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
+    controller = new Controller([{t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 2", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 3", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}, {t:"Stylo 4", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
@@ -20,10 +29,6 @@ $(function() {
             playlistDisplay.removeClass('fixedVideo');
         }        
     });
-    
-    window.setTimeout(function() {
-        $('<fb:comments xid="1" numposts="10" width="420" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?9"></fb:comments>').appendTo('#comments');
-    }, 100);
     
     // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
 });

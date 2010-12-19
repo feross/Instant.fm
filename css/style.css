@@ -96,15 +96,14 @@ body {
     text-align: center;
 }
 
-#container { margin: 20px auto; text-align: left; width: 950px; }
-
 h1 { font-size: 32px; }
-h2 { font-size: 24px; }
-h3 { font-size: 20px; }
-h4 { font-size: 28px; }
+h2 { font-size: 28px; text-shadow: #000 1px 2px 3px; }
+h3 { border-bottom: #444 1px solid; font-size: 22px; padding: 0 0 5px 0; text-shadow: #000 1px 2px 3px; }
+h4 { font-size: 18px; }
 h5 { font-size: 16px; }
 h6 { font-size: 14px; }
 
+#container { margin: 20px auto; text-align: left; width: 1000px; }
 
 
 /* Header */
@@ -129,30 +128,18 @@ h6 { font-size: 14px; }
 #headerMenu a:hover { color: #fff; }
 
 
-
-/* Song Display */
-
-#songDisplay { float: right; margin: 20px auto; width: 425px; }
-
-#songInfo {  }
-
-#playlistName { font-weight: bold; text-shadow: #000 1px 2px 3px; }
-
-#share { margin: 10px 0 0 0; }
-
-
 /* Playlist Display */
 
-#playlistDiplay { float: left; width: 500px; }
+#playlistDiplay { float: left; width: 500px; border: 1px solid red;}
 
-#playlist { color: #444; font-size: 16px; }
+#playlist { color: #444; font-size: 14px; }
 
 #playlist .icon { width: 40px; }
 
 #playlist .title { width: 260px; }
-#playlist .artist { width: 200px; }
+#playlist .artist { font-style: italic; width: 200px; }
 
-#playlist tr { border-bottom: #A3A3A3 1px solid; height: 30px; }
+#playlist tr { border-bottom: #A3A3A3 1px solid; height: 28px; }
 
 #playlist th,
 #playlist td { vertical-align: middle; }
@@ -165,13 +152,21 @@ h6 { font-size: 14px; }
 
 #playlist .playing { background: transparent url("/images/speaker.png") 6px 3px no-repeat; }
 
-#videoDisplay, #outerVideoDisplay { height: 290px; width: 500px; }
+#videoDisplay, #outerVideoDisplay { border-bottom: #A3A3A3 1px solid; height: 290px; width: 500px; }
 
 .fixedVideo #videoDisplay { position: fixed !important; top: 0 !important;}
+
+
+/* Song Display */
+
+#songDisplay { float: right; margin: 5px auto; width: 480px; border: 1px solid red;}
+
 
 /* Comments */
 
 #comments { margin: 30px 0 0 0; }
+
+#comments h3 { margin: 0 0 10px 0; }
 
 /*#drop {
     border: 2px dashed red;
