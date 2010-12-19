@@ -39,11 +39,14 @@
     <div class="clearfix" id="main">
       
       <div id="songDisplay">
-        <section id="songInfo">
-          <h2>Feross's Party Mix</h2>
-          <h4 id="songTitle">Song Title</h2>
-          <h4 id="artistName">Artist Name</h3>
-        
+        <section class="clearfix" id="songInfo">
+          <h2 id="curPlaylist">&nbsp;</h2>
+          <div id="currentlyPlayingHeader">Currently Playing:</div>
+          <div id="curAlbumArt">&nbsp;</div>
+          <div id="curTextBlock">
+            <h3 id="curSong">&nbsp;</h2>
+            <h4 id="curArtist">&nbsp;</h3>
+          </div>
         </section> <!-- end of #songInfo -->
         
         <section id="comments">
@@ -79,9 +82,12 @@
   <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js
   "></script>
   <script>!window.swfobject && document.write(unescape('%3Cscript src="js/libs/swfobject.js"%3E%3C/script%3E'))</script>
-  <script src="js/libs/html5uploader.js"></script>
   
   <!-- scripts concatenated and minified via ant build script-->
+  <script src="js/libs/html5uploader.js"></script>
+  <script src="js/libs/lastfm.api.md5.js"></script>
+  <script src="js/libs/lastfm.api.js"></script>
+
   <script src="js/plugins.js"></script>
   <script src="js/script.js"></script>
   <!-- end concatenated and minified scripts-->

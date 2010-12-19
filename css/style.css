@@ -36,7 +36,7 @@ select, input, textarea, button { font:99% sans-serif; }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
 body, select, input, textarea { color: #ddd; }
-h1,h2,h3,h4,h5,h6 { font-weight: bold; }
+h1,h2,h3,h4,h5,h6 { font-weight: bold; text-shadow: #000 1px 2px 3px; }
 html { overflow-y: scroll; }
 
 a:hover, a:active { outline: none; }
@@ -97,8 +97,8 @@ body {
 }
 
 h1 { font-size: 32px; }
-h2 { font-size: 28px; text-shadow: #000 1px 2px 3px; }
-h3 { border-bottom: #444 1px solid; font-size: 22px; padding: 0 0 5px 0; text-shadow: #000 1px 2px 3px; }
+h2 { font-size: 28px; }
+h3 { font-size: 22px; }
 h4 { font-size: 18px; }
 h5 { font-size: 16px; }
 h6 { font-size: 14px; }
@@ -108,7 +108,7 @@ h6 { font-size: 14px; }
 
 /* Header */
 
-#header { margin: 0 0 30px 0; }
+#header { margin: 0 0 20px 0; }
 
 #headerLogo {
     background: transparent url("/images/logo.png") 0 0 no-repeat;
@@ -159,14 +159,21 @@ h6 { font-size: 14px; }
 
 /* Song Display */
 
-#songDisplay { float: right; margin: 5px auto; width: 480px; border: 1px solid red;}
+#songDisplay { float: right; margin: 5px auto; width: 480px; }
 
+#songInfo h2 { border-bottom: #444 1px solid; margin: 0 0 12px 0; }
+
+#currentlyPlayingHeader { font-size: 16px; font-style: italic; font-weight: normal; margin: 10px 0;}
+
+#curAlbumArt { float: left; height: 150px; margin: 0 10px 0 0; width: 150px; }
+
+#curTextBlock { float: left; }
 
 /* Comments */
 
 #comments { margin: 30px 0 0 0; }
 
-#comments h3 { margin: 0 0 10px 0; }
+#comments h3 { border-bottom: #444 1px solid; margin: 0 0 15px 0; }
 
 /*#drop {
     border: 2px dashed red;
