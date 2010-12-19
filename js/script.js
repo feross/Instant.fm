@@ -1,8 +1,12 @@
+// TODO
+// Auto-advance to next song
+// Add 'play' buttons
+
 var controller;
 var ytplayer;
 
 $(function() {
-    controller = new Controller([{t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
+    controller = new Controller([{t:"Replay", a:"Iyaz"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]);
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
@@ -91,21 +95,25 @@ var Playlist = function(songs) {
 Playlist.prototype.playSong = function(i) {
     var s = this.songs[i];
     var q = s.t + ' ' + s.a;
-    controller.playVideoBySearch(q); 
+    controller.playVideoBySearch(q);
+ 
+    $('.playing').removeClass('playing');
+    $('#song' + i).children().first().addClass('playing');
 }
 
 /**
  * Playlist.render() - Updates the playlist table
  */
 Playlist.prototype.render = function() {
-    var p = $('#playlist');
-    p.find('.song').remove();
+    $('.song').remove();
     
     $.each(this.songs, function(i, v) {
-        $('<tr class="song pointer" id="song'+i+'"><td>'+v.t+'</td><td>'+v.a+'</td></tr>').appendTo(p);
+        $('<tr class="song pointer" id="song'+i+'"><td>&nbsp;</td> <td>'+v.t+'</td><td>'+v.a+'</td></tr>').appendTo($('#playlist'));
     });
     
-    p.find('.song').click(function(e) {
+    $('.song:odd').addClass('odd');
+    
+    $('.song').bind('click', function(e) {
         controller.playlist.playSong(parseInt(e.currentTarget.id.charAt(4)));
     });
 }

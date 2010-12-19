@@ -125,20 +125,25 @@ body {
 
 /* Playlist */
 
-#playlist { font-size: 16px; margin: 30px auto; width: 600px; }
+#playlist { font-size: 16px; margin: 30px auto; width: 640px; }
 
-#playlist .col1, #playlist .col2 { width: 50%; }
+#playlist .col1 { width: 40px; }
+
+#playlist .col2,
+#playlist .col3 { width: 300px; }
 
 #playlist tr { border-bottom: #A3A3A3 1px solid; height: 30px; text-align: center; }
-
-#playlist th { background-color: #000; color: #ccc; height: 35px; }
 
 #playlist th,
 #playlist td { vertical-align: middle; }
 
-#playlist .song { background-color: #ccc; }
-#playlist .song:hover { background-color: #8bb5d0;}
+#playlist tr { background-color: #ddd; }
+#playlist tr.odd { background-color: #eee; }
+#playlist .song:hover { background-color: #98d0f4;}
 
+#playlist th { background-color: #000; color: #ddd; height: 35px; }
+
+#playlist .playing { background: transparent url("/images/speaker.png") 6px 3px no-repeat; }
 
 /*#drop {
     border: 2px dashed red;
