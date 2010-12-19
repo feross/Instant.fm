@@ -71,13 +71,9 @@ Controller.prototype.playVideoById = function(id) {
     if (ytplayer) {
         ytplayer.loadVideoById(id);
     } else {
-        log('Initing player...');
         if (!this.isPlayerInitialized) {
             this.initPlayer(id);
         }
-        window.setTimeout(function() {
-            controller.playVideoById(id);
-        }, 500);
     }
 }
 
