@@ -7,13 +7,14 @@ $(function() {
     controller.playlist.playSong(0); // Auto-play
     
     var videoDisplayOffset = $('#videoDisplay').offset().top;
-    var playlistDisplay = $('#playlistDisplay');
+    var videoDisplay = $('#videoDisplay');
     
     $(window).scroll(function(){
+        log(videoDisplayOffset);
         if ($(window).scrollTop() > videoDisplayOffset) {
-            playlistDisplay.addClass('fixedVideo');
+            videoDisplay.css('top', 0);
         } else {
-            playlistDisplay.removeClass('fixedVideo');
+            videoDisplay.css('top', videoDisplayOffset - $(window).scrollTop());
         }        
     });
     
@@ -39,9 +40,11 @@ var Controller = function(playlist) {
     this.isPlayerInitialized = false; // have we called initPlayer?
     this.playlist = new Playlist(playlist);
     
+    var cache = new LastFMCache();
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
 		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
+		cache     : cache
 	});
 }
 /**
@@ -141,7 +144,8 @@ Playlist.prototype.playSong = function(i) {
     
     $('#curSong').text(s.t);
     $('#curArtist').text(s.a);
-	controller.lastfm.track.getInfo({track: s.t, artist: s.a}, {success: function(data){
+	controller.lastfm.track.getInfo({track: s.t, artist: s.a, autocorrect: 1}, {success: function(data){
+		log(data);
 		var t = data.track;
 		if (t && t.album && t.album.image) {
 		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];

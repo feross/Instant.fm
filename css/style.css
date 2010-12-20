@@ -154,7 +154,7 @@ h6 { font-size: 14px; }
 
 #videoDisplay, #outerVideoDisplay { border-bottom: #A3A3A3 1px solid; height: 290px; width: 500px; }
 
-.fixedVideo #videoDisplay { position: fixed !important; top: 0 !important;}
+#videoDisplay { position: fixed; }
 
 
 /* Song Display */
