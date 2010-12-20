@@ -16,7 +16,7 @@ $(function() {
     
     $('#keyboardShortcutsAvailable').click(controller.showHelpDialog);
     
-    new uploader('headerLogo', null, '/upload', null, controller.updatePlaylist);    
+    new uploader('container', null, '/upload', null, controller.updatePlaylist);    
 });
 
 function setupScrollingListeners() {
