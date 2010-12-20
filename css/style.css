@@ -119,13 +119,17 @@ h6 { font-size: 14px; }
     width: 100px;
 }
 
-#headerMenu { color: #499bd1; float: right; font-size: 14px; text-shadow: #000 0 1px 1px; }
+#headerMenu { color: #499bd1; float: right; font-size: 14px; font-weight: bold; text-shadow: #000 0 1px 1px; }
 
 #headerMenu a,
 #headerMenu a:active,
-#headerMenu a:visited { color: #ddd; font-weight: bold; padding: 0 5px; text-decoration: none; }
+#headerMenu a:visited,
+#footer a,
+#footer a:active,
+#footer a:visited { color: #ddd; padding: 0 5px; text-decoration: none; }
 
-#headerMenu a:hover { color: #fff; }
+#headerMenu a:hover,
+#footer a:hover { color: #fff; text-decoration: underline; }
 
 
 /* Playlist Display */
@@ -223,6 +227,24 @@ h6 { font-size: 14px; }
 }
 
 #help .action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
+
+
+/* Footer */
+
+#footer {
+    border-top: #444 1px solid;
+    color: #499bd1;
+    font-size: 12px;
+    margin: 20px 0 30px 0;
+    padding: 15px 0 0 0;
+}
+
+#footer #keyboardShortcutsAvailable {
+    background: transparent url("/images/keyboard.png") top right no-repeat;
+    display: block;
+    float: right;
+    padding: 0 25px 0 0;
+}
 
 /*#drop {
     border: 2px dashed red;

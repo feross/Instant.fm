@@ -11,6 +11,15 @@ $(function() {
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
+    setupScrollingListeners();
+    setupKeyboardListeners();
+    
+    $('#keyboardShortcutsAvailable').click(controller.showHelpDialog);
+    
+    // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
+});
+
+function setupScrollingListeners() {
     var videoDiv = $('#videoDiv');
     var videoDivOffset = $('#outerVideoDiv').offset().top;
     $(window).scroll(function(){
@@ -20,11 +29,7 @@ $(function() {
             videoDiv.css('top', videoDivOffset - $(window).scrollTop());
         }        
     });
-    
-    setupKeyboardListeners();
-    
-    // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
-});
+}
 
 function setupKeyboardListeners() {
     var SHIFT = 16;
@@ -40,7 +45,7 @@ function setupKeyboardListeners() {
         } else if (k == 32) { // space
             playPause();
         } else if (k == 191 && $.inArray(SHIFT, pressedKeys) > -1) { // ?
-            controller.openHelpDialog();
+            controller.showHelpDialog();
         } else {
             return true; // default event
         }
@@ -137,9 +142,9 @@ Controller.prototype.showAlbumArt = function(src, alt) {
 }
 
 /**
- * Controller.openHelpDialog() - Open dialog that shows keyboard shortcuts
+ * Controller.showHelpDialog() - Open dialog that shows keyboard shortcuts
  */
-Controller.prototype.openHelpDialog = function() {
+Controller.prototype.showHelpDialog = function() {
     var dialog = $('#help').dialog({
         autoOpen: false,
         draggable: false,
