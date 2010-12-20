@@ -7,9 +7,10 @@ $(function() {
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
-    var videoDiv = $('#videoDiv');    
+    var videoDiv = $('#videoDiv');
+    var videoDivOffset = $('#outerVideoDiv').offset().top;
     $(window).scroll(function(){
-        if ($(window).scrollTop() > videoDiv.offset().top) {
+        if ($(window).scrollTop() > videoDivOffset) {
             videoDiv.css('top', 0);
         } else {
             videoDiv.css('top', videoDivOffset - $(window).scrollTop());
