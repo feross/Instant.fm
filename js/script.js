@@ -1,24 +1,8 @@
-// TODO:
-// Add fb:comments after video is loaded so we don't block
-// Auto-advance to next song **
-// Keyboard shortcuts
-// Show play button on table row hover
-
-// FB login to save all your playlists
-// FB login to see your friends' playlists
-// FB login to see recommended playlists based on Likes
-
-// Show currently playing song info, album art **
-// Show empty album art when unavailable
-// Show links to buy
-
-// Bug: Firefox restarts video on scroll
-
 var controller;
 var ytplayer;
 
 $(function() {
-    controller = new Controller({title: 'Feross\'s Party Mix', songs: [{t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]});
+    controller = new Controller({title: 'Feross\'s Party Mix', songs: [{t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]});
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
@@ -116,6 +100,19 @@ Controller.prototype.playVideoById = function(id) {
 }
 
 /**
+ * Controller.showAlbumArt(s) - Update album art to point to given src url
+ * @src - Image src url. Pass nothing for missing album art image.
+ * @alt - Image alt text
+ */
+Controller.prototype.showAlbumArt = function(src, alt) {
+    var imgSrc = src || '/images/unknown.png';
+    var imgAlt = alt || 'Album art';
+    
+    $('#curAlbumArt')
+        .replaceWith($('<img alt="'+imgAlt+'" id="curAlbumArt" src="'+imgSrc+'" />'));
+}
+
+/**
  * Instant.fm Playlist
  */
 var Playlist = function(playlist) {
@@ -148,13 +145,12 @@ Playlist.prototype.playSong = function(i) {
 		var t = data.track;
 		if (t && t.album && t.album.image) {
 		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
-		    $('#curAlbumArt')
-		        .replaceWith($('<img alt="'+t.album.title+'" id="curAlbumArt" src="'+imgSrc+'" />'));
+		    controller.showAlbumArt(imgSrc, t.album.title);
+		} else {
+		    controller.showAlbumArt(null);
 		}
-		log(t);
 	}, error: function(code, message){
-		log(code);
-		log(message);
+		controller.showAlbumArt(null);
 	}});
 }
 
