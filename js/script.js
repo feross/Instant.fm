@@ -1,7 +1,11 @@
 var controller;
 var ytplayer;
+
+var pressedKeys = [];
+
 var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
 
+/* Onload Event */
 $(function() {
     controller = new Controller(sample);
     controller.playlist.render();
@@ -17,19 +21,36 @@ $(function() {
         }        
     });
     
+    setupKeyboardListeners();
+    
     // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
 });
 
-// Automatically called when player is ready
-function onYouTubePlayerReady(playerId) {
-    ytplayer = document.getElementById("ytPlayer");
-    ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
-}
-
-function onPlayerStateChange(newState) {
-    if (newState == 0) { // finished a video
-        controller.playlist.playNextSong();
-    }
+function setupKeyboardListeners() {
+    var SHIFT = 16;
+    $(window).keydown(function(e) {
+        var k = e.keyCode;
+        pressedKeys.push(k);
+        
+        
+        if (k == 39 || k == 40) { // down, right
+            controller.playlist.playNextSong();
+        } else if (k == 37 || k == 38) { // up, left
+            controller.playlist.playPrevSong();
+        } else if (k == 32) { // space
+            playPause();
+        } else if (k == 191 && $.inArray(SHIFT, pressedKeys) > -1) { // ?
+            controller.openHelpDialog();
+        } else {
+            return true; // default event
+        }
+        return false; // prevent default event
+    });
+    $(window).keyup(function(e) {
+        jQuery.grep(pressedKeys, function(value) {
+            return value != e.keyCode;
+        });
+    });
 }
 
 /**
@@ -52,7 +73,8 @@ var Controller = function(playlist) {
 Controller.prototype.initPlayer = function(firstVideoId) {
     this.isPlayerInitialized = true;
     var params = {
-        allowScriptAccess: "always"
+        allowScriptAccess: "always",
+        wmode : 'opaque' // Allow JQuery dialog to cover YT player
     };
     var atts = {
         id: "ytPlayer",
@@ -115,6 +137,20 @@ Controller.prototype.showAlbumArt = function(src, alt) {
 }
 
 /**
+ * Controller.openHelpDialog() - Open dialog that shows keyboard shortcuts
+ */
+Controller.prototype.openHelpDialog = function() {
+    var dialog = $('#help').dialog({
+        autoOpen: false,
+        draggable: false,
+        resizable: false,
+        title: 'Keyboard Shortcuts',
+    });
+    dialog.dialog('open');
+}
+
+
+/**
  * Instant.fm Playlist
  */
 var Playlist = function(playlist) {
@@ -131,7 +167,7 @@ var Playlist = function(playlist) {
  * @i - song index
  */
 Playlist.prototype.playSong = function(i) {
-    if (i >= this.songs.length) {
+    if (i < 0 || i >= this.songs.length) {
         return;
     }
     this.curSongIndex = i;
@@ -161,6 +197,11 @@ Playlist.prototype.playNextSong = function() {
     this.playSong(++this.curSongIndex);
 }
 
+Playlist.prototype.playPrevSong = function() {
+    this.playSong(--this.curSongIndex);
+}
+
+
 /**
  * Playlist.render() - Updates the playlist table
  */
@@ -178,4 +219,44 @@ Playlist.prototype.render = function() {
     $('.song').click(function(e) {
         controller.playlist.playSong(parseInt(e.currentTarget.id.substring(4)));
     });
+}
+
+
+/* Misc YouTube Functions */
+
+// Automatically called when player is ready
+function onYouTubePlayerReady(playerId) {
+    ytplayer = document.getElementById("ytPlayer");
+    ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
+}
+
+function onPlayerStateChange(newState) {
+    controller.playerState = newState;
+    if (newState == 0) { // finished a video
+        controller.playlist.playNextSong();
+    }
+}
+
+function playVideo() {
+    if (ytplayer) {
+        ytplayer.playVideo();
+    }
+}
+
+function pauseVideo() {
+    if (ytplayer) {
+        ytplayer.pauseVideo();
+    }
+}
+
+function playPause() {
+    if (ytplayer) {
+        if (controller.playerState == 1) { // playing
+            pauseVideo();
+            // $('#playlistWrapper').removeClass('pauseButton').addClass('playButton');
+        } else if (controller.playerState == 2) { // paused
+            playVideo();
+            // $('#playlistWrapper').removeClass('playButton').addClass('pauseButton');
+        }
+    }
 }

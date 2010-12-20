@@ -196,11 +196,33 @@ h6 { font-size: 14px; }
 
 #curAlbumInfo { float: left; }
 
+
 /* Comments */
 
 #comments { display: none; margin: 50px 0 0 0; }
 
 #comments h3 { border-bottom: #444 1px solid; margin: 0 0 15px 0; }
+
+
+/* Help */
+
+#help { display: none; padding: 5px 10px; }
+
+#help .shortcut { height: 25px; margin: 5px 0;}
+
+#help .key {
+    background-color: #333;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    color: #fff;
+    float: left;
+    font-size: 13px;
+    padding: 3px 7px;
+    margin-right: 7px;
+}
+
+#help .action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
 
 /*#drop {
     border: 2px dashed red;
