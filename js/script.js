@@ -1,20 +1,18 @@
 var controller;
 var ytplayer;
+var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
 
 $(function() {
-    controller = new Controller({title: 'Feross\'s Party Mix', songs: [{t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"Knaan"}, {t:"Still Alive", a:"Glados"}]});
+    controller = new Controller(sample);
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
-    var videoDisplayOffset = $('#videoDisplay').offset().top;
-    var videoDisplay = $('#videoDisplay');
-    
+    var videoDiv = $('#videoDiv');    
     $(window).scroll(function(){
-        log(videoDisplayOffset);
-        if ($(window).scrollTop() > videoDisplayOffset) {
-            videoDisplay.css('top', 0);
+        if ($(window).scrollTop() > videoDiv.offset().top) {
+            videoDiv.css('top', 0);
         } else {
-            videoDisplay.css('top', videoDisplayOffset - $(window).scrollTop());
+            videoDiv.css('top', videoDivOffset - $(window).scrollTop());
         }        
     });
     
@@ -62,7 +60,7 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     swfobject.embedSWF("http://www.youtube.com/v/" + firstVideoId +
     "&enablejsapi=1&playerapiid=ytplayer&rel=0&autoplay=1&egm=0&loop=0" +
     "&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1",
-    "player", "500", "290", "8", null, null, params, atts);
+    "player", "480", "274", "8", null, null, params, atts);
 }
 
 /**
@@ -122,8 +120,9 @@ var Playlist = function(playlist) {
     if (!playlist) {
         return;
     }
-    this.title = playlist.title;
-    this.songs = playlist.songs || [];
+    this.title       = playlist.title;
+    this.description = playlist.description;
+    this.songs       = playlist.songs || [];
 }
 
 /**
@@ -140,12 +139,11 @@ Playlist.prototype.playSong = function(i) {
     controller.playVideoBySearch(q);
  
     $('.playing').removeClass('playing');
-    $('#song' + i).children().first().addClass('playing');
+    $('#song' + i).addClass('playing');
     
     $('#curSong').text(s.t);
     $('#curArtist').text(s.a);
 	controller.lastfm.track.getInfo({track: s.t, artist: s.a, autocorrect: 1}, {success: function(data){
-		log(data);
 		var t = data.track;
 		if (t && t.album && t.album.image) {
 		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
@@ -166,7 +164,8 @@ Playlist.prototype.playNextSong = function() {
  * Playlist.render() - Updates the playlist table
  */
 Playlist.prototype.render = function() {
-    $('#curPlaylist').text(this.title);
+    $('#curPlaylistTitle').text(this.title);
+    $('#curPlaylistDesc').text(this.description);
     
     $('.song').remove();
     $.each(this.songs, function(i, v) {
@@ -176,6 +175,6 @@ Playlist.prototype.render = function() {
     $('.song:odd').addClass('odd');
     
     $('.song').click(function(e) {
-        controller.playlist.playSong(parseInt(e.currentTarget.id.charAt(4)));
+        controller.playlist.playSong(parseInt(e.currentTarget.id.substring(4)));
     });
 }
