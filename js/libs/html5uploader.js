@@ -14,7 +14,7 @@
 *	IE 6+
 */
 
-function uploader(place, status, targetPHP, show) {
+function uploader(place, status, targetPHP, show, callback) {
 	
 	// Upload image files
 	upload = function(file) {
@@ -29,28 +29,29 @@ function uploader(place, status, targetPHP, show) {
 				xhr.open('POST', targetPHP+'?up=true', true);
 				var boundary = 'xxxxxxxxx';
 	 			var body = '--' + boundary + "\r\n";  
-				body += "Content-Disposition: form-data; name='upload'; filename='" + file.name + "'\r\n";  
+				body += "Content-Disposition: form-data; name=\"file\"; filename=\"" + file.name + "\"\r\n";  
 				body += "Content-Type: application/octet-stream\r\n\r\n";  
 				body += bin + "\r\n";  
 				body += '--' + boundary + '--';      
 				xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + boundary);
+					
+				/* Instant.fm Start */
+				xhr.onreadystatechange = function() {
+				    if (xhr.readyState == 4 && xhr.status == 200) {
+                        callback(xhr.responseText, file.name);
+                    }
+				}
+				/* Instant.fm End */
+				
 				// Firefox 3.6 provides a feature sendAsBinary ()
 				if(xhr.sendAsBinary != null) { 
 					xhr.sendAsBinary(body); 
 				// Chrome 7 sends data but you must use the base64_decode on the PHP side
 				} else { 
 					xhr.open('POST', targetPHP+'?up=true&base64=true', true);
-					xhr.setRequestHeader('UP-FILENAME', file.name);
-					xhr.setRequestHeader('UP-SIZE', file.size);
-					xhr.setRequestHeader('UP-TYPE', file.type);
-					
-					/* Instant.fm Start */
-					xhr.onreadystatechange = function() {
-    				    if (xhr.readyState == 4 && xhr.status == 200) {
-                            alert(xhr.responseText);
-                        }
-					}
-					/* Instant.fm End */
+					xhr.setRequestHeader('Up-Filename', file.name);
+					xhr.setRequestHeader('Up-Size', file.size);
+					xhr.setRequestHeader('Up-Type', file.type);
 					
 					xhr.send(window.btoa(bin));
 				}
@@ -137,10 +138,19 @@ function uploader(place, status, targetPHP, show) {
   		// Safari 5 does not support FileReader
 		} else {
 			xhr = new XMLHttpRequest();
+			
+			/* Instant.fm Start */
+			xhr.onreadystatechange = function() {
+			    if (xhr.readyState == 4 && xhr.status == 200) {
+                    callback(xhr.responseText, file.name);
+                }
+			}
+			/* Instant.fm End */
+			
 			xhr.open('POST', targetPHP+'?up=true', true);
-			xhr.setRequestHeader('UP-FILENAME', file.name);
-			xhr.setRequestHeader('UP-SIZE', file.size);
-			xhr.setRequestHeader('UP-TYPE', file.type);
+			xhr.setRequestHeader('Up-Filename', file.name);
+			xhr.setRequestHeader('Up-Size', file.size);
+			xhr.setRequestHeader('Up-Type', file.type);
 			xhr.send(file); 
 			
 			if (status) {

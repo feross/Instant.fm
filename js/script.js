@@ -16,7 +16,7 @@ $(function() {
     
     $('#keyboardShortcutsAvailable').click(controller.showHelpDialog);
     
-    // new uploader('drop', 'status', 'http://dev.instant.fm:8000/upload', null);    
+    new uploader('headerLogo', null, '/upload', null, controller.updatePlaylist);    
 });
 
 function setupScrollingListeners() {
@@ -152,6 +152,26 @@ Controller.prototype.showHelpDialog = function() {
         title: 'Keyboard Shortcuts',
     });
     dialog.dialog('open');
+}
+
+/**
+ * Controller.updatePlaylist() - Change the playlist based on the xhr response in response
+ * @response - response body
+ * @filename - playlist filename, for setting playlist name
+ */
+Controller.prototype.updatePlaylist = function(response, filename) {
+    var responseJSON = JSON.parse(response);
+    
+    if(responseJSON.status != 'ok') {
+        alert(responseJSON.status);
+        return;
+    }
+    
+    var name = filename.split('.')[0];
+    var songs = responseJSON.data;
+    controller.playlist = new Playlist({title: name, description: 'Imported playlist', songs: songs});
+    controller.playlist.render();
+    controller.playlist.playSong(0);
 }
 
 
