@@ -3,11 +3,11 @@ var ytplayer;
 
 var pressedKeys = [];
 
-var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
+//var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
 
 /* Onload Event */
 $(function() {
-    controller = new Controller(sample);
+    controller = new Controller(initial_playlist);
     controller.playlist.render();
     controller.playlist.playSong(0); // Auto-play
     
@@ -157,9 +157,8 @@ Controller.prototype.showHelpDialog = function() {
 /**
  * Controller.updatePlaylist() - Change the playlist based on the xhr response in response
  * @response - response body
- * @filename - playlist filename, for setting playlist name
  */
-Controller.prototype.updatePlaylist = function(response, filename) {
+Controller.prototype.updatePlaylist = function(response) {
     var responseJSON = JSON.parse(response);
     
     if(responseJSON.status != 'ok') {
@@ -167,9 +166,9 @@ Controller.prototype.updatePlaylist = function(response, filename) {
         return;
     }
     
-    var name = filename.split('.')[0];
-    var songs = responseJSON.data;
-    controller.playlist = new Playlist({title: name, description: 'Imported playlist', songs: songs});
+    console.log(responseJSON.id)
+
+    controller.playlist = new Playlist(responseJSON);
     controller.playlist.render();
     controller.playlist.playSong(0);
 }
@@ -182,6 +181,7 @@ var Playlist = function(playlist) {
     if (!playlist) {
         return;
     }
+    this.id          = playlist.id || -1;
     this.title       = playlist.title;
     this.description = playlist.description;
     this.songs       = playlist.songs || [];

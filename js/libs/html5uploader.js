@@ -38,7 +38,7 @@ function uploader(place, status, targetPHP, show, callback) {
 				/* Instant.fm Start */
 				xhr.onreadystatechange = function() {
 				    if (xhr.readyState == 4 && xhr.status == 200) {
-                        callback(xhr.responseText, file.name);
+                        callback(xhr.responseText);
                     }
 				}
 				/* Instant.fm End */
@@ -142,7 +142,7 @@ function uploader(place, status, targetPHP, show, callback) {
 			/* Instant.fm Start */
 			xhr.onreadystatechange = function() {
 			    if (xhr.readyState == 4 && xhr.status == 200) {
-                    callback(xhr.responseText, file.name);
+                    callback(xhr.responseText);
                 }
 			}
 			/* Instant.fm End */
