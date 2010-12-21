@@ -137,7 +137,11 @@
   <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script>!window.swfobject && document.write(unescape('%3Cscript src="js/libs/swfobject.js"%3E%3C/script%3E'))</script>
   
+<<<<<<< HEAD
   <script type="text/javascript">var initial_playlist = {{ playlist }};</script
+=======
+  <script type="text/javascript">var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') }};</script
+>>>>>>> with_sql
   
   <!-- scripts concatenated and minified via ant build script-->
   <script src="js/libs/html5uploader.js"></script>

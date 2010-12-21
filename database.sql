@@ -8,7 +8,11 @@
 CREATE TABLE `playlists` (
   `playlist_id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(100) DEFAULT NULL,
+<<<<<<< HEAD
   `description` tinytext,
+=======
+  `description` text,
+>>>>>>> with_sql
   `songs` mediumtext,
   PRIMARY KEY (`playlist_id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
