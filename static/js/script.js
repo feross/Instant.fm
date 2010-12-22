@@ -1,15 +1,18 @@
+var playlist; // view
 var controller;
-var ytplayer;
 
+var ytplayer;
 var pressedKeys = [];
 
 //var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
 
 /* Onload Event */
 $(function() {
-    controller = new Controller(initial_playlist);
-    controller.playlist.renderAll();
-    controller.playlist.playSong(0); // Auto-play
+    controller = new Controller();
+    playlist = new Playlist(initial_playlist);
+    
+    playlist.renderAll();
+    controller.playSong(0); // Auto-play
     
     setupScrollingListeners();
     setupKeyboardListeners();
@@ -39,9 +42,9 @@ function setupKeyboardListeners() {
         
         
         if (k == 39 || k == 40) { // down, right
-            controller.playlist.playNextSong();
+            controller.playNextSong();
         } else if (k == 37 || k == 38) { // up, left
-            controller.playlist.playPrevSong();
+            controller.playPrevSong();
         } else if (k == 32) { // space
             playPause();
         } else if (k == 191 && $.inArray(SHIFT, pressedKeys) > -1) { // ?
@@ -59,12 +62,14 @@ function setupKeyboardListeners() {
 }
 
 /**
+ * ---------------------
  * Instant.fm Controller
+ * ---------------------
  */
-var Controller = function(playlist) {
-    this.isPlayerInitialized = false; // have we called initPlayer?
-    this.playlist = new Playlist(playlist);
-    
+var Controller = function() {
+    this.isPlayerInitialized = false; // true, after we've called Controller.initPlayer()
+    this.curSongIndex = 0; // Used to track our current position in the playlist
+        
     var cache = new LastFMCache();
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
@@ -72,8 +77,9 @@ var Controller = function(playlist) {
 		cache     : cache
 	});
 }
+
 /**
- * Controller.initPlayer() - Initialize the YouTube player
+ * Initialize the YouTube player
  */
 Controller.prototype.initPlayer = function(firstVideoId) {
     this.isPlayerInitialized = true;
@@ -92,7 +98,7 @@ Controller.prototype.initPlayer = function(firstVideoId) {
 }
 
 /**
- * Controller.playVideoBySearch(q) - Play top video for given search query
+ * Play top video for given search query
  * @q - search query
  */
 Controller.prototype.playVideoBySearch = function(q) {
@@ -108,14 +114,14 @@ Controller.prototype.playVideoBySearch = function(q) {
                 var videos = responseData.data.items;
                 controller.playVideoById(videos[0].id);
             } else {
-                log('No results for "' + q + '"');
+                controller.playNextSong();
             }
         }
     });
 }
 
 /**
- * Controller.playVideoById(q) - Play video with given Id
+ * Play video with given Id
  * @id - video id
  */
 Controller.prototype.playVideoById = function(id) {
@@ -129,7 +135,62 @@ Controller.prototype.playVideoById = function(id) {
 }
 
 /**
- * Controller.showAlbumArt(s) - Update album art to point to given src url
+ * Play a song by index
+ * @i - song index
+ */
+Controller.prototype.playSong = function(i) {
+    if (i < 0 || i >= playlist.songs.length) {
+        return;
+    }
+    this.curSongIndex = i;
+    var s = playlist.songs[i];
+    var q = s.t + ' ' + s.a;
+    this.playVideoBySearch(q);
+ 
+    $('.playing').toggleClass('playing');
+    $('#song' + i).toggleClass('playing');
+    
+    $('#curSong').text(s.t);
+    $('#curArtist').text(s.a);
+    
+    // Fetch data from Last.fm
+	this.lastfm.track.getInfo({
+	    track: s.t,
+	    artist: s.a,
+	    autocorrect: 1 }, {
+
+	    success: function(data){
+		    var t = data.track;
+    		if (t && t.album && t.album.image) {
+    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
+    		    controller.showAlbumArt(imgSrc, t.album.title);
+    		} else {
+    		    controller.showAlbumArt(null);
+    		}
+	    },
+	    
+	    error: function(code, message) {
+		    controller.showAlbumArt(null);
+		}
+	});
+}
+
+/**
+ * Play next song in the playlist
+ */
+Controller.prototype.playNextSong = function() {
+    this.playSong(++this.curSongIndex);
+}
+
+/**
+ * Play prev song in the playlist
+ */
+Controller.prototype.playPrevSong = function() {
+    this.playSong(--this.curSongIndex);
+}
+
+/**
+ * Update album art to point to given src url
  * @src - Image src url. Pass nothing for missing album art image.
  * @alt - Image alt text
  */
@@ -142,7 +203,7 @@ Controller.prototype.showAlbumArt = function(src, alt) {
 }
 
 /**
- * Controller.showHelpDialog() - Open dialog that shows keyboard shortcuts
+ * Open dialog that shows keyboard shortcuts
  */
 Controller.prototype.showHelpDialog = function() {
     var dialog = $('#help').dialog({
@@ -168,9 +229,9 @@ Controller.prototype.loadPlaylist = function(response) {
     
     log('New playlist created with ID: ' + responseJSON.id);
 
-    controller.playlist = new Playlist(responseJSON);
-    controller.playlist.renderAll();
-    controller.playlist.playSong(0);
+    playlist = new Playlist(responseJSON);
+    playlist.renderAll();
+    controller.playSong(0);
 }
 
 
@@ -178,15 +239,16 @@ Controller.prototype.loadPlaylist = function(response) {
  * Instant.fm Playlist
  */
 var Playlist = function(p) {
-    if (!playlist) {
+    if (!p.id || !p.title || !p.description || !p.songs) {
+        log('Can\'t load invalid playlist');
         return;
     }
+    
     this.id          = p.id || -1;
     this.title       = p.title;
     this.description = p.description;
     this.songs       = p.songs || [];
     
-    this.curSongIndex = 0; // Used to track our current position in the playlist
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     
     var that = this;
@@ -194,56 +256,6 @@ var Playlist = function(p) {
         that.reorderedSong = null; // we're done dragging now
     });
 }
-
-/**
- * Playlist.playSong(i) - Play a song by index
- * @i - song index
- */
-Playlist.prototype.playSong = function(i) {
-    if (i < 0 || i >= this.songs.length) {
-        return;
-    }
-    this.curSongIndex = i;
-    var s = this.songs[i];
-    var q = s.t + ' ' + s.a;
-    controller.playVideoBySearch(q);
- 
-    $('.playing').toggleClass('playing');
-    $('#song' + i).toggleClass('playing');
-    
-    $('#curSong').text(s.t);
-    $('#curArtist').text(s.a);
-    
-    // Fetch data from Last.fm
-	controller.lastfm.track.getInfo({
-	    track: s.t,
-	    artist: s.a,
-	    autocorrect: 1 }, {
-
-	    success: function(data){
-		    var t = data.track;
-    		if (t && t.album && t.album.image) {
-    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
-    		    controller.showAlbumArt(imgSrc, t.album.title);
-    		} else {
-    		    controller.showAlbumArt(null);
-    		}
-	    },
-	    
-	    error: function(code, message) {
-		    controller.showAlbumArt(null);
-		}
-	});
-}
-
-Playlist.prototype.playNextSong = function() {
-    this.playSong(++this.curSongIndex);
-}
-
-Playlist.prototype.playPrevSong = function() {
-    this.playSong(--this.curSongIndex);
-}
-
 
 /**
  * Playlist.renderAll() - Updates the playlist table
@@ -264,12 +276,12 @@ Playlist.prototype.renderAll = function() {
     $('#playlist li').click(function(e) {
         var songId = parseInt(e.currentTarget.id.substring(4));
         
-        that.reorderedSong || that.playSong(songId);
+        that.reorderedSong || controller.playSong(songId);
     });
     
     $('#playlist').sortable({
         axis: 'y',
-        stop: controller.playlist.onReorder, // drop is finished
+        stop: playlist.onReorder, // drop is finished
     }).disableSelection();
     
     this.renderRowColoring();
@@ -292,7 +304,7 @@ Playlist.prototype.renderRowColoring = function() {
  */
 Playlist.prototype.onReorder = function(event, ui) {
     // this is 
-    var p = controller.playlist;
+    var p = playlist;
     
     p.reorderedSong = true; // mark the song as reordered so we don't think it was clicked
     
@@ -350,7 +362,7 @@ function onYouTubePlayerReady(playerId) {
 function onPlayerStateChange(newState) {
     controller.playerState = newState;
     if (newState == 0) { // finished a video
-        controller.playlist.playNextSong();
+        playlist.playNextSong();
     }
 }
 

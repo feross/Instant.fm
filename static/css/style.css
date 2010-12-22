@@ -36,7 +36,9 @@ select, input, textarea, button { font:99% sans-serif; }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
 body, select, input, textarea { color: #ddd; }
-h1,h2,h3,h4,h5,h6 { font-weight: bold; text-shadow: #000 1px 2px 3px; }
+
+h1,h2,h3,h4,h5,h6 { color: #fff; font-weight: bold; text-shadow: #000 0px 1px 1px; }
+
 html { overflow-y: scroll; }
 
 a:hover, a:active { outline: none; }
@@ -96,14 +98,14 @@ body {
     text-align: center;
 }
 
-h1 { font-size: 32px; }
-h2 { font-size: 28px; }
-h3 { font-size: 22px; }
-h4 { font-size: 18px; }
-h5 { font-size: 16px; }
+h1 { font-size: 34px; margin: 0 0 12px 0; }
+h2 { font-size: 28px; margin: 0 0 10px 0; }
+h3 { font-size: 22px; margin: 0 0 8px 0; }
+h4 { font-size: 18px; margin: 0 0 6px 0; }
+h5 { font-size: 16px; margin: 0 0 4px 0; }
 h6 { font-size: 14px; }
 
-#container { margin: 20px auto; text-align: left; width: 1000px; }
+#container { margin: 25px auto; text-align: left; width: 1000px; }
 
 
 /* Header */
@@ -112,11 +114,11 @@ h6 { font-size: 14px; }
 
 #headerLogo {
     background: transparent url("/images/logo.png") 0 0 no-repeat;
-    border: 1px solid red;
     display: block;
     float: left;
-    height: 32px;
-    width: 100px;
+    height: 35px;
+    margin: 0 0 0 5px;
+    width: 360px;
 }
 
 #headerMenu { color: #499bd1; float: right; font-size: 14px; font-weight: bold; text-shadow: #000 0 1px 1px; }
@@ -172,12 +174,11 @@ h6 { font-size: 14px; }
 #infoDisplay {
     float: right;
     font-size: 14px;
-    margin: 2px 10px 0 0;
     text-shadow: #000 0px 1px 1px;
     width: 485px;
 }
 
-#infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; color: #eee; margin: 0 0 12px 0; }
+#infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; color: #eee; }
 
 
 /* Playlist */
@@ -194,16 +195,18 @@ h6 { font-size: 14px; }
 
 #curPlaying { margin: 20px 0 0 0; }
 
+.curLabel { color: #666; font-size: 12px; font-style: italic; margin: 0 5px 0 0;}
+
 #curAlbumArt {
     -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
     border-bottom: transparent 2px solid;
     float: left;
     height: 150px;
-    margin: 0 10px 0 0;
+    margin: 0 12px 0 0;
     width: 150px;
 }
 
-#curAlbumInfo { float: left; }
+#curAlbumInfo { float: left; width: 320px; }
 
 
 /* Comments */
@@ -246,7 +249,7 @@ h6 { font-size: 14px; }
     border-top: #444 1px solid;
     color: #499bd1;
     font-size: 12px;
-    margin: 20px 5px 30px 0;
+    margin: 20px 0 30px 0;
     padding: 15px 0 0 0;
 }
 
