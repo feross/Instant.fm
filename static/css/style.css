@@ -139,13 +139,13 @@ h6 { font-size: 14px; }
 #playlist { color: #444; font-size: 13px; padding: 0; margin: 0; }
 
 #playlist li {
-    background-color: #fff;
+    background-color: #f3f6fa;
     border-bottom: #D3D3D3 1px solid; 
     cursor: pointer;
     list-style-type: none;
     width: 480px;
 }
-#playlist li.odd { background-color: #f3f6fa; }
+#playlist li.odd { background-color: #fff; }
 
 #playlist span { display: inline-block; padding: 3px 0; vertical-align: middle; }
 #playlist .title { margin: 1px 0 0 5px; padding: 2px 5px 3px 25px; width: 220px; }

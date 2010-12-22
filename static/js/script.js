@@ -191,8 +191,7 @@ var Playlist = function(p) {
     
     var that = this;
     $('#playlist').mouseup(function(e) {
-        that.reorderedSong = null;
-        log('mouseup: reorderedSong set to: ' + that.reorderedSong);
+        that.reorderedSong = null; // we're done dragging now
     });
 }
 
