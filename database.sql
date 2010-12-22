@@ -4,4 +4,4 @@ CREATE TABLE `playlists` (
   `description` text,
   `songs` mediumtext,
   PRIMARY KEY (`playlist_id`)
-) ENGINE=MyISAM CHARSET=latin1;
+) ENGINE=MyISAM CHARSET=utf8;
