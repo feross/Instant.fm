@@ -212,18 +212,24 @@ h6 { font-size: 14px; }
 
 #help { display: none; padding: 5px 10px; }
 
-#help .shortcut { height: 25px; margin: 5px 0;}
+#help .shortcut {
+    height: 25px;
+    margin: 5px 0;
+}
 
 #help .key {
     background-color: #333;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
     color: #fff;
     float: left;
+    font-family: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
     font-size: 13px;
+    font-weight: bold;
     padding: 3px 7px;
     margin-right: 7px;
+    text-shadow: #000 0 1px 1px;
 }
 
 #help .action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
