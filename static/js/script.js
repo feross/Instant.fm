@@ -1,10 +1,9 @@
 var playlist; // view
 var controller;
+// TODO: refactor model out of the playlist.
 
 var ytplayer;
 var pressedKeys = [];
-
-//var sample = {title: 'Feross\'s Running Playlist', description: 'This is my favorite running playlist. You see, life is rough and complicated. But, when you\'re running, that all goes away. When I run with this playlist, I feel like a well-oiled machine. Everything just falls into place and all my problems disappear.', songs: [{t:"Through the Fire and Flames", a:"DragonForce"}, {t:"Poker Face", a:"Lady Gaga"}, {t:"Hello, Dolly", a:"Frank Sinatra"}, {t:"Replay", a:"Iyaz"}, {t:"Buddy Holly", a:"Weezer"}, {t:"Walid Toufic", a:"La T'awedny Aleik"}, {t:"Stylo", a:"Gorillaz"}, {t:"Smells Like Teen Spirit", a:"Nirvana"}, {t:"Eenie Meenie", a:"Justin Bieber"}, {t:"Sweet Talking Woman", a:"Electric Light Orchestra"}, {t:"Evil Woman", a:"ELO"}, {t:"Wavin Flag", a:"K'naan"}, {t:"Still Alive", a:"Glados"}]};
 
 /* Onload Event */
 $(function() {
@@ -93,7 +92,8 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     };
     swfobject.embedSWF("http://www.youtube.com/v/" + firstVideoId +
     "&enablejsapi=1&playerapiid=ytplayer&rel=0&autoplay=1&egm=0&loop=0" +
-    "&fs=1&hd=0&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1",
+    "&fs=1&hd=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1" +
+    "&color1=0xFFFFFF&color2=0xFFFFFF",
     "player", "480", "274", "8", null, null, params, atts);
 }
 
@@ -144,35 +144,13 @@ Controller.prototype.playSong = function(i) {
     }
     this.curSongIndex = i;
     var s = playlist.songs[i];
-    var q = s.t + ' ' + s.a;
+    var q = cleanSongTitle(s.t) + ' ' + s.a;
     this.playVideoBySearch(q);
  
     $('.playing').toggleClass('playing');
     $('#song' + i).toggleClass('playing');
     
-    $('#curSong').text(s.t);
-    $('#curArtist').text(s.a);
-    
-    // Fetch data from Last.fm
-	this.lastfm.track.getInfo({
-	    track: s.t,
-	    artist: s.a,
-	    autocorrect: 1 }, {
-
-	    success: function(data){
-		    var t = data.track;
-    		if (t && t.album && t.album.image) {
-    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
-    		    controller.showAlbumArt(imgSrc, t.album.title);
-    		} else {
-    		    controller.showAlbumArt(null);
-    		}
-	    },
-	    
-	    error: function(code, message) {
-		    controller.showAlbumArt(null);
-		}
-	});
+    this.updateCurPlaying(cleanSongTitle(s.t), s.a);
 }
 
 /**
@@ -187,6 +165,37 @@ Controller.prototype.playNextSong = function() {
  */
 Controller.prototype.playPrevSong = function() {
     this.playSong(--this.curSongIndex);
+}
+
+/**
+ * Update the currently playing song
+ */
+Controller.prototype.updateCurPlaying = function(title, artist) {
+    // Fetch data from Last.fm
+	this.lastfm.track.getInfo({
+	    track: title,
+	    artist: artist,
+	    autocorrect: 1 }, {
+
+	    success: function(data){
+		    var t = data.track;
+		    
+		    $('#curSong').text(title);
+            $('#curArtist').text(artist);
+		    
+		    // Update album art
+    		if (t && t.album && t.album.image) {
+    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
+    		    controller.showAlbumArt(imgSrc, t.album.title);
+    		} else {
+    		    controller.showAlbumArt(null);
+    		}
+	    },
+	    
+	    error: function(code, message) {
+		    controller.showAlbumArt(null);
+		}
+	});
 }
 
 /**
@@ -350,6 +359,13 @@ Playlist.prototype.onReorder = function(event, ui) {
     p.renderRowColoring();
 };
 
+/* Misc last.fm functions */
+
+function cleanSongTitle(title) {
+    var newTitle = title.replace(/[\(\[]((feat|ft|produce|instrument|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
+    log('Song title: ' + newTitle);
+    return newTitle;
+}
 
 /* Misc YouTube Functions */
 
@@ -361,8 +377,16 @@ function onYouTubePlayerReady(playerId) {
 
 function onPlayerStateChange(newState) {
     controller.playerState = newState;
-    if (newState == 0) { // finished a video
-        playlist.playNextSong();
+    switch(newState) {
+        case 0: // just finished a video
+            controller.playNextSong();
+            break;
+        case 1: // playing
+            $('.playing').toggleClass('paused', false);
+            break;
+        case 2: // paused
+            $('.playing').toggleClass('paused', true);
+            break;
     }
 }
 
@@ -382,10 +406,8 @@ function playPause() {
     if (ytplayer) {
         if (controller.playerState == 1) { // playing
             pauseVideo();
-            // $('#playlistWrapper').removeClass('pauseButton').addClass('playButton');
         } else if (controller.playerState == 2) { // paused
             playVideo();
-            // $('#playlistWrapper').removeClass('playButton').addClass('pauseButton');
         }
     }
 }

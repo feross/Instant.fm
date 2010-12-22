@@ -37,7 +37,7 @@ pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
 body, select, input, textarea { color: #ddd; }
 
-h1,h2,h3,h4,h5,h6 { color: #fff; font-weight: bold; text-shadow: #000 0px 1px 1px; }
+h1,h2,h3,h4,h5,h6 { font-weight: bold; text-shadow: #000 0px 1px 1px; }
 
 html { overflow-y: scroll; }
 
@@ -134,7 +134,7 @@ h6 { font-size: 14px; }
 #footer a:hover { color: #fff; text-decoration: underline; }
 
 
-/* Playlist Display */
+/* Playlist Display (right) */
 
 #playlistDisplay { float: left; width: 480px; }
 
@@ -163,6 +163,7 @@ h6 { font-size: 14px; }
 
 #playlist li.playing { background-color: #3990ea; color: #fff}
 .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
+.playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }
 
 #videoDiv, #outerVideoDiv { border-bottom: #A3A3A3 1px solid; height: 274px; width: 480px; }
 
@@ -178,10 +179,10 @@ h6 { font-size: 14px; }
     width: 485px;
 }
 
-#infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; color: #eee; }
+#infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; }
 
 
-/* Playlist */
+/* Current Playlist Information */
 
 #curPlaylist footer { margin: 12px 0 0 0; }
 
@@ -190,8 +191,7 @@ h6 { font-size: 14px; }
 #curPlaylistAuthor img { float: left; height: 25px; width: 25px; }
 
 
-
-/* Currently Playing */
+/* Currently Playing Song */
 
 #curPlaying { margin: 20px 0 0 0; }
 
