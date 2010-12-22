@@ -1,6 +1,7 @@
 var playlist; // view
 var controller;
 // TODO: refactor model out of the playlist.
+// TODO: move youtube player methods into Playlist.
 
 var ytplayer;
 var pressedKeys = [];
@@ -94,7 +95,7 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     "&enablejsapi=1&playerapiid=ytplayer&rel=0&autoplay=1&egm=0&loop=0" +
     "&fs=1&hd=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1" +
     "&color1=0xFFFFFF&color2=0xFFFFFF",
-    "player", "480", "274", "8", null, null, params, atts);
+    "player", "480", "295", "8", null, null, params, atts);
 }
 
 /**
@@ -126,7 +127,7 @@ Controller.prototype.playVideoBySearch = function(q) {
  */
 Controller.prototype.playVideoById = function(id) {
     if (ytplayer) {
-        ytplayer.loadVideoById(id);
+        ytplayer.loadVideoById(id, 0, 'hd720');
     } else {
         if (!this.isPlayerInitialized) {
             this.initPlayer(id);
@@ -158,6 +159,7 @@ Controller.prototype.playSong = function(i) {
  */
 Controller.prototype.playNextSong = function() {
     this.playSong(++this.curSongIndex);
+    
 }
 
 /**
@@ -180,6 +182,7 @@ Controller.prototype.updateCurPlaying = function(title, artist) {
 	    success: function(data){
 		    var t = data.track;
 		    
+		    // TODO: Use Last.fm data here.
 		    $('#curSong').text(title);
             $('#curArtist').text(artist);
 		    
@@ -363,7 +366,6 @@ Playlist.prototype.onReorder = function(event, ui) {
 
 function cleanSongTitle(title) {
     var newTitle = title.replace(/[\(\[]((feat|ft|produce|instrument|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
-    log('Song title: ' + newTitle);
     return newTitle;
 }
 
@@ -376,7 +378,6 @@ function onYouTubePlayerReady(playerId) {
 }
 
 function onPlayerStateChange(newState) {
-    controller.playerState = newState;
     switch(newState) {
         case 0: // just finished a video
             controller.playNextSong();
@@ -404,10 +405,28 @@ function pauseVideo() {
 
 function playPause() {
     if (ytplayer) {
-        if (controller.playerState == 1) { // playing
+        if (isPlaying()) {
             pauseVideo();
-        } else if (controller.playerState == 2) { // paused
+        } else {
             playVideo();
         }
     }
+}
+
+function isPlaying() {
+    if (ytplayer) {
+        if (ytplayer.getPlayerState() == 1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function isPaused() {
+    if (ytplayer) {
+        if (ytplayer.getPlayerState() == 2) {
+            return true;
+        }
+    }
+    return false;
 }
