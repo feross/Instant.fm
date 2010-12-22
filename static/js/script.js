@@ -8,7 +8,7 @@ var pressedKeys = [];
 /* Onload Event */
 $(function() {
     controller = new Controller(initial_playlist);
-    controller.playlist.render();
+    controller.playlist.renderAll();
     controller.playlist.playSong(0); // Auto-play
     
     setupScrollingListeners();
@@ -16,7 +16,7 @@ $(function() {
     
     $('#keyboardShortcutsAvailable').click(controller.showHelpDialog);
     
-    new uploader('container', null, '/upload', null, controller.updatePlaylist);    
+    new uploader('container', null, '/upload', null, controller.loadPlaylist);    
 });
 
 function setupScrollingListeners() {
@@ -155,21 +155,21 @@ Controller.prototype.showHelpDialog = function() {
 }
 
 /**
- * Controller.updatePlaylist() - Change the playlist based on the xhr response in response
+ * Controller.loadPlaylist() - Change the playlist based on the xhr response in response
  * @response - response body
  */
-Controller.prototype.updatePlaylist = function(response) {
+Controller.prototype.loadPlaylist = function(response) {
     var responseJSON = JSON.parse(response);
     
     if(responseJSON.status != 'ok') {
-        alert(responseJSON.status);
+        log('Error loading playlist: ' + responseJSON.status);
         return;
     }
     
-    console.log(responseJSON.id)
+    log('New playlist created with ID: ' + responseJSON.id);
 
     controller.playlist = new Playlist(responseJSON);
-    controller.playlist.render();
+    controller.playlist.renderAll();
     controller.playlist.playSong(0);
 }
 
@@ -177,14 +177,23 @@ Controller.prototype.updatePlaylist = function(response) {
 /**
  * Instant.fm Playlist
  */
-var Playlist = function(playlist) {
+var Playlist = function(p) {
     if (!playlist) {
         return;
     }
-    this.id          = playlist.id || -1;
-    this.title       = playlist.title;
-    this.description = playlist.description;
-    this.songs       = playlist.songs || [];
+    this.id          = p.id || -1;
+    this.title       = p.title;
+    this.description = p.description;
+    this.songs       = p.songs || [];
+    
+    this.curSongIndex = 0; // Used to track our current position in the playlist
+    this.reorderedSong = false; // Used to distinguish between dragging and clicking
+    
+    var that = this;
+    $('#playlist').mouseup(function(e) {
+        that.reorderedSong = null;
+        log('mouseup: reorderedSong set to: ' + that.reorderedSong);
+    });
 }
 
 /**
@@ -200,22 +209,32 @@ Playlist.prototype.playSong = function(i) {
     var q = s.t + ' ' + s.a;
     controller.playVideoBySearch(q);
  
-    $('.playing').removeClass('playing');
-    $('#song' + i).addClass('playing');
+    $('.playing').toggleClass('playing');
+    $('#song' + i).toggleClass('playing');
     
     $('#curSong').text(s.t);
     $('#curArtist').text(s.a);
-	controller.lastfm.track.getInfo({track: s.t, artist: s.a, autocorrect: 1}, {success: function(data){
-		var t = data.track;
-		if (t && t.album && t.album.image) {
-		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
-		    controller.showAlbumArt(imgSrc, t.album.title);
-		} else {
+    
+    // Fetch data from Last.fm
+	controller.lastfm.track.getInfo({
+	    track: s.t,
+	    artist: s.a,
+	    autocorrect: 1 }, {
+
+	    success: function(data){
+		    var t = data.track;
+    		if (t && t.album && t.album.image) {
+    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
+    		    controller.showAlbumArt(imgSrc, t.album.title);
+    		} else {
+    		    controller.showAlbumArt(null);
+    		}
+	    },
+	    
+	    error: function(code, message) {
 		    controller.showAlbumArt(null);
 		}
-	}, error: function(code, message){
-		controller.showAlbumArt(null);
-	}});
+	});
 }
 
 Playlist.prototype.playNextSong = function() {
@@ -228,23 +247,97 @@ Playlist.prototype.playPrevSong = function() {
 
 
 /**
- * Playlist.render() - Updates the playlist table
+ * Playlist.renderAll() - Updates the playlist table
  */
-Playlist.prototype.render = function() {
+Playlist.prototype.renderAll = function() {
     $('#curPlaylistTitle').text(this.title);
     $('#curPlaylistDesc').text(this.description);
+    // TODO: Insert a new Facebook Like button here using JS
     
-    $('.song').remove();
+    $('#playlist li').remove(); // clear the playlist
+    
     $.each(this.songs, function(i, v) {
-        $('<tr class="song pointer" id="song'+i+'"><td class="icon">&nbsp;</td> <td class="title">'+v.t+'</td><td class="artist">'+v.a+'</td></tr>').appendTo('#playlist');
+        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>')
+            .appendTo('#playlist');
     });
     
-    $('.song:odd').addClass('odd');
-    
-    $('.song').click(function(e) {
-        controller.playlist.playSong(parseInt(e.currentTarget.id.substring(4)));
+    var that = this;
+    $('#playlist li').click(function(e) {
+        var songId = parseInt(e.currentTarget.id.substring(4));
+        
+        that.reorderedSong || that.playSong(songId);
     });
+    
+    $('#playlist').sortable({
+        axis: 'y',
+        stop: controller.playlist.onReorder, // drop is finished
+    }).disableSelection();
+    
+    this.renderRowColoring();
 }
+
+/**
+ * Playlist.renderRowColoring() - Recolors the playlist rows
+ */
+Playlist.prototype.renderRowColoring = function() {
+    $('#playlist li')
+        .removeClass('odd')
+        .filter(':odd')
+        .addClass('odd');
+}
+
+/**
+ * Playlist.onReorder() - Called by JQuery UI "Sortable" when a song has been reordered
+ * @event - original browser event
+ * @ui - prepared ui object (see: http://jqueryui.com/demos/sortable/)
+ */
+Playlist.prototype.onReorder = function(event, ui) {
+    // this is 
+    var p = controller.playlist;
+    
+    p.reorderedSong = true; // mark the song as reordered so we don't think it was clicked
+    
+    var oldId = parseInt(ui.item.attr('id').substring(4));
+    var songItem = $('#song'+oldId);
+    var newId = songItem.prevAll().length;
+    
+    if (newId == oldId) {
+        return;
+    }
+
+    // Update model
+    var songData = p.songs[oldId];
+    p.songs.splice(oldId, 1);
+    p.songs.splice(newId, 0, songData);
+    
+    songItem.attr('id', ''); // Remove the reordered song's id to avoid overlap during update
+    
+    // Update all DOM ids to be sequential
+    
+    if (newId < oldId) { // Moved up
+        songItem
+            .nextUntil('#song'+(oldId+1))
+            .each(function(i, e) {
+                $(e).attr('id', 'song' + (newId+i+1) );
+            });
+            
+    } else { // Moved down
+        songItem
+            .prevUntil('#song'+(oldId-1))
+            .each(function(i, e) {
+                $(e).attr('id', 'song' + (newId-i-1) );
+            });
+    }
+    
+    songItem.attr('id', 'song'+newId); // Add back the reordered song's id
+    
+    // If we move the current song, keep our position in the playlist up to date
+    if (oldId == p.curSongIndex) {
+        p.curSongIndex = newId;
+    }
+    
+    p.renderRowColoring();
+};
 
 
 /* Misc YouTube Functions */

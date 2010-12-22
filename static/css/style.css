@@ -136,26 +136,31 @@ h6 { font-size: 14px; }
 
 #playlistDisplay { float: left; width: 480px; }
 
-#playlist { color: #444; font-size: 14px; }
+#playlist { color: #444; font-size: 13px; padding: 0; margin: 0; }
 
-#playlist .icon { width: 40px; }
+#playlist li {
+    background-color: #fff;
+    border-bottom: #D3D3D3 1px solid; 
+    cursor: pointer;
+    list-style-type: none;
+    width: 480px;
+}
+#playlist li.odd { background-color: #f3f6fa; }
 
-#playlist .title { width: 240px; }
-#playlist .artist { width: 200px; }
+#playlist span { display: inline-block; padding: 3px 0; vertical-align: middle; }
+#playlist .title { margin: 1px 0 0 5px; padding: 2px 5px 3px 25px; width: 220px; }
+#playlist .artist { padding: 3px 5px 3px 0; width: 190px; }
+#playlist .handle { padding: 3px 3px 3px 3px; width: 15px; }
 
-#playlist tr { border-bottom: #A3A3A3 1px solid; height: 28px; }
+#playlist li:hover { background-color: #c5defe; }
 
-#playlist th,
-#playlist td { vertical-align: middle; }
+#playlist li:hover .handle {
+    background: transparent url("/images/drag.png") 4px left no-repeat;
+    cursor: url('/images/cursors/move.cur'), move;
+}
 
-#playlist tr { background-color: #eee; }
-#playlist tr.odd { background-color: #ddd; }
-#playlist .song:hover { background-color: #98d0f4;}
-
-#playlist th { background-color: #000; color: #ddd; height: 35px; font-style: italic;}
-
-.playing { font-weight: bold; }
-.playing .icon { background: transparent url("/images/speaker.png") 6px 3px no-repeat; }
+#playlist li.playing { background-color: #3990ea; color: #fff}
+.playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
 
 #videoDiv, #outerVideoDiv { border-bottom: #A3A3A3 1px solid; height: 274px; width: 480px; }
 
@@ -167,9 +172,9 @@ h6 { font-size: 14px; }
 #infoDisplay {
     float: right;
     font-size: 14px;
-    margin: 5px auto;
+    margin: 2px 10px 0 0;
     text-shadow: #000 0px 1px 1px;
-    width: 490px;
+    width: 485px;
 }
 
 #infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; color: #eee; margin: 0 0 12px 0; }
@@ -241,7 +246,7 @@ h6 { font-size: 14px; }
     border-top: #444 1px solid;
     color: #499bd1;
     font-size: 12px;
-    margin: 20px 0 30px 0;
+    margin: 20px 5px 30px 0;
     padding: 15px 0 0 0;
 }
 
