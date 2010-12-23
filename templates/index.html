@@ -63,12 +63,18 @@
           
           <section id="curPlaying">
             <h3>Currently Playing</h3>
-            <div id="curAlbumArt">&nbsp;</div>
-            <div id="curAlbumInfo">
-              <h4 id="curSong">&nbsp;</h4>
-              <h5><span class="curLabel">artist</span> <span id="curArtist">&nbsp;</span></h5>
-              <h5><span class="curLabel">album</span> <span id="curAlbum">&nbsp;</span></h5>
+            <div class="clearfix" id="curAlbumBlock">
+              <div id="curAlbumArt">&nbsp;</div>
+              <div id="curAlbumInfo">
+                <div id="curSong"><span class="curLabel">song</span> <h4>&nbsp;</h4></div>
+                <div id="curArtist"><span class="curLabel">artist</span> <h4>&nbsp;</h4></div>
+                <div id="curAlbum"><span class="curLabel">album</span> <h4>&nbsp;</h4></div>
+              </div>
             </div>
+            <div id="curDescs">
+              <article id="curSongDesc"><h4>&nbsp;</h4> <span>&nbsp;</span></article>
+              <article id="curDesc">&nbsp;</article>
+              <article id="curSongDesc">&nbsp;</article>
           </section>
           
         </section> <!-- end of #songInfo -->

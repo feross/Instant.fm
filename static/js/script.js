@@ -69,7 +69,7 @@ function setupKeyboardListeners() {
 var Controller = function() {
     this.isPlayerInitialized = false; // true, after we've called Controller.initPlayer()
     this.curSongIndex = 0; // Used to track our current position in the playlist
-        
+
     var cache = new LastFMCache();
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
@@ -127,7 +127,7 @@ Controller.prototype.playVideoBySearch = function(q) {
  */
 Controller.prototype.playVideoById = function(id) {
     if (ytplayer) {
-        ytplayer.loadVideoById(id, 0, 'hd720');
+        ytplayer.loadVideoById(id);
     } else {
         if (!this.isPlayerInitialized) {
             this.initPlayer(id);
@@ -170,36 +170,98 @@ Controller.prototype.playPrevSong = function() {
 }
 
 /**
- * Update the currently playing song
+ * Update the currently playing song with Last.fm data
  */
-Controller.prototype.updateCurPlaying = function(title, artist) {
-    // Fetch data from Last.fm
-	this.lastfm.track.getInfo({
-	    track: title,
-	    artist: artist,
-	    autocorrect: 1 }, {
+Controller.prototype.updateCurPlaying = function(t, a) {
+    // Search for track
+    that = this;
+	this.lastfm.track.search({
+	    artist: a,
+	    limit: 1,
+	    track: t
+	}, {
 
 	    success: function(data){
-		    var t = data.track;
-		    
-		    // TODO: Use Last.fm data here.
-		    $('#curSong').text(title);
-            $('#curArtist').text(artist);
-		    
-		    // Update album art
-    		if (t && t.album && t.album.image) {
-    		    imgSrc = t.album.image[t.album.image.length - 1]['#text'];
-    		    controller.showAlbumArt(imgSrc, t.album.title);
-    		} else {
-    		    controller.showAlbumArt(null);
-    		}
+            if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+                this.error('track.search', 'Empty set.');
+                return;
+            }
+            
+            var track = data.results.trackmatches.track;
+            var trackName = track.name || '';
+            var artistName = track.artist || '';
+            var albumSrc = track.image && track.image[track.image.length - 1]['#text'];
+            
+            // Update song title, artist name
+            $('#curSong h4').text(trackName);
+            $('#curArtist h4').text(artistName);
+            
+            // Update album art
+            if (albumSrc) {
+                controller.showAlbumArt(albumSrc);
+            } else {
+                controller.showAlbumArt(null);
+            }
+            
+            // Clear out old values
+            
+            if ($('#curAlbum').css('display') != '0') {
+                $('#curAlbum').fadeOut('fast');
+            }
+            if ($('#curSongDesc').css('display') != '0') {
+                $('#curSongDesc').fadeOut('fast');
+            }
+            
+            // Get detailed track info
+            trackName && artistName && that.lastfm.track.getInfo({
+        	    artist: artistName,
+        	    autocorrect: 1,
+        	    track: trackName
+        	}, {
+        	    
+        	    success: function(data){
+                    if (!data.track) {
+                        this.error('track.getInfo', 'Empty set.');
+                        return;
+                    }
+                                        
+                    var track = data.track;
+                    var artistName = track.artist && track.artist.name;
+                    var albumName = track.album && track.album.title;
+                    var wikiSummary = track.wiki && track.wiki.summary;
+                    var wikiContent = track.wiki && track.wiki.content;
+                    
+                    // Update album name
+                    albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
+                    
+                    // Update album art alt text
+                    var albumAlt = albumName;
+                    albumAlt += artistName ? (' by ' + artistName) : '';
+                    albumName && $('#curAlbumArt').attr('alt', albumAlt);
+                    
+                    // Update song description
+                    if (wikiSummary) {
+                        $('#curSongDesc span').html(cleanHTML(wikiSummary));
+                        $('#curSongDesc h4').text('About ' + track.name);
+                        $('#curSongDesc').fadeIn('fast');
+                    }
+        	    },
+
+        	    error: function(code, message) {
+        	        log(code + ' ' + message);
+        		}
+        	});
 	    },
 	    
 	    error: function(code, message) {
-		    controller.showAlbumArt(null);
+	        log(code + ': ' + message);
+	        $('#curSong').text(title);
+            $('#curArtist').text(artist);
+            controller.showAlbumArt(null);
 		}
 	});
 }
+
 
 /**
  * Update album art to point to given src url
@@ -208,7 +270,7 @@ Controller.prototype.updateCurPlaying = function(title, artist) {
  */
 Controller.prototype.showAlbumArt = function(src, alt) {
     var imgSrc = src || '/images/unknown.png';
-    var imgAlt = alt || 'Album art';
+    var imgAlt = alt || 'Unknown album art';
     
     $('#curAlbumArt')
         .replaceWith($('<img alt="'+imgAlt+'" id="curAlbumArt" src="'+imgSrc+'" />'));
@@ -240,6 +302,8 @@ Controller.prototype.loadPlaylist = function(response) {
     }
     
     log('New playlist created with ID: ' + responseJSON.id);
+    
+    $('#infoDisplay').effect('pulsate');
 
     playlist = new Playlist(responseJSON);
     playlist.renderAll();
@@ -365,8 +429,14 @@ Playlist.prototype.onReorder = function(event, ui) {
 /* Misc last.fm functions */
 
 function cleanSongTitle(title) {
-    var newTitle = title.replace(/[\(\[]((feat|ft|produce|instrument|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
+    var newTitle = title.replace(/[\(\[]((feat|ft|produce|instrument|dirty|clean)|.*?(version|edit|radio)).*?[\)\]]/gi, '');
     return newTitle;
+}
+
+// Remove HTML tags (http://bit.ly/DdoNo)
+function cleanHTML(html) {
+    var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');
+    return html.replace(r, '');
 }
 
 /* Misc YouTube Functions */
@@ -374,10 +444,10 @@ function cleanSongTitle(title) {
 // Automatically called when player is ready
 function onYouTubePlayerReady(playerId) {
     ytplayer = document.getElementById("ytPlayer");
-    ytplayer.addEventListener("onStateChange", "onPlayerStateChange");
+    ytplayer.addEventListener("onStateChange", "onStateChange");
 }
 
-function onPlayerStateChange(newState) {
+function onStateChange(newState) {
     switch(newState) {
         case 0: // just finished a video
             controller.playNextSong();

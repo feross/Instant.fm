@@ -101,9 +101,9 @@ body {
 h1 { font-size: 34px; margin: 0 0 12px 0; }
 h2 { font-size: 28px; margin: 0 0 10px 0; }
 h3 { font-size: 22px; margin: 0 0 8px 0; }
-h4 { font-size: 18px; margin: 0 0 6px 0; }
-h5 { font-size: 16px; margin: 0 0 4px 0; }
-h6 { font-size: 14px; }
+h4 { font-size: 16px; margin: 0 0 7px 0; }
+h5 { font-size: 14px; margin: 0 0 4px 0; }
+h6 { font-size: 12px; }
 
 #container { margin: 25px auto; text-align: left; width: 1000px; }
 
@@ -195,7 +195,17 @@ h6 { font-size: 14px; }
 
 #curPlaying { margin: 20px 0 0 0; }
 
-.curLabel { color: #666; font-size: 12px; font-style: italic; margin: 0 5px 0 0;}
+.curLabel {
+    color: #666;
+    display: inline-block;
+    font-size: 12px;
+    font-style: italic;
+    margin: 0 5px 0 0;
+    overflow: hidden;
+    text-align: right;
+    width: 35px;
+    vertical-align: middle;
+}
 
 #curAlbumArt {
     -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
@@ -208,6 +218,13 @@ h6 { font-size: 14px; }
 
 #curAlbumInfo { float: left; width: 320px; }
 
+#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; width: 260px; }
+
+#curAlbum { display: 0; /* starting value */ }
+
+#curDescs { margin: 25px 0 0 0; }
+
+#curSongDesc { clear: left; }
 
 /* Comments */
 
