@@ -69,6 +69,7 @@ function setupKeyboardListeners() {
 var Controller = function() {
     this.isPlayerInitialized = false; // true, after we've called Controller.initPlayer()
     this.curSongIndex = 0; // Used to track our current position in the playlist
+    this.openDialog; // Used to track the currently open dialog, so we don't open 2 at once
 
     var cache = new LastFMCache();
 	this.lastfm = new LastFM({
@@ -203,8 +204,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                 controller.showAlbumArt(null);
             }
             
-            // Clear out old values
-            
+            // Hide old values with animation
             if ($('#curAlbum').css('display') != '0') {
                 $('#curAlbum').fadeOut('fast');
             }
@@ -241,10 +241,47 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update song description
                     if (wikiSummary) {
-                        $('#curSongDesc span').html(cleanHTML(wikiSummary));
+                        $('#curSongDesc div').html(cleanSongSummary(wikiSummary));
                         $('#curSongDesc h4').text('About ' + track.name);
                         $('#curSongDesc').fadeIn('fast');
                     }
+                    
+                    // Add link to longer description
+                    if (wikiContent) {
+                        $('<a class="seeMore" href="#seeMore">(see more)</a>')
+                            .data('title', 'About ' + track.name)
+                            .data('content', cleanHTML(wikiContent))
+                            .click(controller.showSeeMore)
+                            .appendTo('#curSongDesc div');
+                    }
+        	    },
+
+        	    error: function(code, message) {
+        	        log(code + ' ' + message);
+        		}
+        	});
+        	
+        	// Get detailed artist info
+        	artistName && that.lastfm.artist.getInfo({
+        	    artist: artistName,
+        	    autocorrect: 1
+        	}, {
+        	    
+        	    success: function(data){
+        	        log(data);
+        	        
+        	        // TODO: Not finished yet.
+                    // if (!data.track) {
+                    //     this.error('track.getInfo', 'Empty set.');
+                    //     return;
+                    // }
+                    //                     
+                    // var track = data.track;
+                    // var artistName = track.artist && track.artist.name;
+                    // var albumName = track.album && track.album.title;
+                    // var wikiSummary = track.wiki && track.wiki.summary;
+                    // var wikiContent = track.wiki && track.wiki.content;
+                    
         	    },
 
         	    error: function(code, message) {
@@ -254,7 +291,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
 	    },
 	    
 	    error: function(code, message) {
-	        log(code + ': ' + message);
+	        log(code + ' ' + message);
 	        $('#curSong').text(title);
             $('#curArtist').text(artist);
             controller.showAlbumArt(null);
@@ -280,15 +317,44 @@ Controller.prototype.showAlbumArt = function(src, alt) {
  * Open dialog that shows keyboard shortcuts
  */
 Controller.prototype.showHelpDialog = function() {
+    event.preventDefault();
+    
+    this.openDialog && this.openDialog.dialog('close');
     var dialog = $('#help').dialog({
         autoOpen: false,
+        close : function() { controller.openDialog = null; },
         draggable: false,
         resizable: false,
         title: 'Keyboard Shortcuts',
     });
     dialog.dialog('open');
+    this.openDialog = dialog;
 }
 
+// Open dialog that shows more information about a song, album, or artist
+// @event - the triggering event
+Controller.prototype.showSeeMore = function(event) {
+    event.preventDefault();
+
+    var elem = $(event.currentTarget);
+    var title = elem.data('title');
+    var content = elem.data('content');
+    
+    controller.openDialog && controller.openDialog.dialog('close');
+    var dialog = $('<div class="textDialog"></div>')
+        .html(content)
+        .dialog({
+            autoOpen: false,
+            close : function() { controller.openDialog = null; },
+            draggable: false,
+            resizable: false,
+            title: title,
+            width: 650
+        });
+    dialog.dialog('open');
+    controller.openDialog = dialog;
+}
+ 
 /**
  * Controller.loadPlaylist() - Change the playlist based on the xhr response in response
  * @response - response body
@@ -344,8 +410,7 @@ Playlist.prototype.renderAll = function() {
     $('#playlist li').remove(); // clear the playlist
     
     $.each(this.songs, function(i, v) {
-        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>')
-            .appendTo('#playlist');
+        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>').appendTo('#playlist');
     });
     
     var that = this;
@@ -433,11 +498,24 @@ function cleanSongTitle(title) {
     return newTitle;
 }
 
-// Remove HTML tags (http://bit.ly/DdoNo)
-function cleanHTML(html) {
-    var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');
-    return html.replace(r, '');
+function cleanSongSummary(html) {
+    // Remove song lyrics from song summary
+    pos = html.search(new RegExp('Lyrics?[ \n\r\t]', 'gi'), '');
+    if (pos != -1) {
+        html = html.substring(0, pos);
+    }
+    return cleanHTML(html);
 }
+
+function cleanHTML(html) {
+    // Remove HTML tags (http://bit.ly/DdoNo)
+    var r1 = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');
+        
+    return html
+        .replace(r1, '')
+        .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
+}
+
 
 /* Misc YouTube Functions */
 

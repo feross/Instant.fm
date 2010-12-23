@@ -92,11 +92,9 @@ button {  width: auto; overflow: visible; }
 
 /* Primary Styles */
 
-body {
-    background: #000 url("/images/bg.jpg") 0 0 repeat;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    text-align: center;
-}
+body { background: #000 url("/images/bg.jpg") 0 0 repeat; text-align: center; }
+
+body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
 h1 { font-size: 34px; margin: 0 0 12px 0; }
 h2 { font-size: 28px; margin: 0 0 10px 0; }
@@ -200,7 +198,7 @@ h6 { font-size: 12px; }
     display: inline-block;
     font-size: 12px;
     font-style: italic;
-    margin: 0 5px 0 0;
+    margin: 0 3px 0 0;
     overflow: hidden;
     text-align: right;
     width: 35px;
@@ -222,9 +220,14 @@ h6 { font-size: 12px; }
 
 #curAlbum { display: 0; /* starting value */ }
 
-#curDescs { margin: 25px 0 0 0; }
+#curDescs { margin: 28px 0 0 0; }
 
 #curSongDesc { clear: left; }
+
+.seeMore { font-size: 12px; margin-left: 5px; }
+
+.textDialog { color: #000; margin: 10px 8px 8px 8px; font-size: 13px; line-height: 1.4; text-align: left; }
+
 
 /* Comments */
 
