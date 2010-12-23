@@ -200,9 +200,9 @@ Controller.prototype.updateCurPlaying = function(t, a) {
             // Update album art
             if (albumImg) {
                 // We'll set the alt text once we know the album name
-                controller.showAlbumImg(albumImg, '');
+                controller.updateAlbumImg(albumImg, '');
             } else {
-                controller.showAlbumImg(null);
+                controller.updateAlbumImg(null);
             }
             
             // Hide old values with animation
@@ -255,7 +255,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                         var content = cleanHTML(trackLongDesc);
                         content = highlight(content, [artistName, albumName, track.name]);
                         
-                        var link = Controller.makeSeeMoreLink(track.name, content);
+                        var link = that.makeSeeMoreLink(track.name, content);
                         link.appendTo('#curSongDesc div');
                     }
         	    },
@@ -285,9 +285,9 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update artist image
                     if (artistImg) {
-                        controller.showArtistImg(artistImg);
+                        controller.updateArtistImg(artistImg);
                     } else {
-                        controller.showArtistImg(null);
+                        controller.updateArtistImg(null);
                     }
                     
                     // Update artist summary
@@ -302,7 +302,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                         var content = cleanHTML(artistLongDesc);
                         content = highlight(content, [artistName, trackName]);
                         
-                        var link = Controller.makeSeeMoreLink(artistName, content);
+                        var link = that.makeSeeMoreLink(artistName, content);
                         link.appendTo('#curArtistDesc div');
                     }
         	    },
@@ -317,30 +317,32 @@ Controller.prototype.updateCurPlaying = function(t, a) {
 	        log(code + ' ' + message);
 	        $('#curSong').text(title);
             $('#curArtist').text(artist);
-            controller.showAlbumImg(null);
+            controller.updateAlbumImg(null);
 		}
 	});
 }
 
-Controller.makeSeeMoreLink = function(title, content) {
-    return $('<a class="seeMore" href="#seeMore">(see more)</a>')
+Controller.prototype.makeSeeMoreLink = function(title, content) {
+    return $('<a class="seeMore" href="#seeMore"> (see more)</a>')
         .data('title', 'About ' + title)
         .data('content', content)
-        .click(controller.showSeeMore);
+        .click(controller.showSeeMoreDialog);
 }
-
 
 /**
  * Update album art to point to given src url
  * @src - Image src url. Pass null to show the Unknown Album image.
  * @alt - Image alt text. Defaults to 
  */
-Controller.prototype.showAlbumImg = function(src, alt) {
+Controller.prototype.updateAlbumImg = function(src, alt) {
     var imgSrc = src || '/images/unknown.png';
     var imgAlt = alt || 'Unknown album';
     
+    var img = $('<img alt="'+imgAlt+'" id="curAlbumImg" src="'+imgSrc+'" />')
+        .click(this.showImageDialog);
+    
     $('#curAlbumImg')
-        .replaceWith($('<img alt="'+imgAlt+'" id="curAlbumImg" src="'+imgSrc+'" />'));
+        .replaceWith(img);
 }
 
 /**
@@ -348,14 +350,44 @@ Controller.prototype.showAlbumImg = function(src, alt) {
  * @src - Image src url. Pass nothing for missing artist art image.
  * @alt - Image alt text
  */
-Controller.prototype.showArtistImg = function(src, alt) {
+Controller.prototype.updateArtistImg = function(src, alt) {
     if (src) {
+        var img = $('<img alt="'+alt+'" id="curArtistImg" src="'+src+'" />')
+            .click(this.showImageDialog);
         $('#curArtistImg')
-            .replaceWith($('<img alt="'+alt+'" id="curArtistImg" src="'+src+'" />'));
+            .replaceWith(img);
     } else {
         $('#curArtistImg')
             .replaceWith($('<span id="curArtistImg"></span>'));
     }
+}
+
+Controller.prototype.showDialog = function(contentElem, title, customSettings) {
+    controller.openDialog && controller.openDialog.dialog('close');
+    
+    var settings = {
+        autoOpen: false,
+        close : function() { controller.openDialog = null; },
+        draggable: false,
+        resizable: false,
+        title: title,
+    }
+    var dialog = contentElem.dialog($.extend(settings, customSettings));
+    
+    dialog.dialog('open');
+    this.openDialog = dialog;
+    
+    return dialog;
+}
+
+Controller.prototype.showImageDialog = function(event) {
+    event.preventDefault();
+    
+    var src = $(this).attr('src');
+    var alt = $(this).attr('alt');
+    
+    var content = $('<div><img alt="'+alt+'" src="'+src+'" /></div>');
+    controller.showDialog(content, 'Image');
 }
 
 /**
@@ -363,40 +395,22 @@ Controller.prototype.showArtistImg = function(src, alt) {
  */
 Controller.prototype.showHelpDialog = function() {
     event.preventDefault();
-    
-    this.openDialog && this.openDialog.dialog('close');
-    var dialog = $('#help').dialog({
-        autoOpen: false,
-        close : function() { controller.openDialog = null; },
-        draggable: false,
-        resizable: false,
-        title: 'Keyboard Shortcuts',
-    });
-    dialog.dialog('open');
-    this.openDialog = dialog;
+    this.showDialog($('#help'), 'Keyboard Shortcuts');
 }
 
 // Open dialog that shows more information about a song, album, or artist
 // @event - the triggering event
-Controller.prototype.showSeeMore = function(event) {
+Controller.prototype.showSeeMoreDialog = function(event) {
     event.preventDefault();
 
-    var elem = $(event.currentTarget);
+    var elem = $(this);
     var title = elem.data('title');
     var content = elem.data('content');
     
     controller.openDialog && controller.openDialog.dialog('close');
-    var dialog = $('<div class="textDialog"></div>')
-        .html(content)
-        .dialog({
-            autoOpen: false,
-            close : function() { controller.openDialog = null; },
-            draggable: false,
-            title: title,
-            width: 650
-        });
-    dialog.dialog('open');
-    controller.openDialog = dialog;
+    var content = $('<div class="textDialog"></div>').html(content);
+    
+    controller.showDialog(content, title, { width: 600 });
 }
  
 /**
@@ -459,7 +473,7 @@ Playlist.prototype.renderAll = function() {
     
     var that = this;
     $('#playlist li').click(function(e) {
-        var songId = parseInt(e.currentTarget.id.substring(4));
+        var songId = parseInt(this.id.substring(4));
         
         that.reorderedSong || controller.playSong(songId);
     });
