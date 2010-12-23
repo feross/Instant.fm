@@ -174,7 +174,7 @@ Controller.prototype.playPrevSong = function() {
  * Update the currently playing song with Last.fm data
  */
 Controller.prototype.updateCurPlaying = function(t, a) {
-    // Search for track
+    // 1. Search for track
     that = this;
 	this.lastfm.track.search({
 	    artist: a,
@@ -189,19 +189,20 @@ Controller.prototype.updateCurPlaying = function(t, a) {
             }
             
             var track = data.results.trackmatches.track;
-            var trackName = track.name || '';
-            var artistName = track.artist || '';
-            var albumSrc = track.image && track.image[track.image.length - 1]['#text'];
+            var trackName = track.name || t;
+            var artistName = track.artist || a;
+            var albumImg = track.image && track.image[track.image.length - 1]['#text'];
             
             // Update song title, artist name
             $('#curSong h4').text(trackName);
             $('#curArtist h4').text(artistName);
             
             // Update album art
-            if (albumSrc) {
-                controller.showAlbumArt(albumSrc);
+            if (albumImg) {
+                // We'll set the alt text once we know the album name
+                controller.showAlbumImg(albumImg, '');
             } else {
-                controller.showAlbumArt(null);
+                controller.showAlbumImg(null);
             }
             
             // Hide old values with animation
@@ -211,8 +212,11 @@ Controller.prototype.updateCurPlaying = function(t, a) {
             if ($('#curSongDesc').css('display') != '0') {
                 $('#curSongDesc').fadeOut('fast');
             }
+            if ($('#curArtistDesc').css('display') != '0') {
+                $('#curArtistDesc').fadeOut('fast');
+            }
             
-            // Get detailed track info
+            // 2. Get detailed track info
             trackName && artistName && that.lastfm.track.getInfo({
         	    artist: artistName,
         	    autocorrect: 1,
@@ -228,9 +232,9 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     var track = data.track;
                     var artistName = track.artist && track.artist.name;
                     var albumName = track.album && track.album.title;
-                    var wikiSummary = track.wiki && track.wiki.summary;
-                    var wikiContent = track.wiki && track.wiki.content;
-                    
+                    var trackSummary = track.wiki && track.wiki.summary;
+                    var trackLongDesc = track.wiki && track.wiki.content;
+                                        
                     // Update album name
                     albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
                     
@@ -239,20 +243,20 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     albumAlt += artistName ? (' by ' + artistName) : '';
                     albumName && $('#curAlbumArt').attr('alt', albumAlt);
                     
-                    // Update song description
-                    if (wikiSummary) {
-                        $('#curSongDesc div').html(cleanSongSummary(wikiSummary));
+                    // Update song summary
+                    if (trackSummary) {                        
+                        $('#curSongDesc div').html(cleanSongSummary(trackSummary));
                         $('#curSongDesc h4').text('About ' + track.name);
                         $('#curSongDesc').fadeIn('fast');
                     }
                     
                     // Add link to longer description
-                    if (wikiContent) {
-                        $('<a class="seeMore" href="#seeMore">(see more)</a>')
-                            .data('title', 'About ' + track.name)
-                            .data('content', cleanHTML(wikiContent))
-                            .click(controller.showSeeMore)
-                            .appendTo('#curSongDesc div');
+                    if (trackLongDesc) {
+                        var content = cleanHTML(trackLongDesc);
+                        content = highlight(content, [artistName, albumName, track.name]);
+                        
+                        var link = Controller.makeSeeMoreLink(track.name, content);
+                        link.appendTo('#curSongDesc div');
                     }
         	    },
 
@@ -261,27 +265,46 @@ Controller.prototype.updateCurPlaying = function(t, a) {
         		}
         	});
         	
-        	// Get detailed artist info
+        	// 2. Get detailed artist info
         	artistName && that.lastfm.artist.getInfo({
         	    artist: artistName,
         	    autocorrect: 1
         	}, {
         	    
-        	    success: function(data){
-        	        log(data);
-        	        
-        	        // TODO: Not finished yet.
-                    // if (!data.track) {
-                    //     this.error('track.getInfo', 'Empty set.');
-                    //     return;
-                    // }
-                    //                     
-                    // var track = data.track;
-                    // var artistName = track.artist && track.artist.name;
-                    // var albumName = track.album && track.album.title;
-                    // var wikiSummary = track.wiki && track.wiki.summary;
-                    // var wikiContent = track.wiki && track.wiki.content;
+        	    success: function(data){        	        
+                    if (!data.artist) {
+                        this.error('track.getInfo', 'Empty set.');
+                        return;
+                    }
+                                        
+                    var artist = data.artist;
+                    var artistSummary = artist.bio && artist.bio.summary;
+                    var artistLongDesc = artist.bio && artist.bio.content;
                     
+                    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
+                    
+                    // Update artist image
+                    if (artistImg) {
+                        controller.showArtistImg(artistImg);
+                    } else {
+                        controller.showArtistImg(null);
+                    }
+                    
+                    // Update artist summary
+                    if (artistSummary) {                        
+                        $('#curArtistDesc div').html(cleanHTML(artistSummary));
+                        $('#curArtistDesc h4').text('About ' + artistName);
+                        $('#curArtistDesc').fadeIn('fast');
+                    }
+                    
+                    // Add link to longer description
+                    if (artistLongDesc) {
+                        var content = cleanHTML(artistLongDesc);
+                        content = highlight(content, [artistName, trackName]);
+                        
+                        var link = Controller.makeSeeMoreLink(artistName, content);
+                        link.appendTo('#curArtistDesc div');
+                    }
         	    },
 
         	    error: function(code, message) {
@@ -294,23 +317,45 @@ Controller.prototype.updateCurPlaying = function(t, a) {
 	        log(code + ' ' + message);
 	        $('#curSong').text(title);
             $('#curArtist').text(artist);
-            controller.showAlbumArt(null);
+            controller.showAlbumImg(null);
 		}
 	});
+}
+
+Controller.makeSeeMoreLink = function(title, content) {
+    return $('<a class="seeMore" href="#seeMore">(see more)</a>')
+        .data('title', 'About ' + title)
+        .data('content', content)
+        .click(controller.showSeeMore);
 }
 
 
 /**
  * Update album art to point to given src url
- * @src - Image src url. Pass nothing for missing album art image.
+ * @src - Image src url. Pass null to show the Unknown Album image.
+ * @alt - Image alt text. Defaults to 
+ */
+Controller.prototype.showAlbumImg = function(src, alt) {
+    var imgSrc = src || '/images/unknown.png';
+    var imgAlt = alt || 'Unknown album';
+    
+    $('#curAlbumImg')
+        .replaceWith($('<img alt="'+imgAlt+'" id="curAlbumImg" src="'+imgSrc+'" />'));
+}
+
+/**
+ * Update artist img to point to given src url
+ * @src - Image src url. Pass nothing for missing artist art image.
  * @alt - Image alt text
  */
-Controller.prototype.showAlbumArt = function(src, alt) {
-    var imgSrc = src || '/images/unknown.png';
-    var imgAlt = alt || 'Unknown album art';
-    
-    $('#curAlbumArt')
-        .replaceWith($('<img alt="'+imgAlt+'" id="curAlbumArt" src="'+imgSrc+'" />'));
+Controller.prototype.showArtistImg = function(src, alt) {
+    if (src) {
+        $('#curArtistImg')
+            .replaceWith($('<img alt="'+alt+'" id="curArtistImg" src="'+src+'" />'));
+    } else {
+        $('#curArtistImg')
+            .replaceWith($('<span id="curArtistImg"></span>'));
+    }
 }
 
 /**
@@ -347,7 +392,6 @@ Controller.prototype.showSeeMore = function(event) {
             autoOpen: false,
             close : function() { controller.openDialog = null; },
             draggable: false,
-            resizable: false,
             title: title,
             width: 650
         });
@@ -507,13 +551,21 @@ function cleanSongSummary(html) {
     return cleanHTML(html);
 }
 
+// Prepare Remove all html tags
 function cleanHTML(html) {
-    // Remove HTML tags (http://bit.ly/DdoNo)
-    var r1 = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');
-        
+    var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');   
     return html
-        .replace(r1, '')
+        .replace(r, '') // Remove HTML tags (http://bit.ly/DdoNo)
         .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
+}
+
+function highlight(html, highlight) {
+    $.each(highlight, function(i, e) {
+        if (e) {
+            html = html.replace(e, '<strong>'+e+'</strong>');
+        }
+    });
+    return html;
 }
 
 

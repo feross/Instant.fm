@@ -191,7 +191,7 @@ h6 { font-size: 12px; }
 
 /* Currently Playing Song */
 
-#curPlaying { margin: 20px 0 0 0; }
+#curPlaying { margin: 25px 0 0 0; }
 
 .curLabel {
     color: #666;
@@ -205,14 +205,13 @@ h6 { font-size: 12px; }
     vertical-align: middle;
 }
 
-#curAlbumArt {
+#curAlbumImg, #curArtistImg {
     -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
     border-bottom: transparent 2px solid;
-    float: left;
-    height: 150px;
-    margin: 0 12px 0 0;
     width: 150px;
 }
+#curAlbumImg { float: left; height: 150px; margin: 0 12px 20px 0; }
+#curArtistImg { float: right; margin: 0 0 20px 6px; }
 
 #curAlbumInfo { float: left; width: 320px; }
 
@@ -220,7 +219,9 @@ h6 { font-size: 12px; }
 
 #curAlbum { display: 0; /* starting value */ }
 
-#curDescs { margin: 28px 0 0 0; }
+#curDescs { margin: 20px 0 0 0; }
+
+#curDescs article { margin: 25px 0 0 0; }
 
 #curSongDesc { clear: left; }
 
