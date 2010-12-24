@@ -58,7 +58,7 @@ View.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist li').click(function(event) {
         var songId = parseInt($(this).attr('id').substring(4));
-        this.reorderedSong || controller.playSong(songId);
+        view.reorderedSong || controller.playSong(songId);
     });
     
     $('#playlist').sortable({
@@ -96,9 +96,7 @@ View.prototype.onReorder = function(event, ui) {
         return; // song didn't move
     }
 
-    // Tell the model that a song moved
-    // Note: It's acceptable that the View talks to the Model here.
-    model.moveSong(oldId, newId);
+    controller.moveSong(oldId, newId);
     
     songItem.attr('id', ''); // Remove the reordered song's id to avoid overlap during update
     
@@ -108,14 +106,14 @@ View.prototype.onReorder = function(event, ui) {
         songItem
             .nextUntil('#song'+(oldId+1))
             .each(function(index, element) {
-                $(element).attr('id', 'song' + (newId+i+1) );
+                $(element).attr('id', 'song' + (newId+index+1) );
             });
             
     } else { // Moved down
         songItem
             .prevUntil('#song'+(oldId-1))
             .each(function(index, element) {
-                $(element).attr('id', 'song' + (newId-i-1) );
+                $(element).attr('id', 'song' + (newId-index-1) );
             });
     }
     

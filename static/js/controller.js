@@ -39,9 +39,9 @@ Controller.prototype.loadPlaylist = function(response) {
 Controller.prototype.loadPlaylistById = function(id) {
     var the_url = '/p/'+id+'/json';
     $.ajax({
-        type: "GET",
+        dataType: 'json',
+        type: 'GET',
         url: the_url,
-        dataType: "json",
         success: function(responseData, textStatus, XMLHttpRequest) {
             controller.loadPlaylist(responseData);
         }
@@ -83,11 +83,10 @@ Controller.prototype.playPrevSong = function() {
 // Play top video for given search query
 Controller.prototype.playSongBySearch = function(q) {
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
-
     $.ajax({
-        type: "GET",
+        dataType: 'jsonp',
+        type: 'GET',
         url: the_url,
-        dataType: "jsonp",
         success: function(responseData, textStatus, XMLHttpRequest) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
@@ -98,6 +97,24 @@ Controller.prototype.playSongBySearch = function(q) {
         }
     });
 };
+
+// Move song in the playlist
+// @oldIndex - old playlist position
+// @newIndex - new playlist position
+Controller.prototype.moveSong = function(oldIndex, newIndex) {
+    model.moveSong(oldIndex, newIndex);
+    
+    var the_url = '/p/'+model.playlistId+'/edit';
+    $.ajax({
+        data: '&songs='+encodeURIComponent(JSON.stringify(model.songs)),
+        dataType: 'json',
+        type: 'POST',
+        url: the_url,
+        success: function(responseData, textStatus, XMLHttpRequest) {
+            log(responseData);
+        }
+    });
+}
 
 // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
 // If there is saved state, load the correct playlist.
