@@ -136,6 +136,10 @@ h6 { font-size: 12px; }
 
 #playlistDisplay { float: left; width: 480px; }
 
+#videoDiv, #outerVideoDiv { border-bottom: #A3A3A3 1px solid; height: 295px; width: 480px; }
+
+#videoDiv { position: fixed; }
+
 #playlist { color: #444; font-size: 13px; padding: 0; margin: 0; }
 
 #playlist li {
@@ -158,14 +162,13 @@ h6 { font-size: 12px; }
     background: transparent url("/images/drag.png") 4px left no-repeat;
     cursor: url('/images/cursors/move.cur'), move;
 }
+.sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
 
 #playlist li.playing { background-color: #3990ea; color: #fff}
 .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
 .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }
 
-#videoDiv, #outerVideoDiv { border-bottom: #A3A3A3 1px solid; height: 295px; width: 480px; }
-
-#videoDiv { position: fixed; }
+#playlist .ui-sortable-helper { border: #3990ea 1px solid; }
 
 
 /* Info Display (right) */
