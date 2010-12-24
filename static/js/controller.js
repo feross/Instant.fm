@@ -9,15 +9,16 @@ var pressedKeys = [];
 /* Onload Event */
 $(function() {
     controller = new Controller();
-    playlist = new Playlist(initial_playlist);
     
-    playlist.renderAll();
-    controller.playSong(0); // Auto-play
+    controller.loadPlaylist($.extend(initial_playlist, {status: 'ok'}));
     
     setupScrollingListeners();
     setupKeyboardListeners();
     
     $('#keyboardShortcutsAvailable').click(controller.showHelpDialog);
+    
+    // Respond to a popstate event.
+    window.onpopstate = onPopState;
     
     new uploader('container', null, '/upload', null, controller.loadPlaylist);    
 });
@@ -36,10 +37,9 @@ function setupScrollingListeners() {
 
 function setupKeyboardListeners() {
     var SHIFT = 16;
-    $(window).keydown(function(e) {
-        var k = e.keyCode;
+    $(window).keydown(function(event) {
+        var k = event.keyCode;
         pressedKeys.push(k);
-        
         
         if (k == 39 || k == 40) { // down, right
             controller.playNextSong();
@@ -52,10 +52,10 @@ function setupKeyboardListeners() {
         } else {
             return true; // default event
         }
-        return false; // prevent default event
+        event.preventDefault(); // prevent default event
     });
     $(window).keyup(function(e) {
-        jQuery.grep(pressedKeys, function(value) {
+        $.grep(pressedKeys, function(value) {
             return value != e.keyCode;
         });
     });
@@ -68,8 +68,9 @@ function setupKeyboardListeners() {
  */
 var Controller = function() {
     this.isPlayerInitialized = false; // true, after we've called Controller.initPlayer()
-    this.curSongIndex = 0; // Used to track our current position in the playlist
-    this.openDialog; // Used to track the currently open dialog, so we don't open 2 at once
+    this.playlistId; // The currently loaded playlist
+    this.songIndex; // The current position in the playlist
+    this.openDialog; // The currently open dialog, so we don't open 2 at once
 
     var cache = new LastFMCache();
 	this.lastfm = new LastFM({
@@ -77,7 +78,7 @@ var Controller = function() {
 		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
 		cache     : cache
 	});
-}
+};
 
 /**
  * Initialize the YouTube player
@@ -97,7 +98,38 @@ Controller.prototype.initPlayer = function(firstVideoId) {
     "&fs=1&hd=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1" +
     "&color1=0xFFFFFF&color2=0xFFFFFF",
     "player", "480", "295", "8", null, null, params, atts);
-}
+};
+
+/**
+ * Controller.loadPlaylist() - Change the playlist based on the xhr response in response
+ * @response - response body
+ */
+Controller.prototype.loadPlaylist = function(responseJSON) {
+    
+    if ($.isPlainObject(responseJSON)) { // initial playlist (embedded)
+        var response = responseJSON;
+        
+    } else { // loaded dynamically
+        var response = $.parseJSON(responseJSON);
+    
+        if(response.status != 'ok') {
+            log('Error loading playlist: ' + response.status);
+            return;
+        }
+        
+        setState({playlistId: response.id}, response.title, '/p/'+response.id);
+        $('#infoDisplay').effect('pulsate');
+        
+    }
+    
+    playlist = new Playlist(response);
+    controller.playSong(0);
+    log('Loaded playlist: ' + controller.playlistId);
+};
+
+Controller.prototype.loadPlaylistById = function(playlistId) {
+    
+};
 
 /**
  * Play top video for given search query
@@ -120,7 +152,7 @@ Controller.prototype.playVideoBySearch = function(q) {
             }
         }
     });
-}
+};
 
 /**
  * Play video with given Id
@@ -134,7 +166,7 @@ Controller.prototype.playVideoById = function(id) {
             this.initPlayer(id);
         }
     }
-}
+};
 
 /**
  * Play a song by index
@@ -144,7 +176,7 @@ Controller.prototype.playSong = function(i) {
     if (i < 0 || i >= playlist.songs.length) {
         return;
     }
-    this.curSongIndex = i;
+    this.songIndex = i;
     var s = playlist.songs[i];
     var q = cleanSongTitle(s.t) + ' ' + s.a;
     this.playVideoBySearch(q);
@@ -153,27 +185,38 @@ Controller.prototype.playSong = function(i) {
     $('#song' + i).toggleClass('playing');
     
     this.updateCurPlaying(cleanSongTitle(s.t), s.a);
-}
+};
 
 /**
  * Play next song in the playlist
  */
 Controller.prototype.playNextSong = function() {
-    this.playSong(++this.curSongIndex);
-    
-}
+    this.playSong(++this.songIndex);
+};
 
 /**
  * Play prev song in the playlist
  */
 Controller.prototype.playPrevSong = function() {
-    this.playSong(--this.curSongIndex);
-}
+    this.playSong(--this.songIndex);
+};
 
 /**
  * Update the currently playing song with Last.fm data
  */
 Controller.prototype.updateCurPlaying = function(t, a) {
+    var hide = function() {
+        if ($('#curAlbum').css('display') != '0') {
+            $('#curAlbum').fadeOut('fast');
+        }
+        if ($('#curSongDesc').css('display') != '0') {
+            $('#curSongDesc').fadeOut('fast');
+        }
+        if ($('#curArtistDesc').css('display') != '0') {
+            $('#curArtistDesc').fadeOut('fast');
+        }
+    };
+    
     // 1. Search for track
     that = this;
 	this.lastfm.track.search({
@@ -206,15 +249,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
             }
             
             // Hide old values with animation
-            if ($('#curAlbum').css('display') != '0') {
-                $('#curAlbum').fadeOut('fast');
-            }
-            if ($('#curSongDesc').css('display') != '0') {
-                $('#curSongDesc').fadeOut('fast');
-            }
-            if ($('#curArtistDesc').css('display') != '0') {
-                $('#curArtistDesc').fadeOut('fast');
-            }
+            hide();
             
             // 2. Get detailed track info
             trackName && artistName && that.lastfm.track.getInfo({
@@ -245,7 +280,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update song summary
                     if (trackSummary) {                        
-                        $('#curSongDesc div').html(cleanSongSummary(trackSummary));
+                        $('#curSongDesc div').html(cleanHTML(trackSummary));
                         $('#curSongDesc h4').text('About ' + track.name);
                         $('#curSongDesc').fadeIn('fast');
                     }
@@ -315,19 +350,20 @@ Controller.prototype.updateCurPlaying = function(t, a) {
 	    
 	    error: function(code, message) {
 	        log(code + ' ' + message);
-	        $('#curSong').text(title);
-            $('#curArtist').text(artist);
+	        $('#curSong h4').text(t);
+            $('#curArtist h4').text(a);
             controller.updateAlbumImg(null);
+            hide();
 		}
 	});
-}
+};
 
 Controller.prototype.makeSeeMoreLink = function(title, content) {
     return $('<a class="seeMore" href="#seeMore"> (see more)</a>')
         .data('title', 'About ' + title)
         .data('content', content)
         .click(controller.showSeeMoreDialog);
-}
+};
 
 /**
  * Update album art to point to given src url
@@ -343,7 +379,7 @@ Controller.prototype.updateAlbumImg = function(src, alt) {
     
     $('#curAlbumImg')
         .replaceWith(img);
-}
+};
 
 /**
  * Update artist img to point to given src url
@@ -360,7 +396,7 @@ Controller.prototype.updateArtistImg = function(src, alt) {
         $('#curArtistImg')
             .replaceWith($('<span id="curArtistImg"></span>'));
     }
-}
+};
 
 Controller.prototype.showDialog = function(contentElem, title, customSettings) {
     controller.openDialog && controller.openDialog.dialog('close');
@@ -378,7 +414,7 @@ Controller.prototype.showDialog = function(contentElem, title, customSettings) {
     this.openDialog = dialog;
     
     return dialog;
-}
+};
 
 Controller.prototype.showImageDialog = function(event) {
     event.preventDefault();
@@ -388,15 +424,15 @@ Controller.prototype.showImageDialog = function(event) {
     
     var content = $('<div><img alt="'+alt+'" src="'+src+'" /></div>');
     controller.showDialog(content, 'Image');
-}
+};
 
 /**
  * Open dialog that shows keyboard shortcuts
  */
 Controller.prototype.showHelpDialog = function() {
     event.preventDefault();
-    this.showDialog($('#help'), 'Keyboard Shortcuts');
-}
+    controller.showDialog($('#help'), 'Keyboard Shortcuts');
+};
 
 // Open dialog that shows more information about a song, album, or artist
 // @event - the triggering event
@@ -411,28 +447,7 @@ Controller.prototype.showSeeMoreDialog = function(event) {
     var content = $('<div class="textDialog"></div>').html(content);
     
     controller.showDialog(content, title, { width: 600 });
-}
- 
-/**
- * Controller.loadPlaylist() - Change the playlist based on the xhr response in response
- * @response - response body
- */
-Controller.prototype.loadPlaylist = function(response) {
-    var responseJSON = JSON.parse(response);
-    
-    if(responseJSON.status != 'ok') {
-        log('Error loading playlist: ' + responseJSON.status);
-        return;
-    }
-    
-    log('New playlist created with ID: ' + responseJSON.id);
-    
-    $('#infoDisplay').effect('pulsate');
-
-    playlist = new Playlist(responseJSON);
-    playlist.renderAll();
-    controller.playSong(0);
-}
+};
 
 
 /**
@@ -451,11 +466,9 @@ var Playlist = function(p) {
     
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     
-    var that = this;
-    $('#playlist').mouseup(function(e) {
-        that.reorderedSong = null; // we're done dragging now
-    });
-}
+    this.renderAll();
+    controller.playlistId = this.id;
+};
 
 /**
  * Playlist.renderAll() - Updates the playlist table
@@ -480,11 +493,15 @@ Playlist.prototype.renderAll = function() {
     
     $('#playlist').sortable({
         axis: 'y',
-        stop: playlist.onReorder, // drop is finished
+        stop: playlist.onReorder,
     }).disableSelection();
     
+    $('#playlist').mouseup(function(e) {
+        that.reorderedSong = null; // we're done dragging now
+    });
+    
     this.renderRowColoring();
-}
+};
 
 /**
  * Playlist.renderRowColoring() - Recolors the playlist rows
@@ -494,7 +511,7 @@ Playlist.prototype.renderRowColoring = function() {
         .removeClass('odd')
         .filter(':odd')
         .addClass('odd');
-}
+};
 
 /**
  * Playlist.onReorder() - Called by JQuery UI "Sortable" when a song has been reordered
@@ -542,8 +559,8 @@ Playlist.prototype.onReorder = function(event, ui) {
     songItem.attr('id', 'song'+newId); // Add back the reordered song's id
     
     // If we move the current song, keep our position in the playlist up to date
-    if (oldId == p.curSongIndex) {
-        p.curSongIndex = newId;
+    if (oldId == controller.songIndex) {
+        controller.songIndex = newId;
     }
     
     p.renderRowColoring();
@@ -554,15 +571,6 @@ Playlist.prototype.onReorder = function(event, ui) {
 function cleanSongTitle(title) {
     var newTitle = title.replace(/[\(\[]((feat|ft|produce|instrument|dirty|clean)|.*?(version|edit|radio)).*?[\)\]]/gi, '');
     return newTitle;
-}
-
-function cleanSongSummary(html) {
-    // Remove song lyrics from song summary
-    pos = html.search(new RegExp('Lyrics?[ \n\r\t]', 'gi'), '');
-    if (pos != -1) {
-        html = html.substring(0, pos);
-    }
-    return cleanHTML(html);
 }
 
 // Prepare Remove all html tags
@@ -582,6 +590,10 @@ function highlight(html, highlight) {
     return html;
 }
 
+// Push the state onto the history stack
+function setState(state, title, url) {
+  window.history.pushState(state, title || '', url || undefined);
+}
 
 /* Misc YouTube Functions */
 
@@ -602,6 +614,15 @@ function onStateChange(newState) {
         case 2: // paused
             $('.playing').toggleClass('paused', true);
             break;
+    }
+}
+
+function onPopState(event) {
+    var state = event.state;
+    log(state);
+    
+    if (state) {
+        controller.loadPlaylistById(parseInt(state.playlistId));
     }
 }
 
