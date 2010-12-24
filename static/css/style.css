@@ -180,7 +180,7 @@ h6 { font-size: 12px; }
 #infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; }
 
 
-/* Current Playlist Information */
+/* Current Playlist Info */
 
 #curPlaylist footer { margin: 12px 0 0 0; }
 
@@ -189,9 +189,11 @@ h6 { font-size: 12px; }
 #curPlaylistAuthor img { float: left; height: 25px; width: 25px; }
 
 
-/* Currently Playing Song */
+/* Current Song Info */
 
 #curPlaying { margin: 25px 0 0 0; }
+
+#curAlbumBlock { margin: 15px 0 0 0; }
 
 .curLabel {
     color: #666;

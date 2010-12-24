@@ -1,17 +1,12 @@
-var playlist; // ??
-
 var model;
 var view;
 var controller;
 
 var settings = {
-    fancyZoom : {
-        closeOnClick: true,
-        directory: '/images/fancyzoom',
-    },
+    fancyZoom : { closeOnClick: true, directory: '/images/fancyzoom' },
 };
 
-/* Onload Event */
+// Onload event
 $(function() {
     view = new View();
     model = new Model();
@@ -66,64 +61,4 @@ function setupKeyboardListeners() {
         });
     });
 }
-
-
-/* Utility functions */
-
-// Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
-function cleanSongTitle(title) {
-    return title.replace(/[\(\[]((feat|ft|produce|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
-}
-
-// Prepare Remove all html tags
-function cleanHTML(html) {
-    var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');   
-    return html
-        .replace(r, '') // Remove HTML tags (http://bit.ly/DdoNo)
-        .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
-}
-
-// Highlight all occurances of given search strings in HTML code
-// @html - the HTML to search
-// @searchArr - the array of strings to search for
-// @highlight - html element to surround the matches with (defaults to 'strong')
-function highlightHTML(html, searchArr, highlight) {
-    highlight = highlight || 'strong';
-    $.each(searchArr, function(index, value) {
-        if (value) {
-            html = html.replace(value, '<'+highlight+'>'+value+'</'+highlight+'>');
-        }
-    });
-    return html;
-}
-
-function makeSeeMoreLink(title, content) {
-    return $('<a class="seeMore" href="#seeMore"> (see more)</a>')
-        .data('content', content)
-        .click(view.showSeeMoreText);
-}
-
-function makeFancyZoomLink() {
-    
-}
-
-// Make a fancyZoom image
-// @thumbId - id of the thumbnail image
-// @src - src of the image (same for thumbnail and large)
-// @alt - image alt text
-// Note: This function expects an empty div in the page with the id thumbId+'Large'
-function makeFancyZoomImg(thumbId, src, alt) {
-    var imgLarge = $('<img alt="'+alt+'" src="'+src+'" />');
-    $('#'+thumbId+'Large').empty().append(imgLarge);
-    
-    var img = $('<a href="#'+thumbId+'Large" title="'+alt+'"></a>')
-        .append('<img alt="'+alt+'" id="'+thumbId+'" src="'+src+'" />')
-        .fancyZoom($.extend({}, settings.fancyZoom, { scaleImg: true }));
-    
-    return img;
-}
-
-
-
-
 

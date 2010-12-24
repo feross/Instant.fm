@@ -1,5 +1,4 @@
 var Controller = function() {
-    this.playlistId; // Current loaded playlist
     this.songIndex; // Current position in the playlist
     this.pressedKeys = []; // Current pressed keys
 
@@ -13,14 +12,14 @@ var Controller = function() {
 };
 
 // Load a playlist based on the xhr response or the initial embedded playlist
-// @responseJSON - response body
-Controller.prototype.loadPlaylist = function(responseJSON) {
-    if ($.isPlainObject(responseJSON)) { // playlist is embedded in html        
-        var response = responseJSON;
+// @response - response body
+Controller.prototype.loadPlaylist = function(response) {
+    if ($.isPlainObject(response)) { // playlist is embedded in html
+        var playlist = response;
         window.history.replaceState({playlistId: response.id}, response.title, '/p/'+response.id);
 
     } else { // playlist is from xhr response      
-        var response = $.parseJSON(responseJSON);
+        var playlist = $.parseJSON(response);
         if(response.status != 'ok') {
             log('Error loading playlist: ' + response.status);
             return;
@@ -29,9 +28,11 @@ Controller.prototype.loadPlaylist = function(responseJSON) {
         $('#infoDisplay').effect('pulsate');        
     }
     
-    playlist = new Playlist(response);
-    controller.playSong(0);
-    log('Loaded playlist: ' + controller.playlistId);
+    model.updatePlaylist(playlist);
+    view.renderPlaylist(playlist);
+    
+    this.playSong(0);
+    log('Loaded playlist: ' + response.id);
 };
 
 // Load a playlist with the given id
@@ -42,8 +43,8 @@ Controller.prototype.loadPlaylistById = function(id) {
 // Play a song at the given playlist index
 Controller.prototype.playSong = function(i) {
     this.songIndex = i;
-    var song = playlist.songs[i];
-    var title = cleanSongTitle(song.t);
+    var song = model.songs[i];
+    var title = Controller.cleanSongTitle(song.t);
     var artist = song.a;
     
     var q = title + ' ' + artist;
@@ -57,7 +58,7 @@ Controller.prototype.playSong = function(i) {
 
 // Play next song in the playlist
 Controller.prototype.playNextSong = function() {
-    if (this.songIndex == playlist.songs.length - 1) {
+    if (this.songIndex == model.songs.length - 1) {
         return;
     }
     this.playSong(++this.songIndex);
@@ -173,17 +174,15 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update song summary
                     if (trackSummary) {                        
-                        $('#curSongDesc div').html(cleanHTML(trackSummary));
+                        $('#curSongDesc div').html(Controller.cleanHTML(trackSummary));
                         $('#curSongDesc h4').text('About ' + track.name);
                         $('#curSongDesc').fadeIn('fast');
                     }
                     
                     // Add link to longer description
                     if (trackLongDesc) {
-                        var content = cleanHTML(trackLongDesc);
-                        content = highlightHTML(content, [artistName, albumName, track.name]);
-                        
-                        var link = makeSeeMoreLink(track.name, content);
+                        var content = Controller.cleanHTML(trackLongDesc);                        
+                        var link = Controller.makeSeeMoreLink(track.name, content);
                         link.appendTo('#curSongDesc div');
                     }
         	    },
@@ -215,17 +214,15 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update artist summary
                     if (artistSummary) {                        
-                        $('#curArtistDesc div').html(cleanHTML(artistSummary));
+                        $('#curArtistDesc div').html(Controller.cleanHTML(artistSummary));
                         $('#curArtistDesc h4').text('About ' + artistName);
                         $('#curArtistDesc').fadeIn('fast');
                     }
                     
                     // Add link to longer description
                     if (artistLongDesc) {
-                        var content = cleanHTML(artistLongDesc);
-                        content = highlightHTML(content, [artistName, trackName]);
-                        
-                        var link = makeSeeMoreLink(artistName, content);
+                        var content = Controller.cleanHTML(artistLongDesc);                        
+                        var link = Controller.makeSeeMoreLink(artistName, content);
                         link.appendTo('#curArtistDesc div');
                     }
         	    },
@@ -250,7 +247,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
 /* Player Events */
 
 function onYouTubePlayerReady(playerId) {
-    view.player = document.getElementById("ytPlayer");
+    view.player = document.getElementById(playerId);
     view.player.addEventListener("onStateChange", "onYouTubePlayerStateChange");
 }
 
@@ -266,4 +263,26 @@ function onYouTubePlayerStateChange(newState) {
             $('.playing').toggleClass('paused', true);
             break;
     }
+}
+
+
+/* Static functions */
+
+// Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
+Controller.cleanSongTitle = function(title) {
+    return title.replace(/[\(\[]((feat|ft|produce|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
+};
+
+// Prepare Remove all html tags
+Controller.cleanHTML = function(html) {
+    var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');   
+    return html
+        .replace(r, '') // Remove HTML tags (http://bit.ly/DdoNo)
+        .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
+};
+
+Controller.makeSeeMoreLink = function(title, content) {
+    return $('<a class="seeMore" href="#seeMore"> (see more)</a>')
+        .data('content', content)
+        .click(view.showSeeMoreText);
 }
