@@ -47,7 +47,7 @@ function setupKeyboardListeners() {
         } else if (k == 37 || k == 38) { // up, left
             controller.playPrevSong();
         } else if (k == 32) { // space
-            playPause();
+            view.playPause();
         } else if (k == 191 && $.inArray(SHIFT, controller.pressedKeys) > -1) { // ?
             $('#helpLink').click();
         } else {

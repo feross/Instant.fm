@@ -172,10 +172,10 @@ View.prototype.playPause = function() {
     if (!this.player) {
         return;
     }
-    if (isPlaying()) {
-        pauseVideo();
+    if (this.isPlaying()) {
+        this.pauseVideo();
     } else {
-        playVideo();
+        this.playVideo();
     }
 };
 
@@ -208,7 +208,7 @@ View.makeFancyZoomImg = function(thumbId, src, alt) {
     var imgLarge = $('<img alt="'+alt+'" src="'+src+'" />');
     $('#'+thumbId+'Large').empty().append(imgLarge);
     
-    var img = $('<a href="#'+thumbId+'Large" title="'+alt+'"></a>')
+    var img = $('<a href="#'+thumbId+'Large"></a>')
         .append('<img alt="'+alt+'" id="'+thumbId+'" src="'+src+'" />')
         .fancyZoom($.extend({}, settings.fancyZoom, { scaleImg: true }));
     

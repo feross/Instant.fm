@@ -16,28 +16,36 @@ var Controller = function() {
 Controller.prototype.loadPlaylist = function(response) {
     if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
-        window.history.replaceState({playlistId: response.id}, response.title, '/p/'+response.id);
+        window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
 
     } else { // playlist is from xhr response      
         var playlist = $.parseJSON(response);
-        if(response.status != 'ok') {
-            log('Error loading playlist: ' + response.status);
+        if(playlist.status != 'ok') {
+            log('Error loading playlist: ' + playlist.status);
             return;
         }
-        window.history.pushState({playlistId: response.id}, response.title, '/p/'+response.id);
+        window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
         $('#infoDisplay').effect('pulsate');        
     }
     
     model.updatePlaylist(playlist);
     view.renderPlaylist(playlist);
     
-    this.playSong(0);
-    log('Loaded playlist: ' + response.id);
+    controller.playSong(0);
+    log('Loaded playlist: ' + playlist.id);
 };
 
 // Load a playlist with the given id
 Controller.prototype.loadPlaylistById = function(id) {
-    // TODO: Implement me.
+    var the_url = '/p/'+id+'/json';
+    $.ajax({
+        type: "GET",
+        url: the_url,
+        dataType: "json",
+        success: function(responseData, textStatus, XMLHttpRequest) {
+            controller.loadPlaylist(responseData);
+        }
+    });
 };
 
 // Play a song at the given playlist index
@@ -95,8 +103,8 @@ Controller.prototype.playSongBySearch = function(q) {
 // If there is saved state, load the correct playlist.
 Controller.prototype.onPopState = function(event) {
     var state = event.state;
-    if (state) {
-        controller.loadPlaylistById(parseInt(state.playlistId));
+    if (state && state.playlistId != model.playlistId) {
+        controller.loadPlaylistById(state.playlistId);
     }
 }
 
@@ -170,7 +178,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     // Update album image alt text
                     var albumAlt = albumName;
                     albumAlt += artistName ? (' by ' + artistName) : '';
-                    albumName && $('#curAlbumArt').attr('alt', albumAlt);
+                    albumName && $('#curAlbumImg').attr('alt', albumAlt);
                     
                     // Update song summary
                     if (trackSummary) {                        
