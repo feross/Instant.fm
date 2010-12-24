@@ -199,7 +199,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update song summary
                     if (trackSummary) {                        
-                        $('#curSongDesc div').html(Controller.cleanHTML(trackSummary));
+                        $('#curSongDesc article').html(Controller.cleanHTML(trackSummary));
                         $('#curSongDesc h4').text('About ' + track.name);
                         $('#curSongDesc').fadeIn('fast');
                     }
@@ -208,7 +208,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     if (trackLongDesc) {
                         var content = Controller.cleanHTML(trackLongDesc);                        
                         var link = Controller.makeSeeMoreLink(track.name, content);
-                        link.appendTo('#curSongDesc div');
+                        link.appendTo('#curSongDesc article');
                     }
         	    },
 
@@ -239,7 +239,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     
                     // Update artist summary
                     if (artistSummary) {                        
-                        $('#curArtistDesc div').html(Controller.cleanHTML(artistSummary));
+                        $('#curArtistDesc article').html(Controller.cleanHTML(artistSummary));
                         $('#curArtistDesc h4').text('About ' + artistName);
                         $('#curArtistDesc').fadeIn('fast');
                     }
@@ -248,7 +248,7 @@ Controller.prototype.updateCurPlaying = function(t, a) {
                     if (artistLongDesc) {
                         var content = Controller.cleanHTML(artistLongDesc);                        
                         var link = Controller.makeSeeMoreLink(artistName, content);
-                        link.appendTo('#curArtistDesc div');
+                        link.appendTo('#curArtistDesc article');
                     }
         	    },
 
@@ -307,7 +307,7 @@ Controller.cleanHTML = function(html) {
 };
 
 Controller.makeSeeMoreLink = function(title, content) {
-    return $('<a class="seeMore" href="#seeMore"> (see more)</a>')
+    return $('<span> </span><a class="seeMore" href="#seeMore">(see more)</a>')
         .data('content', content)
         .click(view.showSeeMoreText);
 }

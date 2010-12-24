@@ -206,21 +206,37 @@ h6 { font-size: 12px; }
     margin: 0 3px 0 0;
     overflow: hidden;
     text-align: right;
-    width: 35px;
+    width: 32px;
     vertical-align: middle;
 }
 
-#curAlbumImg, #curArtistImg {
-    -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
+#curAlbumImg img,
+#curArtistImg img {
     border-bottom: transparent 2px solid;
-    width: 150px;
+    -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
+    
 }
-#curAlbumImg { float: left; height: 150px; margin: 0 12px 20px 0; }
-#curArtistImg { float: right; margin: 0 0 20px 6px; }
 
-#curAlbumInfo { float: left; width: 320px; }
+#curAlbumImg { float: left; position: relative; }
+#curArtistImg { float: right; position: relative; }
 
-#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; width: 260px; }
+#curAlbumImg img { height: 160px; margin: 0 0px 20px 0; width: 160px; }
+#curArtistImg img { margin: 0 0 20px 5px; width: 200px; }
+
+a:hover .zoomIcon,
+a:hover .zoomIcon {
+    background: transparent url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABVNJREFUeNqkVmtIm1cYzpfk+7LML96rs3VF7bTYitPQqi2dIrWC6FBhP4b94w+ZA/GKlv7Qv/tj15ZWVlBXKMK8DeyY1nphOpxKvVSxovPuvFXrJV4Sk5jE7HnFSJbFGO2Bl5yc75zznPd9n/O8hzEajYJTNmeY+LC/5+XltX2axWI75nAwf9jnMO/u7u5z29vbNCZwcXHRvH//fg3dBdg/sCkcQHdWQCFMvrS0FPH8+fMv3717F7CwsHAJERH+Z5JQaPD29p4MCQkZS0tLG8IB3mD4LYCtho45JqR+KpUq5sGDB2FtbW3Re3t7UnvCJZFIVDExMX8UFBT0cRzXCtAZewCDp6amorDo2+XlZV/BGdr58+enHj58WHXx4sU/ATpsC/Dy0NBQXG5u7ne7u7vOgo9oMplsAxEqDw4Ofg3Qv60BnlMoFEkpKSnf49fL2iZarVaE8IoQOgNCZjiRzs7Oy5WVlc9Arl8BqjAR48i7zMzMxPX1da/9/X2BuRErFxcXZR4eHjLkiHd1dZXNz8/zyLPYcq65bWxsfJafnx+HvQPIMTITS72qq6ujxsbG5JanVCqV3O3bt3ksFDs6OjKm8bW1NbawsJAdHh5WOjg4HHsVwO6whoaGKPBhxtPT84PJQ38CtDyhXq9nYmNjHYqKitj6+npVfHz8amBgoDoxMfFDS0uLuqSkhLt16xZvMBiO9RLfhC9evIg6vMsHIeXGx8cvz83NBZrcNhnyxObl5bFVVVXK0tJSNf7TiaU6nU5QVlamqq2tVd27d4/FXNZyrblNT08HIVVfrKysiAjQo6amxg/eiCxPJ5fLORBFgBOqGIaRjY6O8jSODWQglqyiomKXZVkGl56zlUvszWKPS4RFOXQZGRnxpg+WDcwSIj8MFggaGxs/oTEK38DAwIEQJCcn74jFYgHIxFhbb5FLkkZnApTs7Ow4WlsAdurBNKNarWbv3r27trW1JXj58qV7XFzcKigv2NzcZDFmBFsNJwFiH0f8SCmkQtrQWih6e3u1uHPMzZs3ZbOzsyI3N7cDD8E2BpopjoyM5JEjpqOjQ28rpGR0h+nek4d7IpFo19oJkWQDiKEEMRyQK76urk537do1NfL5aUJCApuTk3NAFoSeB/F2QCr9cR4CQ4sfHQGqEJ71mZkZqxOJMGjGrKwsPj09XczzPAPZM+IAtMnBnEePHnHZ2dkyW6CIzipdawJcv379+mRfXx8qjdBqIuDlbnt7u/bq1aschFmIfOx3dXVpIyIiJBkZGZQbwePHjzmIg2xiYkJhuR7RY0JDQ2fRVZCWMsjh10FBQcWkuacV6Tt37khNoNSSkpJWLOcg7xpcqRypVPo7kcaIzriPj08vPjAnJd/Smpqa1E+fPt2m/pMnT7atKA3j7+//FzDGII1GU7WQDg4OJkC6fkRuxGcpR8RmMPF/xRXVxdDZ2Znl6+vbCECNSUvVUIvBsLCw3zQaDXtaL8mQFqPlGMhFwv8LwIZRHzXknHk9JPArAP4Byn4Dnuo+pgBDb1mq+D09PUUAGzUHOSITbL61tfUZ6t0gTiyxJci2DJ5J3N3d37569epn2tP8m7U3jSs9B6Ojo7P7+/u/QbK10Eu9PV5Bc8VICRceHl7Z3Nz8Ez0fcW8V9rza6N3pixJ0o7i4OBUhlgNUhzAboDJGXHjDId1FdK0QPjHZhQsX3ty/f78iNTWVnopTANPb+0w8EgjyFvXwSnl5+Vd4zYWAiTxE3Y8+Ojk5TYKdyoCAgH6oUBeqxwiGFwG0cdyGjJ1PfSpNnlTKYCyMPxzfIX5QMYCtAkhz0kb/CjAAzs/S931GDMMAAAAASUVORK5CYII=') bottom right no-repeat;
+    bottom: 35px;
+    display: block;
+    height: 28px;
+    position: absolute;
+    right: 10px;
+    width: 28px;
+}
+
+#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
+
+#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; width: 250px; }
 
 #curAlbum { display: 0; /* starting value */ }
 

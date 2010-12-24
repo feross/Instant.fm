@@ -205,13 +205,14 @@ View.prototype.showHelpDialog = function() {
 // @thumbId - id of the thumbnail image
 // @src - src of the image (is same for thumbnail and large)
 // @alt - image alt text
-// Note: This function expects an empty div in the page with the id thumbId+'Large'
+// Note: This function expects an empty div in the page with the id thumbId+'Zoom'
 View.makeFancyZoomImg = function(thumbId, src, alt) {
-    var imgLarge = $('<img alt="'+alt+'" src="'+src+'" />');
-    $('#'+thumbId+'Large').empty().append(imgLarge);
+    var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
+    $('#'+thumbId+'Zoom').empty().append(imgZoom);
     
-    var img = $('<a href="#'+thumbId+'Large"></a>')
-        .append('<img alt="'+alt+'" id="'+thumbId+'" src="'+src+'" />')
+    var img = $('<a href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
+        .append('<img alt="'+alt+'" src="'+src+'" />')
+        .append('<span class="zoomIcon" />')
         .fancyZoom($.extend({}, settings.fancyZoom, { scaleImg: true }));
     
     return img;

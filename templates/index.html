@@ -65,7 +65,9 @@
             <h3>Currently Playing</h3>
             
             <div class="clearfix" id="curAlbumBlock">
-              <div id="curAlbumImg">&nbsp;</div>  
+              <div id="curAlbumImg">
+                <span class="zoomIcon">&nbsp;</span>
+              </div>
               <div id="curAlbumInfo">
                 <div id="curSong">
                   <span class="curLabel">song</span> 
@@ -80,19 +82,23 @@
                   <h4>&nbsp;</h4>
                 </div>
               </div>
-            </div>
+            </div> <!-- end of #curAlbumBlock -->
             
             <div id="curDescs">
-              <article id="curSongDesc">
+              <section id="curSongDesc">
                 <h4>&nbsp;</h4> 
-                <div>&nbsp;</div>
-              </article>
-              <article id="curArtistDesc">
+                <article>&nbsp;</article>
+              </section>
+              <section id="curArtistDesc">
                 <h4>&nbsp;</h4>
-                <span id="curArtistImg">&nbsp;</span>
-                <div>&nbsp;</div>
-              </article>
-          </section>
+                <span id="curArtistImg">
+                  <span class="zoomIcon">&nbsp;</span>
+                </span>
+                <article>&nbsp;</article>
+              </section>
+            </div> <!-- end of #curDescs -->
+            
+          </section> <!-- end of #curPlaying -->
           
         </section> <!-- end of #songInfo -->
         
@@ -128,8 +134,8 @@
     </footer>
     
     <div id="devNull">
-      <div id="curAlbumImgLarge">&nbsp;</div>
-      <div id="curArtistImgLarge">&nbsp;</div>
+      <div id="curAlbumImgZoom">&nbsp;</div>
+      <div id="curArtistImgZoom">&nbsp;</div>
       
       <div id="helpBox">
         <dl class="clearfix shortcut">
