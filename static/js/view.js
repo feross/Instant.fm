@@ -63,6 +63,7 @@ View.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist').sortable({
         axis: 'y',
+        scrollSensitivity: 30,
         start: function(event, ui) { $('body').toggleClass('sorting', true); },
         stop: function(event, ui) {
             view.onReorder(event, ui);

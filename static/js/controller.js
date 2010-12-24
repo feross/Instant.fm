@@ -111,7 +111,8 @@ Controller.prototype.moveSong = function(oldIndex, newIndex) {
         type: 'POST',
         url: the_url,
         success: function(responseData, textStatus, XMLHttpRequest) {
-            log(responseData);
+            // TODO: Show a throbber while request is being sent.
+            log('Server received move POST.');
         }
     });
 }

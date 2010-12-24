@@ -14,7 +14,7 @@ $(function() {
     
     controller.loadPlaylist(initial_playlist);
     
-    setupScrollingListeners();
+    setupPlaylistDisplay();
     setupKeyboardListeners();
 
     $('#helpLink').fancyZoom(settings.fancyZoom);
@@ -24,16 +24,8 @@ $(function() {
     new uploader('container', null, '/upload', null, controller.loadPlaylist); // HTML5 dragdrop upload
 });
 
-function setupScrollingListeners() {
-    var videoDiv = $('#videoDiv');
-    var videoDivOffset = $('#outerVideoDiv').offset().top;
-    $(window).scroll(function(){
-        if ($(window).scrollTop() > videoDivOffset) {
-            videoDiv.css('top', 0);
-        } else {
-            videoDiv.css('top', videoDivOffset - $(window).scrollTop());
-        }        
-    });
+function setupPlaylistDisplay() {
+    $('#playlist').height($(window).height() - $('#videoDiv').height());    
 }
 
 function setupKeyboardListeners() {

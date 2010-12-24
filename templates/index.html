@@ -28,7 +28,7 @@
 <body>
   <div id="fb-root"></div>
   <div id="container">
-    <header class="clearfix" id="header">
+    <!-- <header class="clearfix" id="header">
       <h1>
         <a class="ir" href="/" id="headerLogo">Instant.fm - Share Music Playlists Instantly</a>
       </h1>
@@ -37,9 +37,23 @@
         <a href="#">Blog</a> |
         <a href="#">Contact</a>
       </nav>
-    </header>
+    </header> -->
     
     <div class="clearfix" id="main">
+      
+      
+      <div id="playlistDisplay">
+        
+        <div id="videoDiv">
+          <div id="player">&nbsp;</div>
+        </div>
+        
+        <ul id="playlist">
+          <!-- Loaded via JavaScript -->
+        </ul>
+        
+      </div> <!-- end of #playlistDisplay -->
+      
       
       <div id="infoDisplay">
         
@@ -107,31 +121,18 @@
           <!-- <fb:comments xid="1" numposts="20" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?11"></fb:comments> -->
         </section> <!-- end of #comments -->
         
+        <footer id="footer">
+          <strong><a href="#">Instant.fm</a></strong> |
+          <a href="#">FAQ</a> |
+          <a href="#">Blog</a> |
+          <a href="#">Contact</a>
+          <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
+        </footer>
+        
       </div> <!-- end of #infoDisplay -->
       
-      <div id="playlistDisplay">
-        
-        <div id="outerVideoDiv">
-          <div id="videoDiv">
-            <div id="player">&nbsp;</div>
-          </div>
-        </div>
-        
-        <ul id="playlist">
-          <!-- Loaded via JavaScript -->
-        </ul>
-        
-      </div> <!-- end of #playlistDisplay -->
 
     </div> <!-- end of #main -->
-    
-    <footer id="footer">
-      <strong><a href="#">Instant.fm</a></strong> |
-      <a href="#">FAQ</a> |
-      <a href="#">Blog</a> |
-      <a href="#">Contact</a>
-      <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
-    </footer>
     
     <div id="devNull">
       <div id="curAlbumImgZoom">&nbsp;</div>
