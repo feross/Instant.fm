@@ -173,9 +173,9 @@ View.prototype.playPause = function() {
         return;
     }
     if (this.isPlaying()) {
-        this.pauseVideo();
+        this.pause();
     } else {
-        this.playVideo();
+        this.play();
     }
 };
 
