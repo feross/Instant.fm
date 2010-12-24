@@ -89,7 +89,7 @@
               </article>
               <article id="curArtistDesc">
                 <h4>&nbsp;</h4>
-                <span id="curArtistImg">&nbsp;</span> 
+                <span id="curArtistImg">&nbsp;</span>
                 <div>&nbsp;</div>
               </article>
           </section>
@@ -124,26 +124,32 @@
       <a href="#">FAQ</a> |
       <a href="#">Blog</a> |
       <a href="#">Contact</a>
-      <a href="#helpDialog" id="keyboardShortcutsAvailable">Keyboard shortcuts available</a>
+      <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
     </footer>
     
-    <div id="help">
-      <dl class="clearfix shortcut">
-        <dt class="key">space</dt>
-        <dd class="action">Play/pause</dd>
-      </dl>
-      <dl class="clearfix shortcut">
-        <dt class="key">&larr;</dt>
-        <dd class="action">Prev song</dd>
-      </dl>
-      <dl class="clearfix shortcut">
-        <dt class="key">&rarr;</dt>
-        <dd class="action">Next song</dd>
-      </dl>
-      <dl class="clearfix shortcut">
-        <dt class="key">?</dt>
-        <dd class="action">Bring up this help dialog</dd>
-      </dl>
+    <div id="devNull">
+      <div id="curAlbumImgLarge">&nbsp;</div>
+      <div id="curArtistImgLarge">&nbsp;</div>
+      
+      <div id="helpBox">
+        <dl class="clearfix shortcut">
+          <dt class="key">space</dt>
+          <dd class="action">Play/pause</dd>
+        </dl>
+        <dl class="clearfix shortcut">
+          <dt class="key">&larr;</dt>
+          <dd class="action">Prev song</dd>
+        </dl>
+        <dl class="clearfix shortcut">
+          <dt class="key">&rarr;</dt>
+          <dd class="action">Next song</dd>
+        </dl>
+        <dl class="clearfix shortcut">
+          <dt class="key">?</dt>
+          <dd class="action">Bring up this help dialog</dd>
+        </dl>
+      </div> <!-- end of #helpBox -->
+      
     </div>
     
   </div> <!-- end of #container -->
@@ -168,6 +174,9 @@
   <script src="/js/libs/fancyzoom.min.js"></script>
 
   <script src="/js/plugins.js"></script>
+  <script src="/js/model.js"></script>
+  <script src="/js/view.js"></script>
+  <script src="/js/controller.js"></script>
   <script src="/js/script.js"></script>
   <!-- end concatenated and minified scripts-->
   

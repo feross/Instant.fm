@@ -96,14 +96,14 @@ body { background: #000 url("/images/bg.jpg") 0 0 repeat; text-align: center; }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
+#container { margin: 25px auto; text-align: left; width: 1000px; }
+
 h1 { font-size: 34px; margin: 0 0 12px 0; }
 h2 { font-size: 28px; margin: 0 0 10px 0; }
 h3 { font-size: 22px; margin: 0 0 8px 0; }
 h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 12px; }
-
-#container { margin: 25px auto; text-align: left; width: 1000px; }
 
 
 /* Header */
@@ -237,20 +237,18 @@ h6 { font-size: 12px; }
 #comments h3 { border-bottom: #444 1px solid; margin: 0 0 15px 0; }
 
 
-/* Help */
+/* Help Box */
 
-#help { display: none; padding: 5px 10px; }
-
-#help .shortcut {
+.shortcut {
     height: 25px;
     margin: 5px 0;
 }
 
-#help .key {
+.key {
     background-color: #333;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
     color: #fff;
     float: left;
     font-family: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
@@ -261,7 +259,7 @@ h6 { font-size: 12px; }
     text-shadow: #000 0 1px 1px;
 }
 
-#help .action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
+.action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
 
 
 /* Footer */
@@ -274,12 +272,15 @@ h6 { font-size: 12px; }
     padding: 15px 0 0 0;
 }
 
-#footer #keyboardShortcutsAvailable {
+#footer #helpLink {
     background: transparent url("/images/keyboard.png") top right no-repeat;
     display: block;
     float: right;
     padding: 0 25px 0 0;
 }
+
+
+/* Misc. */
 
 /*#drop {
     border: 2px dashed red;
