@@ -1,5 +1,6 @@
 var Controller = function() {
     this.songIndex; // Current position in the playlist
+    this.queuedSong;
 
     // TODO: Move to model?
     var cache = new LastFMCache();
@@ -93,13 +94,25 @@ Controller.prototype.playSongBySearch = function(q) {
         success: function(responseData, textStatus, XMLHttpRequest) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
-                view.playVideoById(videos[0].id);
+                controller.playSongById(videos[0].id)
             } else {
                 controller.playNextSong();
             }
         }
     });
 };
+
+// Attempts to play the video with the given ID. If the player is in a loading state,
+// we queue up the video. We don't want to interrupt the player since that causes the
+// "An error occurred, please try again later" message.
+Controller.prototype.playSongById = function(id) {
+    if (view.player && view.player.getPlayerState() == 3) { // Don't interrupt player while it's loading
+        this.queuedSong = id;
+        
+    } else { // Play it immediately
+        view.playVideoById(id); 
+    }
+}
 
 // Move song in the playlist
 // @oldIndex - old playlist position
@@ -287,6 +300,10 @@ function onYouTubePlayerStateChange(newState) {
             break;
         case 1: // playing
             $('.playing').toggleClass('paused', false);
+            if (controller.queuedSong) {
+                controller.playSongById(controller.queuedSong);
+                controller.queuedSong = null;
+            }
             break;
         case 2: // paused
             $('.playing').toggleClass('paused', true);
