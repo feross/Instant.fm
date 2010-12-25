@@ -1,6 +1,5 @@
 var Controller = function() {
     this.songIndex; // Current position in the playlist
-    this.pressedKeys = []; // Current pressed keys
 
     // TODO: Move to model?
     var cache = new LastFMCache();

@@ -3,7 +3,7 @@ var view;
 var controller;
 
 var settings = {
-    fancyZoom : { closeOnClick: true, directory: '/images/fancyzoom' },
+    fancyZoom : { directory: '/images/fancyzoom' },
 };
 
 // Onload event
@@ -26,14 +26,20 @@ $(function() {
 });
 
 function setupPlaylistDisplay() {
-    $('#playlist').height($(window).height() - $('#videoDiv').height());
+    var newHeight = $(window).height() - $('#videoDiv').height();
+    newHeight = (newHeight < 100) ? 100 : newHeight;
+    
+    $('#playlist').height(newHeight);
 }
 
+// Set up keyboard shortcuts in a cross-browser manner. (Tested in Firefox, Chrome, Safari)
+// Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
+// TODO: Test in IE
 function setupKeyboardListeners() {
-    var SHIFT = 16;
+    
+    // Detect keys
     $(window).keydown(function(event) {
-        var k = event.keyCode;
-        controller.pressedKeys.push(k);
+        var k = event.which;
         
         if (k == 39 || k == 40) { // down, right
             controller.playNextSong();
@@ -41,17 +47,24 @@ function setupKeyboardListeners() {
             controller.playPrevSong();
         } else if (k == 32) { // space
             view.playPause();
-        } else if (k == 191 && $.inArray(SHIFT, controller.pressedKeys) > -1) { // ?
+        } else {
+            return true; // default event
+        }
+        
+        event.preventDefault(); // prevent default event    
+    });
+    
+    // Detect characters
+    $(window).keypress(function(event) {
+        var k = event.charCode || event.keyCode;
+              
+        if (k == 63) { // ? mark character
             $('#helpLink').click();
         } else {
             return true; // default event
         }
-        event.preventDefault(); // prevent default event
-    });
-    $(window).keyup(function(event) {
-        $.grep(controller.pressedKeys, function(element, index) {
-            return element != event.keyCode;
-        });
+        
+        event.preventDefault(); // prevent default event    
     });
 }
 

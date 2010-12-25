@@ -215,7 +215,7 @@ View.makeFancyZoomImg = function(thumbId, src, alt) {
     var imgBlock = $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
         .append('<img alt="'+alt+'" src="'+src+'" />')
         .append('<span class="zoomIcon" />')
-        .fancyZoom($.extend({}, settings.fancyZoom, { scaleImg: true }));
+        .fancyZoom($.extend({}, settings.fancyZoom, { closeOnClick: true, scaleImg: true }));
     
     return imgBlock;
 }
