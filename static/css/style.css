@@ -96,7 +96,7 @@ body { background: #000 url("/images/bg.jpg") 0 0 repeat; text-align: center; }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
-#container { margin: 0 auto 25px auto; text-align: left; width: 1000px; }
+#container { margin: 0 auto; text-align: left; width: 1000px; }
 
 h1 { font-size: 34px; margin: 0 0 12px 0; }
 h2 { font-size: 28px; margin: 0 0 10px 0; }
@@ -108,8 +108,8 @@ h6 { font-size: 12px; }
 
 /* Header */
 
-#header { margin: 0 0 20px 0; }
-
+/*#header { margin: 0 0 20px 0; }
+*/
 #headerLogo {
     background: transparent url("/images/logo.png") 0 0 no-repeat;
     display: block;
@@ -209,18 +209,19 @@ h6 { font-size: 12px; }
     vertical-align: middle;
 }
 
-#curAlbumImg img,
-#curArtistImg img {
+.reflect img {
     border-bottom: transparent 2px solid;
     -webkit-box-reflect:below 0px -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(0.80, transparent), to(rgba(0, 0, 0, 0.6)));
-    
+    margin-bottom: 20px;
 }
+.no-cssreflections .reflect img { margin-bottom: 0; }
 
 #curAlbumImg { float: left; position: relative; }
 #curArtistImg { float: right; position: relative; }
 
-#curAlbumImg img { height: 160px; margin: 0 0px 20px 0; width: 160px; }
-#curArtistImg img { margin: 0 0 20px 5px; width: 200px; }
+#curAlbumImg img { height: 160px; width: 160px; }
+#curArtistImg img { margin-left: 7px; width: 200px; }
+
 
 a:hover .zoomIcon,
 a:hover .zoomIcon {
@@ -239,7 +240,7 @@ a:hover .zoomIcon {
 
 #curAlbum { display: 0; /* starting value */ }
 
-#curDescs { margin: 20px 0 0 0; }
+#curDescs { margin: 10px 0 0 0; }
 
 #curDescs section { margin: 25px 0 0 0; }
 

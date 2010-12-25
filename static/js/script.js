@@ -20,12 +20,13 @@ $(function() {
     $('#helpLink').fancyZoom(settings.fancyZoom);
     
     window.onpopstate = controller.onPopState;
-     
+    $(window).resize(setupPlaylistDisplay);
+    
     new uploader('container', null, '/upload', null, controller.loadPlaylist); // HTML5 dragdrop upload
 });
 
 function setupPlaylistDisplay() {
-    $('#playlist').height($(window).height() - $('#videoDiv').height());    
+    $('#playlist').height($(window).height() - $('#videoDiv').height());
 }
 
 function setupKeyboardListeners() {

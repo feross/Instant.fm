@@ -14,8 +14,9 @@ View.prototype.updateAlbumImg = function(src, alt) {
         src = '/images/unknown.png';
         alt = 'Unknown album';
     }
-    var img = View.makeFancyZoomImg('curAlbumImg', src, alt);  
-    $('#curAlbumImg').replaceWith(img);
+    var imgBlock = View.makeFancyZoomImg('curAlbumImg', src, alt);
+
+    $('#curAlbumImg').replaceWith(imgBlock);
 };
 
 // Update artist img to point to given src url
@@ -23,8 +24,8 @@ View.prototype.updateAlbumImg = function(src, alt) {
 // @alt - Image alt text. (required, when src != null)
 View.prototype.updateArtistImg = function(src, alt) {    
     if (src) {
-        var img = View.makeFancyZoomImg('curArtistImg', src, alt);  
-        $('#curArtistImg').replaceWith(img);
+        var imgBlock = View.makeFancyZoomImg('curArtistImg', src, alt);  
+        $('#curArtistImg').replaceWith(imgBlock);
         
     } else {
         $('#curArtistImg').replaceWith($('<span id="curArtistImg"></span>'));
@@ -211,11 +212,11 @@ View.makeFancyZoomImg = function(thumbId, src, alt) {
     var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
     $('#'+thumbId+'Zoom').empty().append(imgZoom);
     
-    var img = $('<a href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
+    var imgBlock = $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
         .append('<img alt="'+alt+'" src="'+src+'" />')
         .append('<span class="zoomIcon" />')
         .fancyZoom($.extend({}, settings.fancyZoom, { scaleImg: true }));
     
-    return img;
+    return imgBlock;
 }
 

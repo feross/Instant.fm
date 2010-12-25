@@ -16,7 +16,9 @@ var Controller = function() {
 Controller.prototype.loadPlaylist = function(response) {
     if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
-        window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+        if(Modernizr.history) {
+            window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+        }
 
     } else { // playlist is from xhr response      
         var playlist = $.parseJSON(response);
@@ -24,7 +26,9 @@ Controller.prototype.loadPlaylist = function(response) {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
-        window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+        if(Modernizr.history) {
+            window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+        }
         $('#infoDisplay').effect('pulsate');        
     }
     
