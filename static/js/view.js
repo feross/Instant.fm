@@ -2,6 +2,8 @@ var View = function() {
     this.isPlayerInit = false; // have we initialized the player?
     this.player; // YouTube DOM element
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
+    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up the browser
+    this.renderPlaylistTimeout = 40; // Time between rendering each chunk
 };
 
 /* Info Display */
@@ -47,38 +49,53 @@ View.prototype.showSeeMoreText = function(event) {
 /* Playlist */
 
 // Updates the playlist table
-View.prototype.renderPlaylist = function(playlist) {
-    $('#curPlaylistTitle').text(playlist.title);
-    $('#curPlaylistDesc').text(playlist.description);
+View.prototype.renderPlaylist = function(playlist, start) {
+    if (!start) {
+        start = 0;
+        
+        $('#curPlaylistTitle').text(playlist.title);
+        $('#curPlaylistDesc').text(playlist.description);
+
+        $('#playlist li').remove(); // clear the playlist
+    }
     
-    $('#playlist li').remove(); // clear the playlist
+    if (start >= playlist.songs.length) { // we're done
+        $('#playlist').sortable({
+            axis: 'y',
+            scrollSensitivity: 30,
+            start: function(event, ui) { $('body').toggleClass('sorting', true); },
+            stop: function(event, ui) {
+                view.onReorder(event, ui);
+                $('body').toggleClass('sorting', false);
+            },
+            tolerance: 'pointer'
+        }).disableSelection();
+        
+        $('#playlist').mouseup(function(event) {
+            view.reorderedSong = null; // we're done dragging now
+        });
+
+        view.renderRowColoring();
+        return;
+    }
+
+    var end = Math.min(start + view.renderPlaylistChunkSize, playlist.songs.length);
+
+    for (var i = start; i < end; i++) {
+        var v = playlist.songs[i];
+        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>')
+            .appendTo('#playlist')
+            .click(function(event) {
+                var songId = parseInt($(this).attr('id').substring(4));
+                view.reorderedSong || controller.playSong(songId);
+            });
+    }
     
-    $.each(playlist.songs, function(i, v) {
-        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>').appendTo('#playlist');
-    });
-    
-    $('#playlist li').click(function(event) {
-        var songId = parseInt($(this).attr('id').substring(4));
-        view.reorderedSong || controller.playSong(songId);
-    });
-    
-    $('#playlist').sortable({
-        axis: 'y',
-        scrollSensitivity: 30,
-        start: function(event, ui) { $('body').toggleClass('sorting', true); },
-        stop: function(event, ui) {
-            view.onReorder(event, ui);
-            $('body').toggleClass('sorting', false);
-        },
-        tolerance: 'pointer'
-    }).disableSelection();
-    
-    $('#playlist').mouseup(function(event) {
-        view.reorderedSong = null; // we're done dragging now
-    });
-    
-    this.renderRowColoring();
+    window.setTimeout(function() {
+        view.renderPlaylist(playlist, start + view.renderPlaylistChunkSize);
+    }, view.renderPlaylistTimeout);
 };
+
 
 // Recolors the playlist rows
 View.prototype.renderRowColoring = function() {
