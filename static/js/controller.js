@@ -37,34 +37,45 @@ function setupPlaylistDisplay() {
 // TODO: Test in IE
 function setupKeyboardListeners() {
     
-    // Detect keys
+    // Rate limit keyboard events for sanity
+    var limitKeyEvents = function() {
+        controller.keyEvents = false;
+        window.setTimeout(function() {
+            controller.keyEvents = true;
+        }, 250);
+    }
+    
+    // Convenience function for doing key events
+    var doKeyEvent = function(func) {
+        event.preventDefault(); // prevent default event
+        if (controller.keyEvents) {
+            func();
+            limitKeyEvents();
+        }
+    }
+    
+    // Detect key codes
     $(window).keydown(function(event) {
         var k = event.which;
         
         if (k == 39 || k == 40) { // down, right
-            controller.playNextSong();
+            doKeyEvent(controller.playNextSong);
         } else if (k == 37 || k == 38) { // up, left
-            controller.playPrevSong();
+            doKeyEvent(controller.playPrevSong);
         } else if (k == 32) { // space
-            view.playPause();
-        } else {
-            return true; // default event
+            doKeyEvent(view.playPause);
         }
-        
-        event.preventDefault(); // prevent default event    
     });
     
-    // Detect characters
+    // Detect ascii characters
     $(window).keypress(function(event) {
         var k = event.charCode || event.keyCode;
-              
+
         if (k == 63) { // ? mark character
-            $('#helpLink').click();
-        } else {
-            return true; // default event
+            doKeyEvent(function() {
+                $('#helpLink').click();
+            });
         }
-        
-        event.preventDefault(); // prevent default event    
     });
 }
 
@@ -72,8 +83,12 @@ function setupKeyboardListeners() {
 function Controller() {
     this.songIndex; // Current position in the playlist
     this.queuedVideo;
-    this.queuedLastfm = { title: null, artist: null };
-    this.lastfmReqs = [false, false, false];
+    
+    this.lastfmReqs = [false, false, false]; // Last.fm xhr request locks. True = processing request
+    this.queuedLastfm = { title: null, artist: null, songIndex: null};
+    
+    this.keyEvents = true; // Used to rate limit keyboard events
+    
 
     // Load a playlist based on the xhr response or the initial embedded playlist
     // @response - response body
@@ -129,23 +144,23 @@ function Controller() {
         $('.playing').toggleClass('playing');
         $('#song' + i).toggleClass('playing');
     
-        this.updateCurPlaying(title, artist);
+        this.updateCurPlaying(title, artist, this.songIndex);
     };
 
     // Play next song in the playlist
     this.playNextSong = function() {
-        if (this.songIndex == model.songs.length - 1) {
+        if (controller.songIndex == model.songs.length - 1) {
             return;
         }
-        this.playSong(++this.songIndex);
+        controller.playSong(++controller.songIndex);
     };
 
     // Play prev song in the playlist
     this.playPrevSong = function() {
-        if (this.songIndex == 0) {
+        if (controller.songIndex == 0) {
             return;
         }
-        this.playSong(--this.songIndex);
+        controller.playSong(--controller.songIndex);
     };
 
     // Play top video for given search query
@@ -193,7 +208,7 @@ function Controller() {
             url: the_url,
             success: function(responseData, textStatus, XMLHttpRequest) {
                 // TODO: Show a throbber while request is being sent.
-                log('Server received move POST.');
+                log('Server received updated playlist.');
             }
         });
     };
@@ -208,12 +223,17 @@ function Controller() {
     };
 
     // Update the currently playing song with Last.fm data
+    // @t - song title
+    // @a - song artist
+    // @songIndex - Song index that generated this Last.fm request. We'll check that the song
+    //              hasn't changed before we update the DOM.
     // TODO: Find a way to decompose this monstrous function
-    this.updateCurPlaying = function(t, a) {
+    this.updateCurPlaying = function(t, a, songIndex) {
         
         if ($.inArray(true, controller.lastfmReqs) != -1) { // something is processing, so queue this request
             this.queuedLastfm.title = t;
             this.queuedLastfm.artist = a;
+            this.queuedLastfm.songIndex = songIndex;
             return;
         } else { // lock and start processing request
             this.lastfmReqStarted(1);
@@ -241,6 +261,9 @@ function Controller() {
 
     	    success: function(data){
     	        controller.lastfmReqEnded(1);
+    	        if (controller.songIndex != songIndex) {
+    	            return; // The request was too slow. We don't need it anymore.
+    	        }
                 if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
                     this.error('track.search', 'Empty set.');
                     return;
@@ -258,7 +281,8 @@ function Controller() {
                 $('#curArtist h4').text(artistName);
             
                 // Update album art
-                view.updateAlbumImg(albumImg, ''); // We'll set alt text once we know album name
+                // We'll set alt text once we know album name
+                view.updateAlbumImg(albumImg, ''); 
             
                 // 2. Get detailed track info
                 controller.lastfmReqStarted(2);
@@ -270,6 +294,9 @@ function Controller() {
         	    
             	    success: function(data){
             	        controller.lastfmReqEnded(2);
+            	        if (controller.songIndex != songIndex) {
+            	            return; // The request was too slow. We don't need it anymore.
+            	        }
                         if (!data.track) {
                             this.error('track.getInfo', 'Empty set.');
                             return;
@@ -319,6 +346,9 @@ function Controller() {
         	    
             	    success: function(data){
             	        controller.lastfmReqEnded(3);
+            	        if (controller.songIndex != songIndex) {
+            	            return; // The request was too slow. We don't need it anymore.
+            	        }
                         if (!data.artist) {
                             this.error('track.getInfo', 'Empty set.');
                             return;
@@ -367,13 +397,11 @@ function Controller() {
     
     // Call this each time we make an xhr request to Last.fm.
     this.lastfmReqStarted = function(req) {
-        log('started '+req);
         controller.lastfmReqs[req - 1] = true;
     };
     
     // Call this each time we receive an xhr response from Last.fm.
     this.lastfmReqEnded = function(req) {
-        log('ended '+req);
         controller.lastfmReqs[req - 1] = false;
         
         if ($.inArray(true, controller.lastfmReqs) == -1) { // all requests are finished processing
@@ -382,7 +410,7 @@ function Controller() {
             if (title || artist) {
                 controller.queuedLastfm.title = null;
                 controller.queuedLastfm.artist = null;
-                controller.updateCurPlaying(title, artist);
+                controller.updateCurPlaying(title, artist, controller.queuedLastfm.songIndex);
             }
         }
     };
