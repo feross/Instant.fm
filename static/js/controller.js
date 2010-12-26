@@ -68,291 +68,283 @@ function setupKeyboardListeners() {
 }
 
 
-var Controller = function() {
+function Controller() {
     this.songIndex; // Current position in the playlist
-    this.queuedSong;
+    this.queuedVideo;
 
-    // TODO: Move to model?
-    var cache = new LastFMCache();
-	this.lastfm = new LastFM({
-		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
-		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
-		cache     : cache
-	});
-};
 
-// Load a playlist based on the xhr response or the initial embedded playlist
-// @response - response body
-Controller.prototype.loadPlaylist = function(response) {
-    if ($.isPlainObject(response)) { // playlist is embedded in html
-        var playlist = response;
-        if(Modernizr.history) {
-            window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
-        }
-
-    } else { // playlist is from xhr response      
-        var playlist = $.parseJSON(response);
-        if(playlist.status != 'ok') {
-            log('Error loading playlist: ' + playlist.status);
-            return;
-        }
-        if(Modernizr.history) {
-            window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
-        }
-        $('#infoDisplay').effect('pulsate');        
-    }
-    
-    model.updatePlaylist(playlist);
-    view.renderPlaylist(playlist);
-    
-    controller.playSong(0);
-    log('Loaded playlist: ' + playlist.id);
-};
-
-// Load a playlist with the given id
-Controller.prototype.loadPlaylistById = function(id) {
-    var the_url = '/p/'+id+'/json';
-    $.ajax({
-        dataType: 'json',
-        type: 'GET',
-        url: the_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            controller.loadPlaylist(responseData);
-        }
-    });
-};
-
-// Play a song at the given playlist index
-Controller.prototype.playSong = function(i) {
-    this.songIndex = i;
-    var song = model.songs[i];
-    var title = Controller.cleanSongTitle(song.t);
-    var artist = song.a;
-    
-    var q = title + ' ' + artist;
-    this.playSongBySearch(q);
- 
-    $('.playing').toggleClass('playing');
-    $('#song' + i).toggleClass('playing');
-    
-    this.updateCurPlaying(title, artist);
-};
-
-// Play next song in the playlist
-Controller.prototype.playNextSong = function() {
-    if (this.songIndex == model.songs.length - 1) {
-        return;
-    }
-    this.playSong(++this.songIndex);
-};
-
-// Play prev song in the playlist
-Controller.prototype.playPrevSong = function() {
-    if (this.songIndex == 0) {
-        return;
-    }
-    this.playSong(--this.songIndex);
-};
-
-// Play top video for given search query
-Controller.prototype.playSongBySearch = function(q) {
-    var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
-    $.ajax({
-        dataType: 'jsonp',
-        type: 'GET',
-        url: the_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            if (responseData.data.items) {
-                var videos = responseData.data.items;
-                controller.playSongById(videos[0].id)
-            } else {
-                controller.playNextSong();
+    // Load a playlist based on the xhr response or the initial embedded playlist
+    // @response - response body
+    this.loadPlaylist = function(response) {
+        if ($.isPlainObject(response)) { // playlist is embedded in html
+            var playlist = response;
+            if(Modernizr.history) {
+                window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
             }
-        }
-    });
-};
 
-// Attempts to play the video with the given ID. If the player is in a loading state,
-// we queue up the video. We don't want to interrupt the player since that causes the
-// "An error occurred, please try again later" message.
-Controller.prototype.playSongById = function(id) {
-    if (view.player && view.player.getPlayerState() == 3) { // Don't interrupt player while it's loading
-        this.queuedSong = id;
-        
-    } else { // Play it immediately
-        view.playVideoById(id); 
-    }
-}
-
-// Move song in the playlist
-// @oldIndex - old playlist position
-// @newIndex - new playlist position
-Controller.prototype.moveSong = function(oldIndex, newIndex) {
-    model.moveSong(oldIndex, newIndex);
-    
-    var the_url = '/p/'+model.playlistId+'/edit';
-    $.ajax({
-        data: '&songs='+encodeURIComponent(JSON.stringify(model.songs)),
-        dataType: 'json',
-        type: 'POST',
-        url: the_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            // TODO: Show a throbber while request is being sent.
-            log('Server received move POST.');
-        }
-    });
-}
-
-// Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
-// If there is saved state, load the correct playlist.
-Controller.prototype.onPopState = function(event) {
-    var state = event.state;
-    if (state && state.playlistId != model.playlistId) {
-        controller.loadPlaylistById(state.playlistId);
-    }
-}
-
-// Update the currently playing song with Last.fm data
-// TODO: Find a way to decompose this monstrous function
-Controller.prototype.updateCurPlaying = function(t, a) {
-    
-    // Hide old values with animation
-    var hide = function() {
-        if ($('#curAlbum').css('display') != '0') {
-            $('#curAlbum').fadeOut('fast');
-        }
-        if ($('#curSongDesc').css('display') != '0') {
-            $('#curSongDesc').fadeOut('fast');
-        }
-        if ($('#curArtistDesc').css('display') != '0') {
-            $('#curArtistDesc').fadeOut('fast');
-        }
-    };
-    
-    // 1. Search for track.
-    that = this;
-	this.lastfm.track.search({
-	    artist: a,
-	    limit: 1,
-	    track: t
-	}, {
-
-	    success: function(data){
-            if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
-                this.error('track.search', 'Empty set.');
+        } else { // playlist is from xhr response      
+            var playlist = $.parseJSON(response);
+            if(playlist.status != 'ok') {
+                log('Error loading playlist: ' + playlist.status);
                 return;
             }
-            
-            hide(); 
-            
-            var track = data.results.trackmatches.track;
-            var trackName = track.name || t;
-            var artistName = track.artist || a;
-            var albumImg = track.image && track.image[track.image.length - 1]['#text'];
-            
-            // Update song title, artist name
-            $('#curSong h4').text(trackName);
-            $('#curArtist h4').text(artistName);
-            
-            // Update album art
-            view.updateAlbumImg(albumImg, ''); // We'll set alt text once we know album name
-            
-            // 2. Get detailed track info
-            trackName && artistName && that.lastfm.track.getInfo({
-        	    artist: artistName,
-        	    autocorrect: 1,
-        	    track: trackName
-        	}, {
-        	    
-        	    success: function(data){
-                    if (!data.track) {
-                        this.error('track.getInfo', 'Empty set.');
-                        return;
-                    }
-                                        
-                    var track = data.track;
-                    var artistName = track.artist && track.artist.name;
-                    var albumName = track.album && track.album.title;
-                    var trackSummary = track.wiki && track.wiki.summary;
-                    var trackLongDesc = track.wiki && track.wiki.content;
-                                        
-                    // Update album name
-                    albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
-                    
-                    // Update album image alt text
-                    var albumAlt = albumName;
-                    albumAlt += artistName ? (' by ' + artistName) : '';
-                    albumName && $('#curAlbumImg').attr('alt', albumAlt);
-                    
-                    // Update song summary
-                    if (trackSummary) {                        
-                        $('#curSongDesc article').html(Controller.cleanHTML(trackSummary));
-                        $('#curSongDesc h4').text('About ' + track.name);
-                        $('#curSongDesc').fadeIn('fast');
-                    }
-                    
-                    // Add link to longer description
-                    if (trackLongDesc) {
-                        var content = Controller.cleanHTML(trackLongDesc);                        
-                        var link = Controller.makeSeeMoreLink(track.name, content);
-                        link.appendTo('#curSongDesc article');
-                    }
-        	    },
+            if(Modernizr.history) {
+                window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+            }
+            $('#infoDisplay').effect('pulsate');        
+        }
+    
+        model.updatePlaylist(playlist);
+        view.renderPlaylist(playlist);
+    
+        controller.playSong(0);
+        log('Loaded playlist: ' + playlist.id);
+    };
 
-        	    error: function(code, message) {
-        	        log(code + ' ' + message);
-        		}
-        	});
+    // Load a playlist with the given id
+    this.loadPlaylistById = function(id) {
+        var the_url = '/p/'+id+'/json';
+        $.ajax({
+            dataType: 'json',
+            type: 'GET',
+            url: the_url,
+            success: function(responseData, textStatus, XMLHttpRequest) {
+                controller.loadPlaylist(responseData);
+            }
+        });
+    };
+
+    // Play a song at the given playlist index
+    this.playSong = function(i) {
+        this.songIndex = i;
+        var song = model.songs[i];
+        var title = cleanSongTitle(song.t);
+        var artist = song.a;
+    
+        var q = title + ' ' + artist;
+        this.playSongBySearch(q);
+ 
+        $('.playing').toggleClass('playing');
+        $('#song' + i).toggleClass('playing');
+    
+        this.updateCurPlaying(title, artist);
+    };
+
+    // Play next song in the playlist
+    this.playNextSong = function() {
+        if (this.songIndex == model.songs.length - 1) {
+            return;
+        }
+        this.playSong(++this.songIndex);
+    };
+
+    // Play prev song in the playlist
+    this.playPrevSong = function() {
+        if (this.songIndex == 0) {
+            return;
+        }
+        this.playSong(--this.songIndex);
+    };
+
+    // Play top video for given search query
+    this.playSongBySearch = function(q) {
+        var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
+        $.ajax({
+            dataType: 'jsonp',
+            type: 'GET',
+            url: the_url,
+            success: function(responseData, textStatus, XMLHttpRequest) {
+                if (responseData.data.items) {
+                    var videos = responseData.data.items;
+                    controller.playSongById(videos[0].id)
+                } else {
+                    controller.playNextSong();
+                }
+            }
+        });
+    };
+
+    // Attempts to play the video with the given ID. If the player is in a loading state,
+    // we queue up the video. We don't want to interrupt the player since that causes the
+    // "An error occurred, please try again later" message.
+    this.playSongById = function(id) {
+        if (view.player && view.player.getPlayerState() == 3) { // Don't interrupt player while it's loading
+            this.queuedVideo = id;
+        
+        } else { // Play it immediately
+            view.playVideoById(id); 
+        }
+    };
+
+    // Move song in the playlist
+    // @oldIndex - old playlist position
+    // @newIndex - new playlist position
+    this.moveSong = function(oldIndex, newIndex) {
+        model.moveSong(oldIndex, newIndex);
+    
+        var the_url = '/p/'+model.playlistId+'/edit';
+        $.ajax({
+            data: '&songs='+encodeURIComponent(JSON.stringify(model.songs)),
+            dataType: 'json',
+            type: 'POST',
+            url: the_url,
+            success: function(responseData, textStatus, XMLHttpRequest) {
+                // TODO: Show a throbber while request is being sent.
+                log('Server received move POST.');
+            }
+        });
+    };
+
+    // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
+    // If there is saved state, load the correct playlist.
+    this.onPopState = function(event) {
+        var state = event.state;
+        if (state && state.playlistId != model.playlistId) {
+            controller.loadPlaylistById(state.playlistId);
+        }
+    };
+
+    // Update the currently playing song with Last.fm data
+    // TODO: Find a way to decompose this monstrous function
+    this.updateCurPlaying = function(t, a) {
+    
+        // Hide old values with animation
+        var hide = function() {
+            if ($('#curAlbum').css('display') != '0') {
+                $('#curAlbum').fadeOut('fast');
+            }
+            if ($('#curSongDesc').css('display') != '0') {
+                $('#curSongDesc').fadeOut('fast');
+            }
+            if ($('#curArtistDesc').css('display') != '0') {
+                $('#curArtistDesc').fadeOut('fast');
+            }
+        };
+    
+        // 1. Search for track.
+    	model.lastfm.track.search({
+    	    artist: a,
+    	    limit: 1,
+    	    track: t
+    	}, {
+
+    	    success: function(data){
+                if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+                    this.error('track.search', 'Empty set.');
+                    return;
+                }
+            
+                hide(); 
+            
+                var track = data.results.trackmatches.track;
+                var trackName = track.name || t;
+                var artistName = track.artist || a;
+                var albumImg = track.image && track.image[track.image.length - 1]['#text'];
+            
+                // Update song title, artist name
+                $('#curSong h4').text(trackName);
+                $('#curArtist h4').text(artistName);
+            
+                // Update album art
+                view.updateAlbumImg(albumImg, ''); // We'll set alt text once we know album name
+            
+                // 2. Get detailed track info
+                trackName && artistName && model.lastfm.track.getInfo({
+            	    artist: artistName,
+            	    autocorrect: 1,
+            	    track: trackName
+            	}, {
+        	    
+            	    success: function(data){
+                        if (!data.track) {
+                            this.error('track.getInfo', 'Empty set.');
+                            return;
+                        }
+                                        
+                        var track = data.track;
+                        var artistName = track.artist && track.artist.name;
+                        var albumName = track.album && track.album.title;
+                        var trackSummary = track.wiki && track.wiki.summary;
+                        var trackLongDesc = track.wiki && track.wiki.content;
+                                        
+                        // Update album name
+                        albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
+                    
+                        // Update album image alt text
+                        var albumAlt = albumName;
+                        albumAlt += artistName ? (' by ' + artistName) : '';
+                        albumName && $('#curAlbumImg').attr('alt', albumAlt);
+                    
+                        // Update song summary
+                        if (trackSummary) {                        
+                            $('#curSongDesc article').html(cleanHTML(trackSummary));
+                            $('#curSongDesc h4').text('About ' + track.name);
+                            $('#curSongDesc').fadeIn('fast');
+                        }
+                    
+                        // Add link to longer description
+                        if (trackLongDesc) {
+                            var content = cleanHTML(trackLongDesc);                        
+                            var link = makeSeeMoreLink(track.name, content);
+                            link.appendTo('#curSongDesc article');
+                        }
+            	    },
+
+            	    error: function(code, message) {
+            	        log(code + ' ' + message);
+            		}
+            	});
         	
-        	// 2. Get detailed artist info
-        	artistName && that.lastfm.artist.getInfo({
-        	    artist: artistName,
-        	    autocorrect: 1
-        	}, {
+            	// 2. Get detailed artist info
+            	artistName && model.lastfm.artist.getInfo({
+            	    artist: artistName,
+            	    autocorrect: 1
+            	}, {
         	    
-        	    success: function(data){        	        
-                    if (!data.artist) {
-                        this.error('track.getInfo', 'Empty set.');
-                        return;
-                    }
+            	    success: function(data){        	        
+                        if (!data.artist) {
+                            this.error('track.getInfo', 'Empty set.');
+                            return;
+                        }
                                         
-                    var artist = data.artist;
-                    var artistSummary = artist.bio && artist.bio.summary;
-                    var artistLongDesc = artist.bio && artist.bio.content;
-                    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
+                        var artist = data.artist;
+                        var artistSummary = artist.bio && artist.bio.summary;
+                        var artistLongDesc = artist.bio && artist.bio.content;
+                        var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
                     
-                    // Update artist image
-                    view.updateArtistImg(artistImg, artistName);
+                        // Update artist image
+                        view.updateArtistImg(artistImg, artistName);
                     
-                    // Update artist summary
-                    if (artistSummary) {                        
-                        $('#curArtistDesc article').html(Controller.cleanHTML(artistSummary));
-                        $('#curArtistDesc h4').text('About ' + artistName);
-                        $('#curArtistDesc').fadeIn('fast');
-                    }
+                        // Update artist summary
+                        if (artistSummary) {                        
+                            $('#curArtistDesc article').html(cleanHTML(artistSummary));
+                            $('#curArtistDesc h4').text('About ' + artistName);
+                            $('#curArtistDesc').fadeIn('fast');
+                        }
                     
-                    // Add link to longer description
-                    if (artistLongDesc) {
-                        var content = Controller.cleanHTML(artistLongDesc);                        
-                        var link = Controller.makeSeeMoreLink(artistName, content);
-                        link.appendTo('#curArtistDesc article');
-                    }
-        	    },
+                        // Add link to longer description
+                        if (artistLongDesc) {
+                            var content = cleanHTML(artistLongDesc);                        
+                            var link = makeSeeMoreLink(artistName, content);
+                            link.appendTo('#curArtistDesc article');
+                        }
+            	    },
 
-        	    error: function(code, message) {
-        	        log(code + ' ' + message);
-        		}
-        	});
-	    },
+            	    error: function(code, message) {
+            	        log(code + ' ' + message);
+            		}
+            	});
+    	    },
 	    
-	    error: function(code, message) {
-	        log(code + ' ' + message);
-	        $('#curSong h4').text(t);
-            $('#curArtist h4').text(a);
-            view.updateAlbumImg(null);
-            hide();
-		}
-	});
+    	    error: function(code, message) {
+    	        log(code + ' ' + message);
+    	        $('#curSong h4').text(t);
+                $('#curArtist h4').text(a);
+                view.updateAlbumImg(null);
+                hide();
+    		}
+    	});
+    };
 };
 
 
@@ -370,9 +362,9 @@ function onYouTubePlayerStateChange(newState) {
             break;
         case 1: // playing
             $('.playing').toggleClass('paused', false);
-            if (controller.queuedSong) {
-                controller.playSongById(controller.queuedSong);
-                controller.queuedSong = null;
+            if (controller.queuedVideo) {
+                controller.playSongById(controller.queuedVideo);
+                controller.queuedVideo = null;
             }
             break;
         case 2: // paused
@@ -382,23 +374,17 @@ function onYouTubePlayerStateChange(newState) {
 }
 
 
-/* Static functions */
+/* Utility functions */
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
-Controller.cleanSongTitle = function(title) {
+function cleanSongTitle(title) {
     return title.replace(/[\(\[]((feat|ft|produce|dirty|clean)|.*?(version|edit)).*?[\)\]]/gi, '');
 };
 
 // Prepare Remove all html tags
-Controller.cleanHTML = function(html) {
+function cleanHTML(html) {
     var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');   
     return html
         .replace(r, '') // Remove HTML tags (http://bit.ly/DdoNo)
         .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
 };
-
-Controller.makeSeeMoreLink = function(title, content) {
-    return $('<span> </span><a class="seeMore" href="#seeMore">(see more)</a>')
-        .data('content', content)
-        .click(view.showSeeMoreText);
-}
