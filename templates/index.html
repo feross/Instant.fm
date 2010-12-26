@@ -28,9 +28,6 @@
 <body>
   <div id="container">
     <!-- <header class="clearfix" id="header">
-      <h1>
-        <a class="ir" href="/" id="headerLogo">Instant.fm - Share Music Playlists Instantly</a>
-      </h1>
       <nav id="headerMenu">
         <a href="#">FAQ</a> |
         <a href="#">Blog</a> |
@@ -43,13 +40,21 @@
       
       <div id="playlistDisplay">
         
+        <header id="header">
+          <a class="ir" href="/" id="headerLogo">
+            <h1>Instant.fm - Share Music Playlists Instantly</h1>
+          </a>
+        </header>
+        
         <div id="videoDiv">
           <div id="player">&nbsp;</div>
         </div>
         
-        <ul id="playlist">
-          <!-- Loaded via JavaScript -->
-        </ul>
+        <div id="playlistDiv">
+          <ul id="playlist">
+            <!-- Loaded via JavaScript -->
+          </ul>
+        </div>
         
       </div> <!-- end of #playlistDisplay -->
       
@@ -68,9 +73,9 @@
                 <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
                 <div>Feross Aboukhadijeh</div>
               </a>
-              <div id="playlistShare">
+              <!-- <div id="playlistShare">
                 <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like>
-              </div>
+              </div> -->
             </footer>
           </section>
           
@@ -185,7 +190,6 @@
   <script src="/js/model.js"></script>
   <script src="/js/view.js"></script>
   <script src="/js/controller.js"></script>
-  <script src="/js/script.js"></script>
   <!-- end concatenated and minified scripts-->
   
   <script>

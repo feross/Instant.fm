@@ -98,8 +98,8 @@ body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !
 
 #container { margin: 0 auto; text-align: left; width: 1000px; }
 
-h1 { font-size: 34px; margin: 0 0 12px 0; text-shadow: #000 0px 1px 1px;}
-h2 { font-size: 28px; margin: 0 0 10px 0; text-shadow: #000 0px 1px 1px;}
+h1 { font-size: 30px; }
+h2 { font-size: 26px; margin: 0 0 10px 0; text-shadow: #000 0px 1px 1px;}
 h3 { font-size: 22px; margin: 0 0 8px 0; text-shadow: #000 0px 1px 1px;}
 h4 { font-size: 16px; margin: 0 0 7px 0; text-shadow: #000 0px 1px 1px;}
 h5 { font-size: 14px; margin: 0 0 4px 0; }
@@ -107,17 +107,6 @@ h6 { font-size: 12px; }
 
 
 /* Header */
-
-/*#header { margin: 0 0 20px 0; }
-*/
-#headerLogo {
-    background: transparent url("/images/logo.png") 0 0 no-repeat;
-    display: block;
-    float: left;
-    height: 35px;
-    margin: 0 0 0 5px;
-    width: 360px;
-}
 
 #headerMenu { color: #499bd1; float: right; font-size: 14px; font-weight: bold; text-shadow: #000 0 1px 1px; }
 
@@ -136,16 +125,24 @@ h6 { font-size: 12px; }
 
 #playlistDisplay { float: left; position: fixed; width: 480px; }
 
+#header { height: 40px; margin: 10px 0 0 5px; }
+
+#headerLogo {
+    background: transparent url("/images/logo3.png") 0 0 no-repeat;
+    display: block;
+    height: 30px;
+    width: 424px;
+}
+
 #videoDiv { border-bottom: #A3A3A3 1px solid; height: 295px; width: 480px; }
+
+#playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
 
 #playlist {
     color: #444;
     font-size: 13px;
     padding: 0;
     margin: 0;
-    overflow: auto;
-    overflow-x: hidden; /* use css3 when available */
-    overflow-y: scroll; /* use css3 when available */
 }
 
 #playlist li {
@@ -182,7 +179,7 @@ h6 { font-size: 12px; }
 #infoDisplay {
     float: right;
     font-size: 14px;
-    margin: 20px 0 0 0;
+    margin: 50px 0 0 0;
     text-shadow: #000 0px 1px 1px;
     width: 485px;
 }
