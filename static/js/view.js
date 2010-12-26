@@ -83,7 +83,9 @@ function View() {
 
         for (var i = start; i < end; i++) {
             var v = playlist.songs[i];
-            $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>')
+            $('<li id="song'+i+'">\
+                 <span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span>\
+               </li>')
                 .appendTo('#playlist')
                 .click(function(event) {
                     var songId = parseInt($(this).attr('id').substring(4));
@@ -231,12 +233,11 @@ function makeFancyZoomImg(thumbId, src, alt) {
     var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
     $('#'+thumbId+'Zoom').empty().append(imgZoom);
     
-    var imgBlock = $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
-        .append('<img alt="'+alt+'" src="'+src+'" />')
-        .append('<span class="zoomIcon" />')
-        .fancyZoom($.extend({}, settings.fancyZoom, { closeOnClick: true, scaleImg: true }));
-    
-    return imgBlock;
+    return $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"> \
+                <img alt="'+alt+'" src="'+src+'" /> \
+                <span class="zoomIcon" /> \
+              </a>')
+               .fancyZoom($.extend({}, settings.fancyZoom, { closeOnClick: true, scaleImg: true }));
 }
 
 function makeSeeMoreLink(title, content) {

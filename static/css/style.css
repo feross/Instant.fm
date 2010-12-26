@@ -125,12 +125,11 @@ h6 { font-size: 12px; }
 
 #playlistDisplay { float: left; position: fixed; width: 480px; }
 
-#header { height: 40px; margin: 10px 0 0 5px; }
-
 #headerLogo {
     background: transparent url("/images/logo3.png") 0 0 no-repeat;
     display: block;
     height: 30px;
+    margin: 10px 0 10px 5px;
     width: 424px;
 }
 

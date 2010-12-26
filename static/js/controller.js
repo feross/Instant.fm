@@ -5,6 +5,7 @@ var controller;
 var settings = {
     fancyZoom : { directory: '/images/fancyzoom' },
 };
+// jQuery.fx.off = true;
 
 // Onload event
 $(function() {
@@ -26,7 +27,7 @@ $(function() {
 });
 
 function setupPlaylistDisplay() {
-    var maxPlaylistHeight = $(window).height() - $('#videoDiv').height() - $('#header').height();
+    var maxPlaylistHeight = $(window).height() - (50 + 295 + 1); /* header, player, player border */
     var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     $('#playlistDiv').height(newHeight);
 }
@@ -71,7 +72,8 @@ function setupKeyboardListeners() {
 function Controller() {
     this.songIndex; // Current position in the playlist
     this.queuedVideo;
-
+    this.queuedLastfm = { title: null, artist: null };
+    this.lastfmReqs = [false, false, false];
 
     // Load a playlist based on the xhr response or the initial embedded playlist
     // @response - response body
@@ -159,6 +161,7 @@ function Controller() {
                     controller.playSongById(videos[0].id)
                 } else {
                     controller.playNextSong();
+                    log('No songs found for: ' + q);
                 }
             }
         });
@@ -207,6 +210,14 @@ function Controller() {
     // Update the currently playing song with Last.fm data
     // TODO: Find a way to decompose this monstrous function
     this.updateCurPlaying = function(t, a) {
+        
+        if ($.inArray(true, controller.lastfmReqs) != -1) { // something is processing, so queue this request
+            this.queuedLastfm.title = t;
+            this.queuedLastfm.artist = a;
+            return;
+        } else { // lock and start processing request
+            this.lastfmReqStarted(1);
+        }
     
         // Hide old values with animation
         var hide = function() {
@@ -229,6 +240,7 @@ function Controller() {
     	}, {
 
     	    success: function(data){
+    	        controller.lastfmReqEnded(1);
                 if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
                     this.error('track.search', 'Empty set.');
                     return;
@@ -249,6 +261,7 @@ function Controller() {
                 view.updateAlbumImg(albumImg, ''); // We'll set alt text once we know album name
             
                 // 2. Get detailed track info
+                controller.lastfmReqStarted(2);
                 trackName && artistName && model.lastfm.track.getInfo({
             	    artist: artistName,
             	    autocorrect: 1,
@@ -256,6 +269,7 @@ function Controller() {
             	}, {
         	    
             	    success: function(data){
+            	        controller.lastfmReqEnded(2);
                         if (!data.track) {
                             this.error('track.getInfo', 'Empty set.');
                             return;
@@ -291,17 +305,20 @@ function Controller() {
             	    },
 
             	    error: function(code, message) {
+            	        controller.lastfmReqEnded(2);
             	        log(code + ' ' + message);
             		}
             	});
         	
-            	// 2. Get detailed artist info
+            	// 3. Get detailed artist info (proceeds simultaneously with 2)
+            	controller.lastfmReqStarted(3);
             	artistName && model.lastfm.artist.getInfo({
             	    artist: artistName,
             	    autocorrect: 1
             	}, {
         	    
-            	    success: function(data){        	        
+            	    success: function(data){
+            	        controller.lastfmReqEnded(3);
                         if (!data.artist) {
                             this.error('track.getInfo', 'Empty set.');
                             return;
@@ -331,12 +348,14 @@ function Controller() {
             	    },
 
             	    error: function(code, message) {
+            	        controller.lastfmReqEnded(3);
             	        log(code + ' ' + message);
             		}
             	});
     	    },
 	    
     	    error: function(code, message) {
+    	        controller.lastfmReqEnded(1);
     	        log(code + ' ' + message);
     	        $('#curSong h4').text(t);
                 $('#curArtist h4').text(a);
@@ -344,6 +363,28 @@ function Controller() {
                 hide();
     		}
     	});
+    };
+    
+    // Call this each time we make an xhr request to Last.fm.
+    this.lastfmReqStarted = function(req) {
+        log('started '+req);
+        controller.lastfmReqs[req - 1] = true;
+    };
+    
+    // Call this each time we receive an xhr response from Last.fm.
+    this.lastfmReqEnded = function(req) {
+        log('ended '+req);
+        controller.lastfmReqs[req - 1] = false;
+        
+        if ($.inArray(true, controller.lastfmReqs) == -1) { // all requests are finished processing
+            var title = controller.queuedLastfm.title;
+            var artist = controller.queuedLastfm.artist;
+            if (title || artist) {
+                controller.queuedLastfm.title = null;
+                controller.queuedLastfm.artist = null;
+                controller.updateCurPlaying(title, artist);
+            }
+        }
     };
 };
 
