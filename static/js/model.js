@@ -7,21 +7,18 @@ function Model(playlist) {
 		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
 		cache     : cache
 	});
+};
     
-    
-    this.updatePlaylist = function(playlist) {
-        this.playlistId  = playlist.id || -1;
-        this.title       = playlist.title;
-        this.description = playlist.description;
-        this.songs       = playlist.songs || [];
-    };
-
-    this.moveSong = function(oldIndex, newIndex) {
-        var songData = model.songs[oldIndex];
-        model.songs.splice(oldIndex, 1);
-        model.songs.splice(newIndex, 0, songData);
-    };
+Model.prototype.updatePlaylist = function(playlist) {
+    this.playlistId  = playlist.id || -1;
+    this.title       = playlist.title;
+    this.description = playlist.description;
+    this.songs       = playlist.songs || [];
 };
 
-
+Model.prototype.moveSong = function(oldIndex, newIndex) {
+    var songData = model.songs[oldIndex];
+    model.songs.splice(oldIndex, 1);
+    model.songs.splice(newIndex, 0, songData);
+};
 
