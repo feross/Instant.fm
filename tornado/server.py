@@ -35,6 +35,7 @@ class Application(tornado.web.Application):
             debug=True, # always refresh templates
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             xsrf_cookies=True,
+            cookie_secret="SkxQTluCp02hm5k0zbiAJmgg2M3HOS7",
         )
         tornado.web.Application.__init__(self, handlers, **settings)
         
@@ -279,7 +280,7 @@ def main():
         except ImportError:
             print 'python-daemon not installed; not running as daemon'
 
-    http_server = tornado.httpserver.HTTPServer(Application())
+    http_server = tornado.httpserver.HTTPServer(Application(), xheaders=True)
     http_server.listen(8000)
 
     # Start the main loop

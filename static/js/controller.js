@@ -457,3 +457,8 @@ function cleanHTML(html) {
         .replace(r, '') // Remove HTML tags (http://bit.ly/DdoNo)
         .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
 };
+
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+};
