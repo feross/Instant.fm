@@ -11,6 +11,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.database
 
+from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
 
@@ -40,9 +41,20 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
         
         # TODO: Change this to use UNIX domain sockets?
-        self.db = tornado.database.Connection(
+        self.db = DBConnection(
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
+            
+class DBConnection(tornado.database.Connection):
+    """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
+    Why is this functionality not built-in???"""
+    def execute_count(self, query, *parameters):
+        """Executes the given query, returning the number of rows affected by the query."""
+        cursor = self._cursor()
+        try:
+            return self._execute(cursor, query, parameters)
+        finally:
+            cursor.close()
             
 class BaseHandler(tornado.web.RequestHandler):
     @property
@@ -84,6 +96,12 @@ class BaseHandler(tornado.web.RequestHandler):
     
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
+        user_cookie = self.get_secure_cookie('user_id')
+        if user_cookie is None:
+            editable = False
+        else:    
+            editable = (long(user_cookie) == playlist_entry.user_id)
+        
         alpha_id = self.base10_36(playlist_entry.playlist_id)
         title = playlist_entry.title
         description = playlist_entry.description
@@ -91,8 +109,9 @@ class BaseHandler(tornado.web.RequestHandler):
         
         # This is a bit of a hack to build up a JSON string that contains pre-converted
         # JSON data (the songs array), which must not be converted again"""
-        playlist = '{"id": ' + json.dumps(alpha_id) + ', "title": ' + json.dumps(title) \
-            + ', "description": ' + json.dumps(description) + ', "songs": ' + songs + '}'
+        playlist = ('{"id": ' + json.dumps(alpha_id) + ', "title": ' + json.dumps(title) +
+            ', "description": ' + json.dumps(description) + ', "songs": ' + songs +
+            ', "editable": ' + json.dumps(editable) + '}')
         return playlist
     
     def get_error_html(self, status_code, **kwargs):
@@ -105,9 +124,16 @@ class BaseHandler(tornado.web.RequestHandler):
                 
         return super(BaseHandler, self).get_error_html(status_code, **kwargs)
         
+    def set_user_cookie(self):
+        """Checks if a user_id cookie is set and sets one if not"""
+        if not self.get_secure_cookie('user_id'):
+            create_date = datetime.utcnow().isoformat(' ')
+            new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
+            self.set_secure_cookie('user_id', str(new_id))
     
 class HomeHandler(BaseHandler):
     def get(self):
+        self.set_user_cookie()
         self.render("index.html")
         
     
@@ -129,6 +155,7 @@ class PlaylistHandler(BaseHandler):
         self.render("playlist.html", playlist=playlist)
     
     def get(self, playlist_alpha_id):
+        self.set_user_cookie()
         playlist_id = self.base36_10(playlist_alpha_id)
         self._render_playlist(playlist_id)
 
@@ -152,15 +179,24 @@ class PlaylistJSONHandler(PlaylistHandler):
 class PlaylistEditHandler(BaseHandler):
     """Handles updates to playlists in the database"""
     
-    def _update_playlist(self, playlist_id, songs):
+    def _update_playlist(self, playlist_id, songs, user_id):
         print "Updating playlist ID: " + str(playlist_id)
-        self.db.execute("UPDATE playlists SET songs = %s WHERE playlist_id = %s;", songs, playlist_id)
+        print "User ID:" + str(user_id)
+        return self.db.execute_count("UPDATE playlists SET songs = %s WHERE playlist_id = %s AND user_id = %s;", songs, playlist_id, user_id) == 1
     
     def post(self, playlist_alpha_id):
+        user_cookie = self.get_secure_cookie('user_id')
+        if not user_cookie:
+            return {'status': 'No user cookie'}
+            
+        user_id = long(user_cookie)
+        
         playlist_id = self.base36_10(playlist_alpha_id)
         songs = self.get_argument('songs')
-        self._update_playlist(playlist_id, songs)
-        self.write(json.dumps({'status': 'Updated'}))
+        if self._update_playlist(playlist_id, songs, user_id):
+            self.write(json.dumps({'status': 'Updated'}))
+        else:
+            self.write(json.dumps({'status': 'Playlist not editable'}))
         
 class UploadHandler(BaseHandler):
     """Handles playlist upload requests"""
@@ -210,13 +246,19 @@ class UploadHandler(BaseHandler):
         
         return res_arr
         
-    def _store_playlist(self, name, description, songs):
-        new_id = self.db.execute("INSERT INTO playlists (title, description, songs) VALUES (%s,%s,%s)",
-            name, description, songs)
+    def _store_playlist(self, name, description, songs, user_id):
+        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id) VALUES (%s,%s,%s,%s);",
+            name, description, songs, user_id)
 
         return self.base10_36(new_id)
                 
     def _handle_request(self):
+        user_cookie = self.get_secure_cookie('user_id')
+        if not user_cookie:
+            return {'status': 'No user cookie'}
+            
+        user_id = long(user_cookie)
+        
         # If the file is directly uploaded in the POST body
         # Make a dict of the headers with all lowercase keys
         lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
@@ -251,8 +293,8 @@ class UploadHandler(BaseHandler):
         else:
             return {'status': 'Unsupported type'}
             
-        playlist_id = self._store_playlist(name, "Imported playlist", json.dumps(parsed))
-        return {'status': 'ok', 'title': name, 'description': 'Uploaded playlist', 'id': playlist_id, 'songs': parsed}
+        playlist_id = self._store_playlist(name, "Imported playlist", json.dumps(parsed), user_id)
+        return {'status': 'ok', 'title': name, 'description': 'Uploaded playlist', 'id': playlist_id, 'songs': parsed, 'editable': True}
     
     def post(self):
         self.set_header("Content-Type", "application/json")
