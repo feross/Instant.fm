@@ -11,6 +11,39 @@ import tornado.ioloop
 import tornado.web
 import tornado.database
 
+from optparse import OptionParser
+from tornado.options import define, options
+
+define("port", default=8000, help="run on the given port", type=int)
+define("mysql_host", default="127.0.0.1:3306", help="database host")
+define("mysql_database", default="instantfm", help="database name")
+define("mysql_user", default="instantfm", help="database user")
+define("mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
+
+class Application(tornado.web.Application):
+    """Custom application class that keeps a database connection"""
+    def __init__(self):
+        handlers = [
+            (r"/", HomeHandler),
+            (r"/upload", UploadHandler),
+            (r"/p/([a-zA-Z0-9]*)$", PlaylistHandler),
+            (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
+            (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
+            (r".*", ErrorHandler),
+        ]
+        settings = dict(
+            debug=True, # always refresh templates
+            static_path=os.path.join(os.path.dirname(__file__), "../static"), # nginx
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            xsrf_cookies=True,
+        )
+        tornado.web.Application.__init__(self, handlers, **settings)
+        
+        # TODO: Change this to use UNIX domain sockets?
+        self.db = tornado.database.Connection(
+            host=options.mysql_host, database=options.mysql_database,
+            user=options.mysql_user, password=options.mysql_password)
+            
 class BaseHandler(tornado.web.RequestHandler):
     @property
     def db(self):
@@ -50,7 +83,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return alpha_id
     
     def makePlaylistJSON(self, playlist_entry):
-        """Generate the JSON for a given playlist"""
+        """Generate a playlist's JSON representation"""
         alpha_id = self.base10_36(playlist_entry.playlist_id)
         title = playlist_entry.title
         description = playlist_entry.description
@@ -72,47 +105,47 @@ class BaseHandler(tornado.web.RequestHandler):
                 
         return super(BaseHandler, self).get_error_html(status_code, **kwargs)
         
+    
+class HomeHandler(BaseHandler):
+    def get(self):
+        self.render("index.html")
         
+    
 class PlaylistHandler(BaseHandler):
-    """Handles requests for the homepage and inserts the correct playlist JavaScript"""
+    """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     
     def _get_playlist(self, playlist_id):
         print "Getting playlist ID: " + str(playlist_id)
         return self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
     
-    def render_playlist(self, playlist_id):
-        """Renders the homepage with the specified playlist.  If the playlist isn't in the database,
-        redirects to the homepage."""
+    def _render_playlist(self, playlist_id):
+        """Renders a page with the specified playlist."""
         playlist_entry = self._get_playlist(playlist_id)
-        
-        if playlist_entry is None:
+        if not playlist_entry:
             print "Couldn't find playlist"
-            self.redirect("/")
-            return
+            raise tornado.web.HTTPError(404)
         
         playlist = self.makePlaylistJSON(playlist_entry)
-        
-        self.render("templates/index.html", playlist=playlist)
+        self.render("playlist.html", playlist=playlist)
     
     def get(self, playlist_alpha_id):
         playlist_id = self.base36_10(playlist_alpha_id)
-        self.render_playlist(playlist_id)
+        self._render_playlist(playlist_id)
 
 
 class PlaylistJSONHandler(PlaylistHandler):
     """Handles requests to get playlists from the database"""
     
-    def render_playlist(self, playlist_id):
+    def _render_playlist(self, playlist_id):
         """Renders the specified playlist's JSON representation"""
         playlist_entry = self._get_playlist(playlist_id)
         
-        if playlist_entry is None:
+        if not playlist_entry:
             print "Couldn't find playlist"
             self.write(json.dumps({'status': 'Not found'}))
             return
         
         playlist = self.makePlaylistJSON(playlist_entry)
-        
         self.write(playlist)
 
 
@@ -129,7 +162,6 @@ class PlaylistEditHandler(BaseHandler):
         self._update_playlist(playlist_id, songs)
         self.write(json.dumps({'status': 'Updated'}))
         
-
 class UploadHandler(BaseHandler):
     """Handles playlist upload requests"""
     def _parseM3U(self, contents):
@@ -228,32 +260,13 @@ class UploadHandler(BaseHandler):
         self.write(json.dumps(result))
         
 
-class DefaultHandler(BaseHandler):
-    """Error handler class.  This could probably be improved"""       
+class ErrorHandler(BaseHandler):
     def prepare(self):
         self.send_error(404)    
     
         
-class Application(tornado.web.Application):
-    """Custom application class that keeps a database connection"""
-    def __init__(self):
-        handlers = [
-            (r"/upload", UploadHandler),
-            (r"/p/([a-zA-Z0-9]*)$", PlaylistHandler),
-            (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
-            (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
-            (r".*", DefaultHandler),
-        ]
-        app_settings = { "debug" : "True" } # always refresh templates
-        tornado.web.Application.__init__(self, handlers, **app_settings)
-        
-        # TODO: Change this to use UNIX domain sockets?
-        self.db = tornado.database.Connection(host="localhost", database="instantfm", user="instantfm", password="CXZrPkkJEgk7lAZMnzbk5hb9g")
-
-
 def main():
     # Check for the -d (debug) argument
-    from optparse import OptionParser
     optparser = OptionParser()
     optparser.add_option("-d", action="store_false", dest="daemonize", help="don't dameonize (debug mode)", default=True)
     (options, args) = optparser.parse_args()
@@ -267,8 +280,7 @@ def main():
         except ImportError:
             print 'python-daemon not installed; not running as daemon'
 
-    application = Application()
-    http_server = tornado.httpserver.HTTPServer(application)
+    http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(8000)
 
     # Start the main loop
