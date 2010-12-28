@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block bodyId %}p{% end %}
+
 {% block body %}
   <!-- <header class="clearfix" id="header">
     <nav id="headerMenu">
@@ -134,4 +136,13 @@
     </div> <!-- end of #helpBox -->
   
   </div> <!-- end of #devNull -->
+{% end %}
+
+{% block scripts %}
+    <script>var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') }};</script>
+    <script>
+      $(function() {
+          onloadPlaylist();
+      });
+    </script>
 {% end %}

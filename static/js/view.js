@@ -242,3 +242,11 @@ function makeSeeMoreLink(title, content) {
         .click(view.showSeeMoreText);
 }
 
+function showThrobber(show) {
+    if (show) {
+        $('<div id="throbber"><img src="/images/throbber.gif"></div>')
+            .appendTo('#uploadDiv');
+    } else {
+        $('#throbber').remove();
+    }
+}

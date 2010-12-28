@@ -294,12 +294,25 @@ class UploadHandler(BaseHandler):
             return {'status': 'Unsupported type'}
             
         playlist_id = self._store_playlist(name, "Imported playlist", json.dumps(parsed), user_id)
-        return {'status': 'ok', 'title': name, 'description': 'Uploaded playlist', 'id': playlist_id, 'songs': parsed, 'editable': True}
+        playlist = {
+            'status': 'ok',
+            'title': name,
+            'description': 'Uploaded playlist',
+            'songs': parsed,
+            'playlist_id': playlist_id,
+            'editable': True
+        }
+        return playlist
     
     def post(self):
-        self.set_header("Content-Type", "application/json")
         result = self._handle_request()
-        self.write(json.dumps(result))
+        
+        if self.get_argument('redirect', 'false') == 'true':
+            playlist_id = result['playlist_id']
+            self.redirect("/p/"+playlist_id)
+        else:
+            self.set_header("Content-Type", "application/json")
+            self.write(json.dumps(result))
         
 
 class ErrorHandler(BaseHandler):

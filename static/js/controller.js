@@ -7,8 +7,23 @@ var settings = {
 };
 // jQuery.fx.off = true;
 
-// Onload event
-$(function() {
+function onloadHome() {
+    controller = new Controller();
+    
+    $('.file').change(function(event) {
+        log('change');
+        var val = $(this).val();
+        if (val.length) {
+            log('submitted');
+            $('#uploadForm').submit();
+        }
+    });
+    
+    setupDragDropUploader('home', controller.redirectToPlaylist);
+}
+
+
+function onloadPlaylist() {
     view = new View();
     model = new Model();
     controller = new Controller();
@@ -23,8 +38,8 @@ $(function() {
     window.onpopstate = controller.onPopState;
     $(window).resize(setupPlaylistDisplay);
     
-    new uploader('container', null, '/upload', null, controller.loadPlaylist); // HTML5 dragdrop upload
-});
+    setupDragDropUploader('p', controller.loadPlaylist);
+}
 
 function setupPlaylistDisplay() {
     var maxPlaylistHeight = $(window).height() - (50 + 295 + 1); /* header, player, player border */
@@ -79,6 +94,10 @@ function setupKeyboardListeners() {
     });
 }
 
+function setupDragDropUploader(dropId, callback) {
+    new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
+}
+
 
 function Controller() {
     this.songIndex; // Current position in the playlist
@@ -117,6 +136,17 @@ Controller.prototype.loadPlaylist = function(response) {
 
     controller.playSong(0);
     log('Loaded playlist: ' + playlist.id);
+};
+
+// Redirect to playlist with the given id
+Controller.prototype.redirectToPlaylist = function(response) {
+    var playlist = $.parseJSON(response);
+    if(playlist.status != 'ok') {
+        log('Error loading playlist: ' + playlist.status);
+        return;
+    }
+    var id = playlist.playlist_id;
+    window.location = '/p/'+id;
 };
 
 // Load a playlist with the given id

@@ -1,14 +1,6 @@
 
 (function($){
 
- 
-
-
-
-
-
- 
-
 
 
 })(this.jQuery);

@@ -10,7 +10,7 @@ function Model(playlist) {
 };
     
 Model.prototype.updatePlaylist = function(playlist) {
-    this.playlistId  = playlist.id || -1;
+    this.playlistId  = playlist.playlist_id || -1;
     this.title       = playlist.title;
     this.description = playlist.description;
     this.songs       = playlist.songs || [];

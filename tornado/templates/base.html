@@ -26,7 +26,7 @@
   <script src="/js/libs/modernizr-1.6.min.js"></script>
 </head>
 
-<body>
+<body id="{% block bodyId %}{% end %}">
   <div id="container">
     {% block body %}{% end %}
   </div> <!-- end of #container -->
@@ -42,8 +42,6 @@
   <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script>!window.swfobject && document.write(unescape('%3Cscript src="js/libs/swfobject.js"%3E%3C/script%3E'))</script>
 
-  <script type="text/javascript">var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') }};</script>
-
   <!-- scripts concatenated and minified via ant build script-->
   <script src="/js/libs/html5uploader.js"></script>
   <script src="/js/libs/lastfm.api.md5.js"></script>
@@ -51,6 +49,7 @@
   <script src="/js/libs/lastfm.api.cache.js"></script>
   <script src="/js/libs/fancyzoom.min.js"></script>
 
+  {% block scripts %}{% end %}
   <script src="/js/plugins.js"></script>
   <script src="/js/model.js"></script>
   <script src="/js/view.js"></script>
@@ -74,8 +73,6 @@
     }());
   </script>
   
-  {% block bottom %}{% end %}
-
   <!--[if lt IE 7 ]>
     <script src="js/libs/dd_belatedpng.js"></script>
     <script> DD_belatedPNG.fix('img, .png_bg'); </script>
@@ -99,5 +96,6 @@
    })(document, 'script');
   </script> -->
 
+  {{ xsrf_form_html() }}
 </body>
 </html>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block bodyId %}home{% end %}
+
+{% block body %}
+  <div id="main">
+    <header id="header">
+      <img alt="Instant.fm - Share Music Playlists Instantly" src="/images/logo-large.png" />
+      <span class="ir">Instant.fm - Share Music Playlists Instantly</span>
+    </header>
+    <div class="clearfix" id="uploadDiv">
+      
+      <div id="upload">
+        <form id="uploadForm" action="/upload?redirect=true" method="POST" enctype="multipart/form-data">
+          <input type="file" class="file" id="file" name="file" />
+          <div id="fakefile">
+            <div id="fakeinput">Choose an M3U or TXT playlist file.</div>
+      			<a class="large red awesome">Upload a playlist &raquo;</a> <br /><br /> 
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <small>
+      Or, you can drag and drop files onto this page.
+    </small>
+        
+    
+  </div>
+  <footer id="footer">
+    <strong><a href="#">Instant.fm</a></strong> |
+    <a href="#">FAQ</a> |
+    <a href="#">Blog</a> |
+    <a href="#">Contact</a>
+  </footer>
+{% end %}
+
+{% block scripts %}
+  <script>
+    $(function() {
+      onloadHome();
+    });
+  </script>
+{% end %}
