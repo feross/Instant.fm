@@ -273,7 +273,7 @@ a.awesome:hover { text-decoration: none; }
 
 #playlist li:hover { background-color: #c5defe; }
 
-#playlist li:hover .handle {
+#playlist.editable li:hover .handle {
     background: transparent url("/images/drag.png") 4px left no-repeat;
     cursor: url('/images/cursors/move.cur'), move;
 }

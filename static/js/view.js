@@ -61,20 +61,24 @@ View.prototype.renderPlaylist = function(playlist, start) {
     }
 
     if (start >= playlist.songs.length) { // we're done
-        $('#playlist').sortable({
-            axis: 'y',
-            scrollSensitivity: 30,
-            start: function(event, ui) {
-                $('body').toggleClass('sorting', true);
-            },
-            stop: function(event, ui) {
-                view.onReorder(event, ui);
-                $('body').toggleClass('sorting', false);
-            },
-            tolerance: 'pointer'
-        }).disableSelection();
-    
-        $('#playlist').mouseup(function(event) {
+        if (playlist.editable) {
+            $('#playlist')
+                .addClass('editable')
+                .sortable({
+                    axis: 'y',
+                    scrollSensitivity: 30,
+                    start: function(event, ui) {
+                        $('body').toggleClass('sorting', true);
+                    },
+                    stop: function(event, ui) {
+                        view.onReorder(event, ui);
+                        $('body').toggleClass('sorting', false);
+                    },
+                    tolerance: 'pointer'
+                })
+        }
+            
+        $('#playlist').disableSelection().mouseup(function(event) {
             view.reorderedSong = null; // we're done dragging now
         });
 

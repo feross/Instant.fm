@@ -14,6 +14,7 @@ Model.prototype.updatePlaylist = function(playlist) {
     this.title       = playlist.title;
     this.description = playlist.description;
     this.songs       = playlist.songs || [];
+    this.editable    = playlist.editable || false;
 };
 
 Model.prototype.moveSong = function(oldIndex, newIndex) {
