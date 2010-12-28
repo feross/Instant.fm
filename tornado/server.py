@@ -33,7 +33,6 @@ class Application(tornado.web.Application):
         ]
         settings = dict(
             debug=True, # always refresh templates
-            static_path=os.path.join(os.path.dirname(__file__), "../static"), # nginx
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             xsrf_cookies=True,
         )
