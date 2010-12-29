@@ -102,10 +102,7 @@ function setupDragDropUploader(dropId, callback) {
 function Controller() {
     this.songIndex; // Current position in the playlist
     this.queuedVideo;
-    
-    this.lastfmReqs = [false, false, false]; // Last.fm xhr request locks. True = processing request
-    this.queuedLastfm = {title: null, artist: null, songIndex: null};
-    
+        
     this.keyEvents = true; // Used to rate limit keyboard events
 };
     
@@ -260,16 +257,6 @@ Controller.prototype.onPopState = function(event) {
 //              hasn't changed before we update the DOM.
 // TODO: Find a way to decompose this monstrous function
 Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
-    
-    if ($.inArray(true, controller.lastfmReqs) != -1) { // something is processing, so queue this request
-        this.queuedLastfm.title = t;
-        this.queuedLastfm.artist = a;
-        this.queuedLastfm.songIndex = songIndex;
-        return;
-    } else { // lock and start processing request
-        this.lastfmReqStarted(1);
-    }
-
     // Hide old values with animation
     var hide = function() {
         if ($('#curAlbum').css('display') != '0') {
@@ -291,7 +278,6 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
 	}, {
 
 	    success: function(data){
-	        controller.lastfmReqEnded(1);
 	        if (controller.songIndex != songIndex) {
 	            return; // The request was too slow. We don't need it anymore.
 	        }
@@ -316,7 +302,6 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
             view.updateAlbumImg(albumImg, ''); 
         
             // 2. Get detailed track info
-            controller.lastfmReqStarted(2);
             trackName && artistName && model.lastfm.track.getInfo({
         	    artist: artistName,
         	    autocorrect: 1,
@@ -324,7 +309,6 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
         	}, {
     	    
         	    success: function(data){
-        	        controller.lastfmReqEnded(2);
         	        if (controller.songIndex != songIndex) {
         	            return; // The request was too slow. We don't need it anymore.
         	        }
@@ -363,20 +347,17 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
         	    },
 
         	    error: function(code, message) {
-        	        controller.lastfmReqEnded(2);
         	        log(code + ' ' + message);
         		}
         	});
     	
         	// 3. Get detailed artist info (proceeds simultaneously with 2)
-        	controller.lastfmReqStarted(3);
         	artistName && model.lastfm.artist.getInfo({
         	    artist: artistName,
         	    autocorrect: 1
         	}, {
     	    
         	    success: function(data){
-        	        controller.lastfmReqEnded(3);
         	        if (controller.songIndex != songIndex) {
         	            return; // The request was too slow. We don't need it anymore.
         	        }
@@ -409,14 +390,12 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
         	    },
 
         	    error: function(code, message) {
-        	        controller.lastfmReqEnded(3);
         	        log(code + ' ' + message);
         		}
         	});
 	    },
     
 	    error: function(code, message) {
-	        controller.lastfmReqEnded(1);
 	        log(code + ' ' + message);
 	        $('#curSong h4').text(t);
             $('#curArtist h4').text(a);
@@ -424,26 +403,6 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
             hide();
 		}
 	});
-};
-
-// Call this each time we make an xhr request to Last.fm.
-Controller.prototype.lastfmReqStarted = function(req) {
-    controller.lastfmReqs[req - 1] = true;
-};
-
-// Call this each time we receive an xhr response from Last.fm.
-Controller.prototype.lastfmReqEnded = function(req) {
-    controller.lastfmReqs[req - 1] = false;
-    
-    if ($.inArray(true, controller.lastfmReqs) == -1) { // all requests are finished processing
-        var title = controller.queuedLastfm.title;
-        var artist = controller.queuedLastfm.artist;
-        if (title || artist) {
-            controller.queuedLastfm.title = null;
-            controller.queuedLastfm.artist = null;
-            controller.updateCurPlaying(title, artist, controller.queuedLastfm.songIndex);
-        }
-    }
 };
 
 
