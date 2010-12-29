@@ -72,21 +72,13 @@ function setupKeyboardListeners() {
     // Detect key codes
     $(window).keydown(function(event) {
         var k = event.which;
-        
         if (k == 39 || k == 40) { // down, right
             doKeyEvent(controller.playNextSong);
         } else if (k == 37 || k == 38) { // up, left
             doKeyEvent(controller.playPrevSong);
         } else if (k == 32) { // space
             doKeyEvent(view.playPause);
-        }
-    });
-    
-    // Detect ascii characters
-    $(window).keypress(function(event) {
-        var k = event.charCode || event.keyCode;
-
-        if (k == 63) { // ? mark character
+        } else if (k == 191) { // ?
             doKeyEvent(function() {
                 $('#helpLink').click();
             });
