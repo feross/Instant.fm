@@ -202,20 +202,46 @@ class UploadHandler(BaseHandler):
     """Handles playlist upload requests"""
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
-        res_arr = []
-
+        
+        first_line = f.readline()
+        if not re.match(r"#EXTM3U", first_line):
+            return None
+        
+        # Attempt to guess if the artist/title are in iTunes order
+        itunes_format = False
         while True:
             line = f.readline()
             if len(line) == 0:
                 break
                 
+            if re.match(r"[^#].*([/\\])iTunes\1", line):
+                itunes_format = True
+                break
+        
+        f.seek(0)
+        
+        res_arr = []        
+        while True:
+            line = f.readline()
+            if len(line) == 0:
+                break
+            
             line = line.rstrip("\n")
 
-            res = re.match("#EXTINF:\d*,(.*) - (.*)", line)
-            if res:
-                title = res.group(1)
-                artist = res.group(2)
-                res_arr.append({'t': title, 'a': artist})
+            if itunes_format:
+                res = re.match(r"#EXTINF:\d*,(.*) - (.*)", line)
+                if res:
+                    title = res.group(1)
+                    artist = res.group(2)
+                    res_arr.append({'t': title, 'a': artist})
+                    
+            else:
+                # Slightly different regex to handle dashes in song titles better
+                res = re.match(r"#EXTINF:\d*,(.*?) - (.*)", line)
+                if res:
+                    artist = res.group(1)
+                    title = res.group(2)
+                    res_arr.append({'t': title, 'a': artist})
                 
         return res_arr
         
@@ -226,24 +252,48 @@ class UploadHandler(BaseHandler):
             decoded = contents.decode('utf-16')
         
         f = io.StringIO(decoded, newline=None)
-        res_arr = []
         
         first_line = f.readline()
-        
-        if re.match("Name\tArtist", first_line):
-            while True:
-                line = f.readline()
-                if len(line) == 0:
-                    break
-                    
-                line = line.rstrip("\n")
+        if not re.match(r"Name\tArtist", first_line):
+            return None
+            
+        res_arr = []
+        while True:
+            line = f.readline()
+            if len(line) == 0:
+                break
                 
-                res = re.match("([^\t]*)\t([^\t]*)", line)
-                if res:
-                    title = res.group(1)
-                    artist = res.group(2)
-                    res_arr.append({'t': title, 'a': artist})        
+            line = line.rstrip("\n")
+            
+            res = re.match(r"([^\t]*)\t([^\t]*)", line)
+            if res:
+                title = res.group(1)
+                artist = res.group(2)
+                res_arr.append({'t': title, 'a': artist})        
+    
+        return res_arr
+
+    def _parse_pls(self, contents):
+        f = io.StringIO(contents.decode('utf-8'), newline=None)
         
+        first_line = f.readline()
+        if not re.match(r"\[playlist\]", first_line):
+            return None
+            
+        res_arr = []
+        while True:
+            line = f.readline()
+            if len(line) == 0:
+                break
+                
+            line = line.rstrip("\n")
+            
+            res = re.match(r"Title\d=(.*?) - (.*)", line)
+            if res:
+                artist = res.group(1)
+                title = res.group(2)
+                res_arr.append({'t': title, 'a': artist})
+                
         return res_arr
         
     def _store_playlist(self, name, description, songs, user_id):
@@ -289,9 +339,15 @@ class UploadHandler(BaseHandler):
             
         elif ext == ".txt":
             parsed = self._parse_text(contents)
+            
+        elif ext == ".pls":
+            parsed = self._parse_pls(contents)
 
         else:
             return {'status': 'Unsupported type'}
+            
+        if parsed is None:
+            return {'status': 'Corrupted playlist file'}
             
         playlist_id = self._store_playlist(name, "Imported playlist", json.dumps(parsed), user_id)
         playlist = {

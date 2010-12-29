@@ -105,7 +105,7 @@ Controller.prototype.loadPlaylist = function(response) {
     if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
         if(Modernizr.history) {
-            window.history.replaceState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+            window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
 
     } else { // playlist is from xhr response      
@@ -115,7 +115,7 @@ Controller.prototype.loadPlaylist = function(response) {
             return;
         }
         if(Modernizr.history) {
-            window.history.pushState({playlistId: playlist.id}, playlist.title, '/p/'+playlist.id);
+            window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
         $('#infoDisplay').effect('pulsate');        
     }
@@ -124,7 +124,7 @@ Controller.prototype.loadPlaylist = function(response) {
     view.renderPlaylist(playlist);
 
     controller.playSong(0);
-    log('Loaded playlist: ' + playlist.id);
+    log('Loaded playlist: ' + playlist.playlist_id);
 };
 
 // Redirect to playlist with the given id
