@@ -30,6 +30,7 @@ class Application(tornado.web.Application):
             (r"/p/([a-zA-Z0-9]*)$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
             (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
+            (r"/terms$", TermsHandler),
             (r".*", ErrorHandler),
         ]
         settings = dict(
@@ -109,7 +110,7 @@ class BaseHandler(tornado.web.RequestHandler):
         
         # This is a bit of a hack to build up a JSON string that contains pre-converted
         # JSON data (the songs array), which must not be converted again"""
-        playlist = ('{"id": ' + json.dumps(alpha_id) + ', "title": ' + json.dumps(title) +
+        playlist = ('{"playlist_id": ' + json.dumps(alpha_id) + ', "title": ' + json.dumps(title) +
             ', "description": ' + json.dumps(description) + ', "songs": ' + songs +
             ', "editable": ' + json.dumps(editable) + '}')
         return playlist
@@ -135,6 +136,11 @@ class HomeHandler(BaseHandler):
     def get(self):
         self.set_user_cookie()
         self.render("index.html")
+        
+class TermsHandler(BaseHandler):
+    def get(self):
+        self.set_user_cookie()
+        self.render("terms.html")
         
     
 class PlaylistHandler(BaseHandler):
