@@ -32,7 +32,8 @@ function onloadPlaylist() {
     
     setupPlaylistDisplay();
     setupKeyboardListeners();
-    setupFacebookAuth();
+    setupFBML(initial_playlist);
+    setupPlaylistActionButtons();
 
     $('#helpLink').fancyZoom(settings.fancyZoom);
     
@@ -40,62 +41,6 @@ function onloadPlaylist() {
     $(window).resize(setupPlaylistDisplay);
     
     setupDragDropUploader('p', controller.loadPlaylist);
-}
-
-function setupFacebookAuth() {
-    window.fbAsyncInit = function() {
-        FB.init({
-          appId: '114871205247916',
-          status: true,
-          cookie: true,
-          xfbml: true
-        });
-        FB.login(function(response) {
-          if (response.session) {
-            if (response.perms) {
-              log('user is logged in and granted some permissions.');
-            } else {
-              log('user is logged in, but did not grant any permissions');
-            }
-          } else {
-            log('user is not logged in');
-          }
-        }, {perms:'read_stream,publish_stream,offline_access'});
-        
-        // FB.ui(
-        //   {
-        //     method: 'stream.publish',
-        //     attachment: {
-        //       name: 'JSSDK',
-        //       caption: 'The Facebook JavaScript SDK',
-        //       description: (
-        //         'A small JavaScript library that allows you to harness ' +
-        //         'the power of Facebook, bringing the user\'s identity, ' +
-        //         'social graph and distribution power to your site.'
-        //       ),
-        //       href: 'http://fbrell.com/'
-        //     },
-        //     action_links: [
-        //       { text: 'fbrell', href: 'http://fbrell.com/' }
-        //     ]
-        //   },
-        //   function(response) {
-        //     if (response && response.post_id) {
-        //       alert('Post was published.');
-        //     } else {
-        //       alert('Post was not published.');
-        //     }
-        //   }
-        // );
-    };
-    (function() {
-      var e = document.createElement('script');
-      e.type = 'text/javascript';
-      e.src = document.location.protocol +
-        '//connect.facebook.net/en_US/all.js';
-      e.async = true;
-      document.getElementById('fb-root').appendChild(e);
-    }());
 }
 
 function setupPlaylistDisplay() {
@@ -143,6 +88,104 @@ function setupKeyboardListeners() {
     });
 }
 
+function setupFBML(playlist) {
+    window.fbAsyncInit = function() {
+        FB.init({
+          appId: '114871205247916',
+          status: true,
+          cookie: true,
+          xfbml: true
+        });
+        
+        // Load Facebook comment box
+        $('#comments').append('<fb:comments numposts="5" width="490" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?44" notify="true" title="'+playlist.title+'" xid="playlist_'+playlist.playlist_id+'"></fb:comments>');
+        FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
+            controller.commentsHeight = $('#commentsDiv').height();
+            $('#commentsDiv').hide().css({height: 0});
+            $('#commentsDiv').appendTo('#curPlaylist');
+        });
+        
+        // Resize comment box on comment
+        FB.Event.subscribe('comments.add', function(response) {
+            $('#commentsDiv').height('auto'); // default
+            
+            // Update the stored height of the comment box after it's had time to resize
+            // (I think that Facebook autoresizes the iframe)
+            window.setTimeout(function() {
+                controller.commentsHeight = $('#commentsDiv').height();
+            }, 2000);
+        });        
+    };
+    
+    (function() {
+      var e = document.createElement('script');
+      e.type = 'text/javascript';
+      e.src = document.location.protocol +
+        '//connect.facebook.net/en_US/all.js';
+      e.async = true;
+      document.getElementById('fb-root').appendChild(e);
+    }());
+}
+
+function setupPlaylistActionButtons() {
+    
+    $('#addComment').click(function(event) {
+        event.preventDefault();
+        
+        // This is a workaround for a JQuery bug where the Facebook comment box
+        // animation is jumpy. (http://goo.gl/so18k)
+        if ($('#commentsDiv').is(':visible')) {
+            $('#addComment').html('Add a comment &raquo;');
+            $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
+                $('#commentsDiv').hide();
+            }});
+        } else {
+            $('#addComment').html('Close comments &laquo;');
+            $('#commentsDiv')
+                .show()
+                .animate({height: controller.commentsHeight}, {duration: 'slow'});
+        }
+    });
+    
+    $('#fbShare').click(function(event) {
+        event.preventDefault();
+        
+        FB.ui(
+          {
+            method: 'feed',
+            name: model.title,
+            link: 'http://instant.fm/p/'+model.playlistId,
+            picture: view.bestAlbumImg || 'http://instant.fm/images/unknown.png',
+            caption: 'Instant.fm Playlist',
+            description: model.description + '\n',
+            properties: {'Top Artists': model.getTopArtists(4).join(', ')},
+            actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
+          },
+          function(response) {
+            if (response && response.post_id) {
+                // TODO: show status message in UI
+              log('Post was published.');
+            } else {
+              log('Post was not published.');
+            }
+          }
+        );
+    });
+    
+    $('#twShare').click(function(event) {
+        event.preventDefault();
+        
+        var tweetText = encodeURIComponent('♫ Check out "'+model.title+'"');
+        var url = 'http://twitter.com/share'+
+                  '?url=http://instant.fm/p/'+model.playlistId+
+                  '&text='+tweetText;
+        newwindow = window.open(url,'name','height=450,width=550');
+        if (window.focus) {
+            newwindow.focus();
+        }
+    });
+}
+
 function setupDragDropUploader(dropId, callback) {
     new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
 }
@@ -153,6 +196,7 @@ function Controller() {
     this.queuedVideo;
         
     this.keyEvents = true; // Used to rate limit keyboard events
+    this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 };
     
 
