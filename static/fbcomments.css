@@ -31,6 +31,6 @@ div.like, div.like div { display:none; }
 
 div.comment_body div.wallkit_post { border-bottom: solid 1px #444; }
 
-.uiTextMetadata { display: none !important; }
-/*div.comment_body .subtitle_left { display: none !important; }
-*/
+/*.uiTextMetadata { display: none !important; } */
+div.comment_body .subtitle_left { display: none !important; }
+img.connected.img { margin-top: 20px; }

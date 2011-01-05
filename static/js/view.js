@@ -2,8 +2,10 @@ function View() {
     this.isPlayerInit = false; // have we initialized the player?
     this.player; // YouTube DOM element
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
-    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up the browser
+    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
+    
+    this.bestAlbumImg; // Use first non-blank album as share image
 };
 
 
@@ -13,12 +15,13 @@ function View() {
 // @src - Image src url. Pass null to show the Unknown Album image.
 // @alt - Image alt text. (required, when src != null)
 View.prototype.updateAlbumImg = function(src, alt) {
+    view.bestAlbumImg = view.bestAlbumImg || src;
+    
     if (!src) {
         src = '/images/unknown.png';
         alt = 'Unknown album';
     }
     var imgBlock = makeFancyZoomImg('curAlbumImg', src, alt);
-
     $('#curAlbumImg').replaceWith(imgBlock);
 };
 
@@ -51,7 +54,8 @@ View.prototype.showSeeMoreText = function(event) {
 
 // Updates the playlist table
 View.prototype.renderPlaylist = function(playlist, start) {
-    if (!start) {
+    
+    if (!start) { // only run this the first time
         start = 0;
     
         $('#curPlaylistTitle').text(playlist.title);
@@ -102,7 +106,6 @@ View.prototype.renderPlaylist = function(playlist, start) {
         view.renderPlaylist(playlist, start + view.renderPlaylistChunkSize);
     }, view.renderPlaylistTimeout);
 };
-
 
 // Recolors the playlist rows
 View.prototype.renderRowColoring = function() {
@@ -175,7 +178,7 @@ View.prototype.initPlayer = function(firstVideoId) {
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
     '&fs=1&hd=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1' +
-    '&color1=0xFFFFFF&color2=0xFFFFFF',
+    '&version=3&color1=0xFFFFFF&color2=0xFFFFFF',
     'player', '480', '295', '8', null, null, params, atts);
 };
 
@@ -236,7 +239,9 @@ function makeFancyZoomImg(thumbId, src, alt) {
     var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
     $('#'+thumbId+'Zoom').empty().append(imgZoom);
     
-    return $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"><img alt="'+alt+'" src="'+src+'" /><span class="zoomIcon" /></a>')
+    return $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
+               .append('<img alt="'+alt+'" src="'+src+'">')
+               .append('<span class="zoomIcon"></span>')
                .fancyZoom($.extend({}, settings.fancyZoom, {closeOnClick: true, scaleImg: true}));
 }
 

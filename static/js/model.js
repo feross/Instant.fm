@@ -23,3 +23,18 @@ Model.prototype.moveSong = function(oldIndex, newIndex) {
     model.songs.splice(newIndex, 0, songData);
 };
 
+Model.prototype.getTopArtists = function(numArtists) {
+    var artists = [];
+    $.each(this.songs, function(index, value) {
+       var artist = value.a;
+       if (artist && $.inArray(artist, artists) == -1) {
+           artists.push(artist);
+       }
+       log(artists.length);
+       log(numArtists);
+       if (artists.length >= numArtists) {
+           return false; // end the $.each() iteration
+       }
+    });
+    return artists;
+};
