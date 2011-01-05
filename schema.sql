@@ -1,3 +1,7 @@
+CREATE DATABASE IF NOT EXISTS `instantfm`;
+USE `instantfm`;
+CREATE USER `instantfm`@`%` IDENTIFIED BY 'CXZrPkkJEgk7lAZMnzbk5hb9g';
+
 CREATE TABLE `playlists` (
   `playlist_id` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(100) DEFAULT NULL,
@@ -12,3 +16,5 @@ CREATE TABLE `users` (
   `create_date` datetime DEFAULT NULL,
   PRIMARY KEY (`user_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+GRANT ALL ON instantfm.* TO `instantfm`@`%`;
