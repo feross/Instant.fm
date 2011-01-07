@@ -185,24 +185,34 @@ class PlaylistJSONHandler(PlaylistHandler):
 class PlaylistEditHandler(BaseHandler):
     """Handles updates to playlists in the database"""
     
-    def _update_playlist(self, playlist_id, songs, user_id):
+    # SECURITY WARNING: Do NOT user user-input for col_name, that would be BAD!
+    def _update_playlist(self, playlist_id, col_name, col_value, user_id):
         print "Updating playlist ID: " + str(playlist_id)
-        print "User ID:" + str(user_id)
-        return self.db.execute_count("UPDATE playlists SET songs = %s WHERE playlist_id = %s AND user_id = %s;", songs, playlist_id, user_id) == 1
+        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s AND user_id = %s;", col_value, playlist_id, user_id) == 1
     
     def post(self, playlist_alpha_id):
         user_cookie = self.get_secure_cookie('user_id')
         if not user_cookie:
-            return {'status': 'No user cookie'}
+            self.write(json.dumps({'status': 'No user cookie'}))
+            return
             
         user_id = long(user_cookie)
         
         playlist_id = self.base36_10(playlist_alpha_id)
-        songs = self.get_argument('songs')
-        if self._update_playlist(playlist_id, songs, user_id):
-            self.write(json.dumps({'status': 'Updated'}))
-        else:
-            self.write(json.dumps({'status': 'Playlist not editable'}))
+        
+        updatableColumns = ['songs', 'title', 'description']
+        for col_name in updatableColumns:
+            col_value = self.get_argument(col_name, None)
+            if col_value is not None:
+                # update playlist
+                if self._update_playlist(playlist_id, col_name, col_value, user_id):
+                    self.write(json.dumps({'status': 'Updated'}))
+                else:
+                    self.write(json.dumps({'status': 'Playlist not editable'}))
+                return
+        
+        self.write(json.dumps({'status': 'Malformed edit request'}))        
+        
         
 class UploadHandler(BaseHandler):
     """Handles playlist upload requests"""

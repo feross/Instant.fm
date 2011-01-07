@@ -1,4 +1,5 @@
 /*  HTML5 ✰ Boilerplate  */
+/* Our blue: #499bd1 */
 
 html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
@@ -43,7 +44,7 @@ html { overflow-y: scroll; }
 
 a:hover, a:active { outline: none; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
-a:hover { color: #ccc; text-decoration: underline; }
+a:hover { text-decoration: underline; }
 
 ul, ol { margin-left: 1.8em; }
 ol { list-style-type: decimal; }
@@ -72,7 +73,7 @@ input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 
 ::selection { background:#499bd1; color:#fff; text-shadow: none; } 
 a:link { -webkit-tap-highlight-color: #FF5E99; } 
 
-button {  width: auto; overflow: visible; }
+button {  width: auto; overflow: visible; border: 0; }
 .ie7 img { -ms-interpolation-mode: bicubic; }
 
 .ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
@@ -148,8 +149,8 @@ body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !
 #container { margin: 0 auto; text-align: left; width: 1000px; }
 
 h1 { font-size: 30px; }
-h2 { font-size: 26px; margin: 0 0 10px 0; text-shadow: #000 0px 1px 1px; }
-h3 { font-size: 22px; margin: 0 0 8px 0; text-shadow: #000 0px 1px 1px; }
+h2 { font-size: 26px; text-shadow: #000 0px 1px 1px; }
+h3 { font-size: 22px; text-shadow: #000 0px 1px 1px; }
 h4 { font-size: 16px; margin: 0 0 7px 0; text-shadow: #000 0px 1px 1px; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 12px; }
@@ -237,7 +238,7 @@ input.file {
 #footer a:hover { color: #fff; text-decoration: underline; }
 
 
-/* Playlist Display (right) */
+/* Playlist Display (left) */
 
 #playlistDisplay { float: left; position: fixed; width: 480px; }
 
@@ -276,7 +277,7 @@ input.file {
 
 #playlist li:hover { background-color: #c5defe; }
 
-#playlist.editable li:hover .handle {
+.editable #playlist li:hover .handle {
     background: transparent url("/images/drag.png") 4px left no-repeat;
     cursor: url('/images/cursors/move.cur'), move;
 }
@@ -299,19 +300,62 @@ input.file {
     width: 485px;
 }
 
-#infoDisplay h2, #infoDisplay h3 { border-bottom: #444 1px solid; }
+#infoDisplay header { border-bottom: #444 1px solid; }
 
 
 /* Current Playlist Info */
+
+#curPlaylistTitle { display: inline; }
+
+#curPlaylist article { margin: 10px 0 0 0; } /* margin above playlist desc */
 
 #curPlaylistAuthor { float: right; margin-top: -2px; }
 #curPlaylistAuthor div { float: left; margin: 4px 0 0 5px; }
 #curPlaylistAuthor img { float: left; height: 25px; width: 25px; }
 
 
+/* Edit Playlist */
+
+a.editLink {
+    background: transparent url('/images/edit.png') no-repeat 5px center;
+    color: #999;
+    font-size: 11px;
+    margin: 0 0 0 5px;
+    padding: 2px 6px 2px 18px;
+    vertical-align: middle;
+}
+
+header:hover .editLink, article:hover .editLink {
+    background: #499bd1 url('/images/edit_hover.png') no-repeat 5px center;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: normal;
+    text-decoration: none;
+    text-shadow: none;
+}
+
+#curPlaylistTitle .editLink {
+    position: relative;
+    top: -5px;
+}
+
+#curPlaylistTitle textarea {
+    color: #444;
+    float: left;
+    font-weight: bold;
+}
+#curPlaylistTitle button { float: left; margin-left: 8px; }
+
+#curPlaylistDesc textarea { color: #444; padding: 3px; }
+
+#curPlaylistDesc button { display: inline-block; margin: 10px 0 10px 0; }
+
 /* Sharing */
 
-#playlistActions a { margin: 12px 8px 0 0; }
+#playlistActions { clear: both; margin: 15px 0 0 0; }
+#playlistActions a { margin: 0 8px 0 0; }
 
 
 /* Comments */
@@ -328,7 +372,7 @@ input.file {
 #curAlbumBlock { margin: 15px 0 0 0; }
 
 .curLabel {
-    color: #666;
+    color: #999;
     display: inline-block;
     font-size: 12px;
     font-style: italic;
@@ -368,7 +412,9 @@ a:hover .zoomIcon {
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
 
-#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; width: 250px; }
+#curSong h4 { font-size: 20px; }
+
+#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; margin-bottom: 4px; width: 250px; }
 
 #curAlbum { display: 0; /* starting value */ }
 
@@ -379,8 +425,6 @@ a:hover .zoomIcon {
 #curSongDesc { clear: left; }
 
 .seeMore { font-size: 12px; }
-
-.textDialog { color: #000; margin: 10px 8px 8px 8px; font-size: 13px; line-height: 1.4; text-align: left; }
 
 
 /* Help Box */

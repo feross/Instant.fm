@@ -37,10 +37,13 @@
       <section class="clearfix" id="songInfo">
       
         <section class="clearfix" id="curPlaylist">
-          <header>
+          <header class="clearfix">
             <h2 id="curPlaylistTitle">&nbsp;</h2>
           </header>
-          <article id="curPlaylistDesc">&nbsp;</article>
+          <article>
+            <span id="curPlaylistDesc">&nbsp;</span>
+          </article>
+          
           <section id="playlistActions">
             <a href="#addComment" id="addComment" class="awesome">
               Add a comment &raquo;
@@ -51,15 +54,16 @@
             <a href="#twShare" id="twShare" class="blue awesome">
               Share on Twitter
             </a>
-          </section>
+          </section> <!-- end of #playlistActions -->
           <!-- <a href="#TODO" id="curPlaylistAuthor">
             <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
             <div>Feross Aboukhadijeh</div>
           </a> -->
         </section>
         <section id="curPlaying">
-          <h3>Currently Playing</h3>
-        
+          <header>
+            <h3>Currently Playing</h3>
+          </header>
           <div class="clearfix" id="curAlbumBlock">
             <div id="curAlbumImg">
               <span class="zoomIcon">&nbsp;</span>
