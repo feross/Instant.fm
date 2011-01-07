@@ -37,42 +37,51 @@
       <section class="clearfix" id="songInfo">
       
         <section class="clearfix" id="curPlaylist">
-          <header>
+          <header class="clearfix">
             <h2 id="curPlaylistTitle">&nbsp;</h2>
           </header>
-          <article id="curPlaylistDesc">&nbsp;</article>
-          <footer>
-            <a href="#" id="curPlaylistAuthor">
-              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-              <div>Feross Aboukhadijeh</div>
+          <article>
+            <span id="curPlaylistDesc">&nbsp;</span>
+          </article>
+          
+          <section id="playlistActions">
+            <a href="#addComment" id="addComment" class="awesome">
+              Add a comment &raquo;
             </a>
-            <!-- <div id="playlistShare">
-              <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like>
-            </div> -->
-          </footer>
+            <a href="#fbShare" id="fbShare" class="darkblue awesome">
+              Share on Facebook
+            </a>
+            <a href="#twShare" id="twShare" class="blue awesome">
+              Share on Twitter
+            </a>
+          </section> <!-- end of #playlistActions -->
+          <!-- <a href="#TODO" id="curPlaylistAuthor">
+            <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+            <div>Feross Aboukhadijeh</div>
+          </a> -->
         </section>
-      
         <section id="curPlaying">
-          <h3>Currently Playing</h3>
-        
+          <header>
+            <h3>Currently Playing</h3>
+          </header>
           <div class="clearfix" id="curAlbumBlock">
             <div id="curAlbumImg">
               <span class="zoomIcon">&nbsp;</span>
             </div>
             <div id="curAlbumInfo">
               <div id="curSong">
-                <span class="curLabel">song</span> 
                 <h4>&nbsp;</h4>
               </div>
               <div id="curArtist">
-                <span class="curLabel">artist</span> 
+                <span class="curLabel">by</span> 
                 <h4>&nbsp;</h4>
               </div>
               <div id="curAlbum">
-                <span class="curLabel">album</span> 
+                <span class="curLabel">on</span> 
                 <h4>&nbsp;</h4>
               </div>
             </div>
+            <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
           </div> <!-- end of #curAlbumBlock -->
         
           <div id="curDescs">
@@ -93,11 +102,6 @@
       
       </section> <!-- end of #songInfo -->
     
-      <section id="comments">
-        <h3>Add a comment...</h3>
-        <!-- <fb:comments xid="1" numposts="20" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?11"></fb:comments> -->
-      </section> <!-- end of #comments -->
-    
       <footer id="footer">
         <strong><a href="#">Instant.fm</a></strong> |
         <a href="#">FAQ</a> |
@@ -105,6 +109,13 @@
         <a href="#">Contact</a>
         <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
       </footer>
+      
+      <div id="commentsDiv">
+        <section id="comments">
+          <h4>Add a comment...</h4>
+        
+        </section>
+      </div> <!-- end of #commentsDiv -->
     
     </div> <!-- end of #infoDisplay -->
   
@@ -134,7 +145,7 @@
         <dd class="action">Bring up this help dialog</dd>
       </dl>
     </div> <!-- end of #helpBox -->
-  
+      
   </div> <!-- end of #devNull -->
 {% end %}
 
