@@ -516,11 +516,23 @@ a:hover .zoomIcon {
 
 /* Browser */
 
-header .awesome { margin-top: 1px; }
+header .awesome { margin-top: 2px; }
 
 .buttonHeader h2 { position: relative; text-align: center; }
 
-.backButton { float: left; z-index: 2; }
+.backButton {
+    -webkit-mask: 0 0 url(/images/back-mask.png) no-repeat;
+    float: left;
+    padding-left: 13px !important;
+    z-index: 2;
+}
+
+.forwardButton {
+    -webkit-mask: right 0 url(/images/forward-mask.png) no-repeat;
+    float: right;
+    padding-right: 13px !important;
+    z-index: 2;
+}
 
 .slide { width: 485px; }
 

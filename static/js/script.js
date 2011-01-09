@@ -359,7 +359,7 @@ MiniBrowser.prototype.slideTo = function(slide) {
 };
 
 MiniBrowser.prototype.makeBackButton = function(text) {
-    text = text || '&laquo; Back';
+    text = text || 'Back';
     
     var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
     button.click(function(event) {
@@ -951,7 +951,7 @@ View.prototype.renderPlaylist = function(playlist, start) {
             view.makeEditable($('#curPlaylistTitle'), model.updateTitle);
             view.makeEditable($('#curPlaylistDesc'), model.updateDesc);
             
-            $('<a href="#addSongs" id="addSongs" class="awesome">Add songs &raquo;</a>')
+            $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs &raquo;</a>')
                 .click(view.showSearch)
                 .prependTo('#curPlaylistInfo header');
         }
