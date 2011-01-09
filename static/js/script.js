@@ -18,7 +18,7 @@ var appSettings = {
 // jQuery.fx.off = true;
 
 
-/* --------------------------- SETUP --------------------------- */
+/* --------------------------- ON LOAD --------------------------- */
 
 function onloadHome() {
     controller = new Controller();
@@ -55,15 +55,54 @@ function onloadPlaylist() {
     setupDragDropUploader('p', controller.loadPlaylist);
 }
 
+
+/* --------------------------- SETUP  --------------------------- */
+
 function setupPlaylistDisplay() {
     var maxPlaylistHeight = $(window).height() - (50 + 295 + 1); /* header, player, player border */
     var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     $('#playlistDiv').height(newHeight);
 }
 
-// Set up keyboard shortcuts in a cross-browser manner. (Tested in Firefox, Chrome, Safari)
+function setupAutogrowInputType() {
+    $.editable.addInputType('autogrow', {
+        element : function(settings, original) {
+            var textarea = $('<textarea />');
+            if (settings.rows) {
+                textarea.attr('rows', settings.rows);
+            } else {
+                textarea.height(settings.height);
+            }
+            if (settings.cols) {
+                textarea.attr('cols', settings.cols);
+            } else {
+                textarea.width(settings.width);
+            }
+            $(this).append(textarea);
+            return(textarea);
+        },
+        plugin : function(settings, original) {
+            var elemId = $(this).parent().attr('id');
+            var width;
+            switch(elemId) {
+                case 'curPlaylistTitle':
+                    width = 390;
+                    break;
+                case 'curPlaylistDesc':
+                    width = 480;
+                    break;
+                default:
+                    width = $(this).width();
+                    break;
+            }
+            $('textarea', this).width(width).autogrow(settings.autogrow);
+        }
+    });
+}
+
+// Set up keyboard shortcuts in a cross-browser manner
+// Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
-// TODO: Test in IE
 function setupKeyboardListeners() {
     
     // Convenience function for doing key events
@@ -80,21 +119,40 @@ function setupKeyboardListeners() {
             return;
         }
         var k = event.which;
-        if (k == 39 || k == 40) { // down, right
-            doKeyEvent(controller.playNextSong);
-        } else if (k == 37 || k == 38) { // up, left
-            doKeyEvent(controller.playPrevSong);
-        } else if (k == 32) { // space
-            doKeyEvent(view.playPause);
-        } else if (k == 191) { // ?
-            doKeyEvent(function() {
-                $('#helpLink').trigger('click');
-            });
+        log(k);
+        switch(k) {
+            case 39: case 40: // down, right
+                doKeyEvent(controller.playNextSong);
+                break;
+            case 37: case 38: // up, left
+                doKeyEvent(controller.playPrevSong);
+                break;
+            case 32: // space
+                doKeyEvent(view.playPause);
+                break;
+            case 187: // +
+                doKeyEvent(view.increaseVolume);
+                break;
+            case 189: // -
+                doKeyEvent(view.decreaseVolume);
+                break;
+            case 191: // ?
+                doKeyEvent(function() {
+                    $('#helpLink').trigger('click');
+                });
+                break;
+            case 74: // j
+                controller.moveSongDown(controller.songIndex);
+                break;
+            case 75: // k
+                controller.moveSongUp(controller.songIndex);
+                break;
         }
     });
 }
 
 function setupFBML(playlist) {
+    
     window.fbAsyncInit = function() {
         FB.init({
           appId: '114871205247916',
@@ -103,24 +161,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        // Load Facebook comment box
-        $('#comments').append('<fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+playlist.title+'" xid="playlist_'+playlist.playlist_id+'"></fb:comments>');
-        FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
-            controller.commentsHeight = $('#commentsDiv').height();
-            $('#commentsDiv').hide().css({height: 0});
-            $('#commentsDiv').appendTo('#curPlaylist');
-        });
-        
-        // Resize comment box on comment
-        FB.Event.subscribe('comments.add', function(response) {
-            $('#commentsDiv').height('auto'); // default
-            
-            // Update the stored height of the comment box after it's had time to resize
-            // (I think that Facebook autoresizes the iframe)
-            window.setTimeout(function() {
-                controller.commentsHeight = $('#commentsDiv').height();
-            }, 2000);
-        });        
+        view.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {
@@ -137,6 +178,9 @@ function setupPlaylistActionButtons() {
     
     $('#addComment').click(function(event) {
         event.preventDefault();
+        if (!$('#commentsDiv').data('loaded')) {
+            return;
+        }
         
         // This is a workaround for a JQuery bug where the Facebook comment box
         // animation is jumpy. (http://goo.gl/so18k)
@@ -196,39 +240,6 @@ function setupDragDropUploader(dropId, callback) {
     new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
 }
 
-function setupAutogrowInputType() {
-    $.editable.addInputType('autogrow', {
-        element : function(settings, original) {
-            var textarea = $('<textarea />');
-            if (settings.rows) {
-                textarea.attr('rows', settings.rows);
-            } else {
-                textarea.height(settings.height);
-            }
-            if (settings.cols) {
-                textarea.attr('cols', settings.cols);
-            } else {
-                textarea.width(settings.width);
-            }
-            $(this).append(textarea);
-            return(textarea);
-        },
-        plugin : function(settings, original) {
-            var elemId = $(this).parent().attr('id');
-            var width;
-            switch(elemId) {
-                case 'curPlaylistTitle':
-                    width = 390;
-                    break;
-                default:
-                    width = $(this).width();
-                    break;
-            }
-            $('textarea', this).width(width).autogrow(settings.autogrow);
-        }
-    });
-}
-
 
 
 /* --------------------------- CONTROLLER --------------------------- */
@@ -260,7 +271,8 @@ Controller.prototype.loadPlaylist = function(response) {
         if(Modernizr.history) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
-        $('#infoDisplay').effect('pulsate');        
+        view.tryLoadComments(playlist.playlist_id, playlist.title);
+        $('#infoDisplay').effect('pulsate');
     }
 
     model.updatePlaylist(playlist);
@@ -325,6 +337,28 @@ Controller.prototype.playPrevSong = function() {
     }
     controller.playSong(--controller.songIndex);
 };
+
+// Manually move the current song up
+Controller.prototype.moveSongUp = function(oldId) {
+    if (oldId <= 0) {
+        return;
+    }
+    var songItem = $('#song'+oldId);
+    songItem.prev().before(songItem);
+    
+    view.onReorder(null, {item: songItem});
+}
+
+// Manually move the current dong down
+Controller.prototype.moveSongDown = function(oldId) {
+    if (oldId >= model.songs.length - 1) {
+        return;
+    }
+    var songItem = $('#song'+oldId);
+    songItem.next().after(songItem);
+    
+    view.onReorder(null, {item: songItem});
+}
 
 // Play top video for given search query
 Controller.prototype.playSongBySearch = function(q) {
@@ -536,32 +570,6 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
 };
 
 
-/* Player Events */
-
-function onYouTubePlayerReady(playerId) {
-    view.player = document.getElementById(playerId);
-    view.player.addEventListener("onStateChange", "onYouTubePlayerStateChange");
-}
-
-function onYouTubePlayerStateChange(newState) {
-    switch(newState) {
-        case 0: // just finished a video
-            controller.playNextSong();
-            break;
-        case 1: // playing
-            $('.playing').toggleClass('paused', false);
-            if (controller.queuedVideo) {
-                controller.playSongById(controller.queuedVideo);
-                controller.queuedVideo = null;
-            }
-            break;
-        case 2: // paused
-            $('.playing').toggleClass('paused', true);
-            break;
-    }
-}
-
-
 /* --------------------------- VIEW --------------------------- */
 
 function View() {
@@ -640,6 +648,7 @@ View.prototype.renderPlaylist = function(playlist, start) {
     if (!start) { // only run this the first time
         start = 0;
     
+        $('.editLink').remove();
         $('#curPlaylistTitle')
             .text(playlist.title);
         $('#curPlaylistDesc')
@@ -704,15 +713,19 @@ View.prototype.makeEditable = function(elem, updateCallback) {
     var buttonClass, autogrowSettings;
     switch (elemId) {
         case 'curPlaylistTitle':
-            autogrowSettings = {lineHeight: 30, expandTolerance: 0.1};
+            autogrowSettings = {
+                expandTolerance: 0.05,
+                lineHeight: 30,
+                minHeight: 30,
+            };
             buttonClass = 'large awesome';
             break;
-        case 'curPlaylistDesc':
-            autogrowSettings = {lineHeight: 16, expandTolerance: 0.1};
-            buttonClass = 'small awesome';
-            break;
         default:
-            autogrowSettings = {lineHeight: 16, expandTolerance: 1};
+            autogrowSettings = {
+                expandTolerance: 0.1,
+                lineHeight: 16,
+                minHeight: 16,
+            };
             buttonClass = 'small awesome';
             break;
     }
@@ -794,6 +807,48 @@ View.prototype.onReorder = function(event, ui) {
     this.renderRowColoring();
 };
 
+// Optimization: Don't load Facebook comments until video is playing
+View.prototype.tryLoadComments = function(playlist_id, title) {
+    if (view.isPlaying()) {
+        view.loadComments(playlist_id, title);
+    } else {
+        window.setTimeout(function() {
+            view.tryLoadComments(playlist_id, title);
+        }, 1000);
+    }
+};
+
+View.prototype.loadComments = function(playlist_id, title) {
+    $('#commentsDiv').remove();
+    $('<div id="commentsDiv"><section id="comments"></section></div>')
+        .appendTo('#devNull');
+    $('#addComment').html('Add a comment &raquo;');
+    
+    // Load Facebook comment box
+    $('#comments')
+        .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
+    FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
+        controller.commentsHeight = $('#commentsDiv').height();
+        $('#commentsDiv')
+            .hide()
+            .css({height: 0});
+        $('#commentsDiv')
+            .data('loaded', true)
+            .appendTo('#curPlaylist');
+    });
+    
+    // Resize comment box on comment
+    FB.Event.subscribe('comments.add', function(response) {
+        $('#commentsDiv').height('auto'); // default
+        
+        // Update the stored height of the comment box after it's had time to resize
+        // (I think that Facebook autoresizes the iframe)
+        window.setTimeout(function() {
+            controller.commentsHeight = $('#commentsDiv').height();
+        }, 1000);
+    });
+}
+
 
 /* Player */
 
@@ -811,17 +866,19 @@ View.prototype.initPlayer = function(firstVideoId) {
     };
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
-    '&fs=1&hd=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1' +
-    '&version=3&color1=0xFFFFFF&color2=0xFFFFFF',
+    '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1' +
+    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
     'player', '480', '295', '8', null, null, params, atts);
 };
 
 // Play video with given id
 View.prototype.playVideoById = function(id) {
     if (this.player) {
-        this.player.loadVideoById(id);
+        view.player.loadVideoById(id, 0, 'hd720');
     } else {
-        !this.isPlayerInit && this.initPlayer(id);
+        if (!this.isPlayerInit) {
+            this.initPlayer(id);
+        }
     }
 };
 
@@ -852,6 +909,23 @@ View.prototype.isPaused = function() {
     return this.player && (this.player.getPlayerState() == 2);
 };
 
+View.prototype.increaseVolume = function() {
+    if (view.player.isMuted()) {
+        view.player.unMute();
+    }
+    var volume = view.player.getVolume() + 20;
+    volume = (volume <= 100) ? volume : 100;
+    
+    view.player.setVolume(volume);
+}
+
+View.prototype.decreaseVolume = function() {
+    var volume = view.player.getVolume() - 20;
+    volume = (volume >= 0) ? volume : 0;
+    
+    view.player.setVolume(volume);
+}
+
 
 /* Misc */
 
@@ -861,6 +935,35 @@ View.prototype.showHelpDialog = function() {
     controller.showDialog($('#help'), 'Keyboard Shortcuts');
 };
 
+
+/* Player Events */
+
+function onYouTubePlayerReady(playerId) {
+    view.player = document.getElementById(playerId);
+    view.player.addEventListener("onStateChange", "onYouTubePlayerStateChange");
+}
+
+function onYouTubePlayerStateChange(newState) {
+    switch(newState) {
+        case 0: // just finished a video
+            controller.playNextSong();
+            break;
+        case 1: // playing
+        
+            // Bugfix: Force first video play to be HD
+            view.player.setPlaybackQuality('hd720');
+            
+            $('.playing').toggleClass('paused', false);
+            if (controller.queuedVideo) {
+                controller.playSongById(controller.queuedVideo);
+                controller.queuedVideo = null;
+            }
+            break;
+        case 2: // paused
+            $('.playing').toggleClass('paused', true);
+            break;
+    }
+}
 
 
 /* --------------------------- MODEL --------------------------- */
