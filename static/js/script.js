@@ -70,19 +70,28 @@ function onloadPlaylist() {
 /* --------------------------- SETUP  --------------------------- */
 
 prevSearchString = '';
+delaySearch = false;
 function setupSearch(searchElem) {
-  var searchBox = $("#searchBox input.search");
-  searchElem.keyup(function() {
-    var searchString = searchBox.val();
-    window.setTimeout(function() {
-      if ($('#searchBox input.search').val() == searchString && prevSearchString != searchString) {
-        prevSearchString = searchString;
-        controller.search(searchString);
-      } 
-    }, 100);
-  });
-  
-  addFocusHandlers(searchBox);
+    var searchBox = $("#searchBox input.search");
+    
+    searchElem.keyup(function () {
+        var searchString = searchBox.val();
+        if (!delaySearch && prevSearchString != searchString) {
+            prevSearchString = searchString;
+            controller.search(searchString);
+            
+            delaySearch = true;            
+            window.setTimeout(function() {
+                delaySearch = false;
+                
+                if (searchBox.val() != searchString) {
+                    searchElem.trigger('keyup');
+                }
+            }, 500);
+        }
+    });
+
+    addFocusHandlers(searchBox);
 }
 
 /* NOTE: Unused right now. */
@@ -151,19 +160,17 @@ function setupKeyboardListeners() {
     
     // Convenience function for doing key events
     var doKeyEvent = function(func) {
-        event.preventDefault(); // prevent default event
         if (controller.keyEvents) {
+            event.preventDefault(); // prevent default event
             func();
         }
     }
     
     // Detect key codes
     $(window).keydown(function(event) {
-        if (!controller.keyEvents) {
-            return;
-        }
         var k = event.which;
         switch(k) {
+            // Music control
             case 39: case 40: // down, right
                 doKeyEvent(controller.playNextSong);
                 break;
@@ -184,11 +191,34 @@ function setupKeyboardListeners() {
                     $('#helpLink').trigger('click');
                 });
                 break;
+                
+            // Playlist editing
+            case 65: // a
+                doKeyEvent(view.showSearch);
+                break;
             case 74: // j
-                controller.moveSongDown(controller.songIndex);
+                doKeyEvent(function() {
+                    controller.moveSongDown(controller.songIndex)
+                });
                 break;
             case 75: // k
-                controller.moveSongUp(controller.songIndex);
+                doKeyEvent(function() {
+                    controller.moveSongUp(controller.songIndex);
+                })
+                break;
+            
+            // Navigation
+            case 8: // backspace
+                doKeyEvent(browser.pop);
+                break;
+            case 27: // escape
+                // Always capture escape button (even when focused in text boxes)
+                event.preventDefault();
+                
+                // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
+                controller.keyEvents = true;
+                
+                browser.pop();
                 break;
         }
     });
@@ -228,7 +258,7 @@ function setupPlaylistActionButtons() {
         // This is a workaround for a JQuery bug where the Facebook comment box
         // animation is jumpy. (http://goo.gl/so18k)
         if ($('#commentsDiv').is(':visible')) {
-            $('#addComment').html('Add a comment');
+            $('#addComment').html('Add a comment +');
             $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
                 $('#commentsDiv').hide();
             }});
@@ -323,10 +353,10 @@ MiniBrowser.prototype.push = function(elem) {
 };
 
 MiniBrowser.prototype.pop = function() {
-    if (this.numSlides <= 1) {
+    if (browser.numSlides <= 1) {
         return;
     }
-    this.slideTo(this.numSlides - 1);
+    browser.slideTo(browser.numSlides - 1);
     window.setTimeout(function() {
         $('#FS_holder .slide').last().remove();
         browser.refreshContents();
@@ -390,8 +420,7 @@ Controller.prototype.search = function(string) {
 
     model.lastfm.artist.search({
         artist: string,
-        limit: 3,
-        autocorrect: 1
+        limit: 6,
     }, 
     {
         success: controller.handleArtistSearchResults,
@@ -404,6 +433,7 @@ Controller.prototype.search = function(string) {
     model.lastfm.album.search(
     {
       album: string,
+      limit: 6,
     },
     {
     	success: controller.handleAlbumSearchResults,
@@ -417,6 +447,7 @@ Controller.prototype.search = function(string) {
   model.lastfm.track.search(
     {
       track: string,
+      limit: 5,
     },
     {
  	    success: controller.handleTrackSearchResults,
@@ -431,10 +462,10 @@ Controller.prototype.search = function(string) {
 
 Controller.prototype.handleTrackSearchResults = function(data) {
   var tracks = [];
-  var trackResults = data.results.trackmatches.track;
+  var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
   
   if (!trackResults) {
-    view.rendertracks([]);
+    view.renderTracks([]);
     return;
   }
   
@@ -444,12 +475,11 @@ Controller.prototype.handleTrackSearchResults = function(data) {
     
     track.name = trackResult.name;
     track.artist = trackResult.artist;
-    track.image = '';
-    for (var j = 0; trackResult.image && j < trackResult.image.length; j++) {
-      if (trackResult.image[j]['size'] == 'medium') {
-        track.image = trackResult.image[j]['#text'];
-        break;
-      }
+    
+    if (trackResult.image) {
+        track.image =  trackResult.image[0]['#text'];
+    } else {
+        track.image = '';
     }
     
     tracks.push(track);
@@ -461,7 +491,7 @@ Controller.prototype.handleTrackSearchResults = function(data) {
 
 Controller.prototype.handleAlbumSearchResults = function(data) {
   var albums = [];
-  var albumResults = data.results.albummatches.album;
+  var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
   
   if (!albumResults) {
     view.renderAlbums([]);
@@ -474,7 +504,7 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
     
     album.name = albumResult.name;
     album.artist = albumResult.artist;
-    album.image = albumResult.image[albumResult.image.length - 1]['#text'];
+    album.image = albumResult.image[2]['#text'];
     
     albums.push(album);
   };
@@ -484,7 +514,7 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
 
 Controller.prototype.handleArtistSearchResults = function(data) {
     var artists = [];
-    var artistResults = data.results.artistmatches.artist;
+    var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
 
     if (!artistResults) {
         view.renderArtists([]);
@@ -842,15 +872,41 @@ function View() {
  * If there is no image, image will be the empty string. 
  */
 View.prototype.renderAlbums = function(albums) {
-  // TODO: This is fer Foross to do cause he's good at the CSS.
-  log(albums);
+    if (!albums.length) {
+        $('#albumResults').hide();
+    } else {
+        $('.albumResult').remove();
+        $('#albumResults').show();
+    }
+
+    for (var i = 0; i < albums.length; i++) {
+        var album = albums[i];
+
+        if (!album.image) {
+            album.image = '/images/unknown.png';
+        }
+
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="' + album.image + '">');
+
+        $('<div class="albumResult"></div>')
+        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append(img)
+        .appendTo('#albumResults');
+    }
 }
 
 /* Takes an array of objects with properties 'name', 'image' 
  * If there is no image, image will be the empty string. 
  */
 View.prototype.renderArtists = function(artists) {
-    $('#artistResults').empty();
+    if(!artists.length) {
+        $('#artistResults').hide();
+    } else {
+        $('.artistResult').remove();
+        $('#artistResults').show();
+    }
+    
     for (var i = 0; i < artists.length; i++) {
         var artist = artists[i];
         
@@ -858,11 +914,12 @@ View.prototype.renderArtists = function(artists) {
             artist.image = '/images/anonymous.png';
         }
         
-        var img = $('<img src="'+artist.image+'" alt="'+artist.name+'">');
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="'+artist.image+'">');
         
         $('<div class="artistResult"></div>')
+            .append('<div>'+artist.name+'</div>')
             .append(img)
-            .append('<span>'+artist.name+'</span>')
             .appendTo('#artistResults');
     }
 }
@@ -871,8 +928,28 @@ View.prototype.renderArtists = function(artists) {
  * If there is no image, image will be the empty string. 
  */
 View.prototype.renderTracks = function(tracks) {
-  // TODO: This is fer Foross to do cause he's good at the CSS.
-  log(tracks);
+    if(!tracks.length) {
+        $('#trackResults').hide();
+    } else {
+        $('.trackResult').remove();
+        $('#trackResults').show();
+    }
+    
+    for (var i = 0; i < tracks.length; i++) {
+        var track = tracks[i];
+        
+        if (!track.image) {
+            track.image = '/images/unknown.png';
+        }
+        
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="'+track.image+'">');
+        
+        $('<div class="trackResult clearfix"></div>')
+            .append(img)
+            .append('<div>'+track.name+'<span>'+track.artist+'</span></div>')
+            .appendTo('#trackResults');
+    }
 }
 
 /* Info Display */
@@ -951,7 +1028,7 @@ View.prototype.renderPlaylist = function(playlist, start) {
             view.makeEditable($('#curPlaylistTitle'), model.updateTitle);
             view.makeEditable($('#curPlaylistDesc'), model.updateDesc);
             
-            $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs &raquo;</a>')
+            $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
                 .click(view.showSearch)
                 .prependTo('#curPlaylistInfo header');
         }
@@ -965,7 +1042,7 @@ View.prototype.renderPlaylist = function(playlist, start) {
             $('#playlist')
                 .sortable({
                     axis: 'y',
-                    scrollSensitivity: 30,
+                    scrollSensitivity: 25,
                     start: function(event, ui) {
                         $('body').toggleClass('sorting', true);
                     },
@@ -1034,7 +1111,6 @@ View.prototype.makeEditable = function(elem, updateCallback) {
             $(this).prev().trigger('editable');
             $(this).hide();
             
-            log($(this).prev().attr('id'));
             if($(this).prev().attr('id') == 'curPlaylistTitle') {
                 $('#addSongs').hide();
             }
@@ -1123,7 +1199,7 @@ View.prototype.loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
-    $('#addComment').html('Add a comment');
+    $('#addComment').html('Add a comment +');
     
     // Load Facebook comment box
     $('#comments')
@@ -1229,7 +1305,7 @@ View.prototype.decreaseVolume = function() {
 }
 
 View.prototype.showSearch = function(event) {
-    event.preventDefault();
+    event && event.preventDefault();
     
     var backButton = browser.makeBackButton();
     
@@ -1240,7 +1316,7 @@ View.prototype.showSearch = function(event) {
     var searchElem = $('<section id="search"></section>')
         .append(header)
         .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>')
-        .append('<h3>Artists</h3><div id="artistResults"></div><h3>Albums</h3><div id="albumResults"></div><h3>Songs</h3><div id="songResults"></div>');
+        .append('<div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div><div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div>');
     browser.push(searchElem);
     setupSearch(searchElem);
     

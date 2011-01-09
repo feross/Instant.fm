@@ -151,7 +151,7 @@ body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !
 h1 { font-size: 30px; }
 h2 { font-size: 26px; text-shadow: #000 0px 1px 1px; }
 h3 { font-size: 22px; text-shadow: #000 0px 1px 1px; }
-h4 { font-size: 16px; margin: 0 0 7px 0; text-shadow: #000 0px 1px 1px; }
+h4 { font-size: 18px; margin: 0 0 7px 0; text-shadow: #000 0px 1px 1px; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 12px; }
 
@@ -380,9 +380,9 @@ header:hover .editLink, article:hover .editLink {
 
 /* Current Playing Song */
 
-#curPlaying { margin-top: 25px; }
+#curPlaying { margin-top: 30px; }
 
-#curAlbumBlock { margin: 15px 0 0 0; }
+#curAlbumBlock { margin: 10px 0 0 0; }
 
 .curLabel {
     color: #999;
@@ -426,7 +426,7 @@ a:hover .zoomIcon {
 
 #curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; margin-bottom: 4px; font-size: 16px; width: 250px; }
 
-#curSong h4 { font-size: 22px; }
+#curSong h4 { font-size: 20px; }
 
 
 
@@ -599,43 +599,73 @@ header .awesome { margin-top: 2px; }
 
 /* Search Results */
 
-#search h3 { margin-bottom: 5px; }
+#search h3 { margin: 20px 0 8px 0; }
 
-.artistResult {
+.artistResult, .albumResult {
     float: left;
-    height: 200px;
-    margin: 0 10px 10px 0;
+    height: 150px;
+    margin: 0 11px 11px 0;
+    position: relative;
     width: 150px;
-    text-align: center;
 }
 
-
-#artistResults {
-    height: 200px;
+.artistResult div, .albumResult div {
+    background-color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    font-weight: bold;
+    margin: 5px 5px 0 5px;
+    padding: 5px 2px 5px 5px;
+    position: absolute;
+    text-shadow: #000 1px -1px 1px;
+    width: 133px;
 }
 
-#artistResults img {
+.albumResult span {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+#artistResults img, #albumResults img {
     -moz-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     -webkit-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
-    border: 4px solid #fafafa;
+    border: 5px solid #fafafa;
     height: 140px;
     width: 140px;
 }
 
-
-
-/* Misc. */
-
-/*#drop {
-    border: 2px dashed red;
-    height: 100px;
-    width: 300px;
-    margin-bottom: 30px;
+#artistResults .artistResult:hover img,
+#albumResults .albumResult:hover img {
+    border: 5px solid #499bd1;
 }
-*/
 
+.trackResult {
+    border-bottom: #333 1px solid; 
+    clear: both;
+    padding: 6px 0;
+}
 
+.trackResult img {
+    float: left;
+    height: 34px;
+    margin-right: 10px;
+    width: 34px;
+}
+
+.trackResult div {
+    float: left;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.trackResult span {
+    display: block;
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 2px;
+}
 
 
 
