@@ -314,10 +314,7 @@ input.file {
     text-shadow: #000 0 1px 1px;
 }
 
-#headerMenu a {
-    display: inline-block;
-    margin-left: 15px;
-}
+#headerMenu a { display: inline-block; margin-left: 15px; }
 
 #infoDisplay header { border-bottom: #444 1px solid; }
 
@@ -564,11 +561,11 @@ header .awesome { margin-top: 1px; }
     border: 0;
     color: #222;
     font-size: 24px;
-    margin: 5px 0px 3px 25px;
+    margin: 5px 0px 3px 20px;
     outline: 0;
     padding: 0;
     text-align: left;
-    width: 315px;
+    width: 320px;
     -webkit-appearance: none;
     -webkit-border-horizontal-spacing: 0;
     -webkit-border-vertical-spacing: 0;
@@ -585,6 +582,26 @@ header .awesome { margin-top: 1px; }
 
 #searchBox input.submit:hover {
     background: transparent url('/images/search-button.png') 0 0 no-repeat;
+}
+
+
+/* Search Results */
+
+.artistResult {
+    -moz-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
+    -webkit-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
+    box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
+    border: 5px solid #fafafa;
+    float: left;
+    height: 140px;
+    margin: 0 10px 10px 0;
+    overflow: hidden;
+    width: 140px;
+}
+
+#artistResults img {
+    height: 140px;
+    width: 140px;
 }
 
 

@@ -79,7 +79,7 @@ function setupSearch(searchElem) {
         prevSearchString = searchString;
         controller.search(searchString);
       } 
-    }, 500);
+    }, 200);
   });
   
   addFocusHandlers(searchBox);
@@ -227,12 +227,12 @@ function setupPlaylistActionButtons() {
         // This is a workaround for a JQuery bug where the Facebook comment box
         // animation is jumpy. (http://goo.gl/so18k)
         if ($('#commentsDiv').is(':visible')) {
-            $('#addComment').html('Add a comment &raquo;');
+            $('#addComment').html('Add a comment');
             $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
                 $('#commentsDiv').hide();
             }});
         } else {
-            $('#addComment').html('Close comments &laquo;');
+            $('#addComment').html('Close comments');
             $('#commentsDiv')
                 .show()
                 .animate({height: controller.commentsHeight}, {duration: 'slow'});
@@ -381,41 +381,37 @@ function Controller() {
 };
     
 Controller.prototype.search = function(string) {
-  if (!string) {
-    return;
-  }
-  
-  prevSearchString = string;
-  
-  model.lastfm.artist.search(
-    {
-	    artist: string,
-	    limit: 5,
-	    autocorrect: 1
-  	}, 
-  	{
-	    success: controller.handleArtistSearchResults,
-	    error: function(code, message) 
-	    {
-	        log(code + ' ' + message);
-          renderArtists([]);
-  		}
+    if (!string) {
+        return;
     }
-  );
-  
-  model.lastfm.album.search(
+
+    prevSearchString = string;
+
+    model.lastfm.artist.search({
+        artist: string,
+        limit: 3,
+        autocorrect: 1
+    }, 
+    {
+        success: controller.handleArtistSearchResults,
+        error: function(code, message) {
+            log(code + ' ' + message);
+            view.renderArtists([]);
+    	}
+    });
+
+    model.lastfm.album.search(
     {
       album: string,
     },
     {
- 	    success: controller.handleAlbumSearchResults,
-	    error: function(code, message) 
-	    {
-        log(code + ' ' + message);
-        renderAlbums([]);
-	    }
-    }
-  );
+    	success: controller.handleAlbumSearchResults,
+        error: function(code, message) 
+        {
+            log(code + ' ' + message);
+            view.renderAlbums([]);
+        }
+    });
 };
 
 Controller.prototype.handleAlbumSearchResults = function(data) {
@@ -433,13 +429,7 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
     
     album.name = albumResult.name;
     album.artist = albumResult.artist;
-    album.image = '';
-    for (var j = 0; j < albumResult.image.length; j++) {
-      if (albumResult.image[j]['size'] == 'medium') {
-        album.image = albumResult.image[j]['#text'];
-        break;
-      }
-    }
+    album.image = albumResult.image[albumResult.image.length - 1]['#text'];
     
     albums.push(album);
   };
@@ -448,31 +438,27 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
 };
 
 Controller.prototype.handleArtistSearchResults = function(data) {
-  var artists = [];
-  var artistResults = data.results.artistmatches.artist;
-  
-  if (!artistResults) {
-    view.renderArtists([]);
-    return;
-  }
-   
-  for (var i = 0; i < artistResults.length; i++) {
-    var artistResult = artistResults[i];
-    var artist = {};
-    
-    artist.name = artistResult.name;
-    artist.image = '';
-    for (var j = 0; j < artistResult.image.length; j++) {
-      if (artistResult.image[j]['size'] == 'medium') {
-        artist.image = artistResult.image[j]['#text'];
-        break;
-      }
+    var artists = [];
+    var artistResults = data.results.artistmatches.artist;
+
+    if (!artistResults) {
+        view.renderArtists([]);
+        return;
     }
-    
-    artists.push(artist);
-  };
-  
-  view.renderArtists(artists);
+
+    for (var i = 0; i < artistResults.length; i++) {
+        var artistResult = artistResults[i];
+        var artist = {};
+
+        artist.name = artistResult.name;
+        artist.image = '';
+        artist.image = artistResult.image[2]['#text'];
+        artist.image = artist.image.replace('serve/126', 'serve/126s');    
+
+        artists.push(artist);
+    };
+
+    view.renderArtists(artists);
 };
 
 // Load a playlist based on the xhr response or the initial embedded playlist
@@ -819,8 +805,16 @@ View.prototype.renderAlbums = function(albums) {
  * If there is no image, image will be the empty string. 
  */
 View.prototype.renderArtists = function(artists) {
-  // TODO: This is fer Foross to do cause he's good at the CSS.
-  log(artists);
+    $('#artistResults').empty();
+    for (var i = 0; i < artists.length; i++) {
+        var artist = artists[i];
+        
+        var img = $('<img src="'+artist.image+'" alt="'+artist.name+'">');
+        
+        $('<div class="artistResult"></div>')
+            .append(img)
+            .appendTo('#artistResults');
+    }
 }
 
 /* Info Display */
@@ -1187,7 +1181,8 @@ View.prototype.showSearch = function(event) {
     
     var searchElem = $('<section id="search"></section>')
         .append(header)
-        .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>');
+        .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>')
+        .append('<div id="artistResults"></div><div id="albumResults"></div><div id="songResults"></div>');
     browser.push(searchElem);
     setupSearch(searchElem);
     
@@ -1326,7 +1321,7 @@ Model.prototype.savePlaylist = function(data) {
 
 
 
-/* --------------------------- UTILITY FUNCTIONS --------------------------- */
+/* -------------------- UTILITY FUNCTIONS ----------------------- */
 
 
 // Make an image that opens a fancyzoom lightbox when clicked on
