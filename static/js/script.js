@@ -64,33 +64,29 @@ function onloadPlaylist() {
     $(window).resize(setupPlaylistDisplay);
     
     setupDragDropUploader('p', controller.loadPlaylist);
-    
-    //setupArtistAutocomplete();
-    setupSearch();
 }
 
 
 /* --------------------------- SETUP  --------------------------- */
 
-queryOnTimeout = null;
 prevSearchString = '';
-function setupSearch() {
-  $("#search").keyup(function() {
-    if (queryOnTimeout) {
-      clearTimeout(queryOnTimeout);
-    } 
-    var searchbar = $("#searchbar");
-    var searchString = searchbar.val();
-    if (searchString != prevSearchString) {
-      queryOnTimeout = setTimeout('controller.search("' + searchString + '")', 500);
-    }
+function setupSearch(searchElem) {
+  var searchBox = $("#searchBox input.search");
+  searchElem.keyup(function() {
+    var searchString = searchBox.val();
+    window.setTimeout(function() {
+      if ($('#searchBox input.search').val() == searchString && prevSearchString != searchString) {
+        prevSearchString = searchString;
+        controller.search(searchString);
+      } 
+    }, 500);
   });
   
-  addFocusHandlers($("#search"));
+  addFocusHandlers(searchBox);
 }
 
 function setupArtistAutocomplete() {
-    var artistSearch = $("#search");
+    var artistSearch = $("#searchBox");
     artistSearch.autocomplete({
       source: '/suggest', 
       minLength: 2,        
@@ -426,6 +422,11 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
   var albums = [];
   var albumResults = data.results.albummatches.album;
   
+  if (!albumResults) {
+    view.renderAlbums([]);
+    return;
+  }
+  
   for (var i = 0; i < albumResults.length; i++) {
     var albumResult = albumResults[i];
     var album = {};
@@ -450,6 +451,11 @@ Controller.prototype.handleArtistSearchResults = function(data) {
   var artists = [];
   var artistResults = data.results.artistmatches.artist;
   
+  if (!artistResults) {
+    view.renderArtists([]);
+    return;
+  }
+   
   for (var i = 0; i < artistResults.length; i++) {
     var artistResult = artistResults[i];
     var artist = {};
@@ -1183,6 +1189,7 @@ View.prototype.showSearch = function(event) {
         .append(header)
         .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>');
     browser.push(searchElem);
+    setupSearch(searchElem);
     
     // if (!Modernizr.input.autofocus) {
     //     $('.search').focus();
