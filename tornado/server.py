@@ -16,7 +16,7 @@ from optparse import OptionParser
 from tornado.options import define, options
 
 define("port", default=8000, help="run on the given port", type=int)
-define("mysql_host", default="127.0.0.1:3306", help="database host")
+define("mysql_host", default="instant.fm:3306", help="database host")
 define("mysql_database", default="instantfm", help="database name")
 define("mysql_user", default="instantfm", help="database user")
 define("mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
@@ -31,6 +31,7 @@ class Application(tornado.web.Application):
             (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
             (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
             (r"/terms$", TermsHandler),
+            (r"/suggest$", ArtistAutocompleteHandler),
             (r".*", ErrorHandler),
         ]
         settings = dict(
@@ -131,6 +132,13 @@ class BaseHandler(tornado.web.RequestHandler):
             create_date = datetime.utcnow().isoformat(' ')
             new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('user_id', str(new_id))
+            
+class ArtistAutocompleteHandler(BaseHandler):
+    def get(self):
+        self.set_header("Access-Control-Allow-Origin", "http://localhost") # TODO: Remove before production
+        prefix = self.get_argument('term');
+        artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
+        self.write(json.dumps(artists))
     
 class HomeHandler(BaseHandler):
     def get(self):
