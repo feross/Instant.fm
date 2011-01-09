@@ -564,7 +564,7 @@ header .awesome { margin-top: 2px; }
 #searchBox {
     background: transparent url('/images/search-box.png') top left no-repeat;
     height: 40px;
-    margin: 15px auto;
+    margin: 20px auto;
     width: 480px;
 }
 
@@ -599,7 +599,7 @@ header .awesome { margin-top: 2px; }
 
 /* Search Results */
 
-#search h3 { margin: 20px 0 8px 0; }
+#search h3 { margin: 12px 0 8px 0; }
 
 .artistResult, .albumResult {
     float: left;
@@ -611,13 +611,16 @@ header .awesome { margin-top: 2px; }
 
 .artistResult div, .albumResult div {
     background-color: rgba(0, 0, 0, 0.6);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     margin: 5px 5px 0 5px;
     padding: 5px 2px 5px 5px;
     position: absolute;
-    text-shadow: #000 1px -1px 1px;
     width: 133px;
+}
+
+.artistResult div, .albumResult div, .songResult {
+    text-shadow: #000 1px -1px 1px;
 }
 
 .albumResult span {
@@ -642,7 +645,7 @@ header .awesome { margin-top: 2px; }
 }
 
 .trackResult {
-    border-bottom: #333 1px solid; 
+    border-top: #333 1px solid; 
     clear: both;
     padding: 6px 0;
 }
@@ -656,15 +659,17 @@ header .awesome { margin-top: 2px; }
 
 .trackResult div {
     float: left;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
+    margin: -1px 0 0 0;
+    width: 435px;
 }
 
 .trackResult span {
     display: block;
     font-size: 12px;
     font-weight: normal;
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 

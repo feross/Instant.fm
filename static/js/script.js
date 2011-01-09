@@ -420,7 +420,7 @@ Controller.prototype.search = function(string) {
 
     model.lastfm.artist.search({
         artist: string,
-        limit: 6,
+        limit: 3,
     }, 
     {
         success: controller.handleArtistSearchResults,
@@ -433,7 +433,7 @@ Controller.prototype.search = function(string) {
     model.lastfm.album.search(
     {
       album: string,
-      limit: 6,
+      limit: 3,
     },
     {
     	success: controller.handleAlbumSearchResults,
@@ -447,7 +447,7 @@ Controller.prototype.search = function(string) {
   model.lastfm.track.search(
     {
       track: string,
-      limit: 5,
+      limit: 15,
     },
     {
  	    success: controller.handleTrackSearchResults,
@@ -1316,7 +1316,7 @@ View.prototype.showSearch = function(event) {
     var searchElem = $('<section id="search"></section>')
         .append(header)
         .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>')
-        .append('<div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div><div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div>');
+        .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
     browser.push(searchElem);
     setupSearch(searchElem);
     
