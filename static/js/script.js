@@ -85,6 +85,7 @@ function setupSearch(searchElem) {
   addFocusHandlers(searchBox);
 }
 
+/* NOTE: Unused right now. */
 function setupArtistAutocomplete() {
     var artistSearch = $("#searchBox");
     artistSearch.autocomplete({
@@ -398,7 +399,7 @@ Controller.prototype.search = function(string) {
 	    error: function(code, message) 
 	    {
 	        log(code + ' ' + message);
-          renderArtists([]);
+          view.renderArtists([]);
   		}
     }
   );
@@ -412,11 +413,55 @@ Controller.prototype.search = function(string) {
 	    error: function(code, message) 
 	    {
         log(code + ' ' + message);
-        renderAlbums([]);
+        view.renderAlbums([]);
 	    }
     }
   );
+  
+  model.lastfm.track.search(
+    {
+      track: string,
+    },
+    {
+ 	    success: controller.handleTrackSearchResults,
+ 	    error: function(code, message) 
+	    {
+        log(code + ' ' + message);
+        view.renderTracks([]);
+	    }	    
+    }
+  )
 };
+
+Controller.prototype.handleTrackSearchResults = function(data) {
+  var tracks = [];
+  var trackResults = data.results.trackmatches.track;
+  
+  if (!trackResults) {
+    view.rendertracks([]);
+    return;
+  }
+  
+  for (var i = 0; i < trackResults.length; i++) {
+    var trackResult = trackResults[i];
+    var track = {};
+    
+    track.name = trackResult.name;
+    track.artist = trackResult.artist;
+    track.image = '';
+    for (var j = 0; trackResult.image && j < trackResult.image.length; j++) {
+      if (trackResult.image[j]['size'] == 'medium') {
+        track.image = trackResult.image[j]['#text'];
+        break;
+      }
+    }
+    
+    tracks.push(track);
+  };
+  
+  view.renderTracks(tracks);
+};
+
 
 Controller.prototype.handleAlbumSearchResults = function(data) {
   var albums = [];
@@ -434,7 +479,7 @@ Controller.prototype.handleAlbumSearchResults = function(data) {
     album.name = albumResult.name;
     album.artist = albumResult.artist;
     album.image = '';
-    for (var j = 0; j < albumResult.image.length; j++) {
+    for (var j = 0; albumResult.image && j < albumResult.image.length; j++) {
       if (albumResult.image[j]['size'] == 'medium') {
         album.image = albumResult.image[j]['#text'];
         break;
@@ -462,7 +507,7 @@ Controller.prototype.handleArtistSearchResults = function(data) {
     
     artist.name = artistResult.name;
     artist.image = '';
-    for (var j = 0; j < artistResult.image.length; j++) {
+    for (var j = 0; artistResult.image && j < artistResult.image.length; j++) {
       if (artistResult.image[j]['size'] == 'medium') {
         artist.image = artistResult.image[j]['#text'];
         break;
@@ -821,6 +866,14 @@ View.prototype.renderAlbums = function(albums) {
 View.prototype.renderArtists = function(artists) {
   // TODO: This is fer Foross to do cause he's good at the CSS.
   log(artists);
+}
+
+/* Takes an array of objects with properties 'name', 'artist', 'image' 
+ * If there is no image, image will be the empty string. 
+ */
+View.prototype.renderTracks = function(tracks) {
+  // TODO: This is fer Foross to do cause he's good at the CSS.
+  log(tracks);
 }
 
 /* Info Display */
