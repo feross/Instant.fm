@@ -13,92 +13,110 @@
       </header>
     
       <div id="videoDiv">
+        <div id="videoTools">
+          <a href="#shuffle" id="shuffle" class="small awesome">
+            Shuffle
+          </a>
+          <a href="#repeat" id="repeat" class="small awesome">
+            Repeat
+          </a>
+        </div>
         <div id="player">&nbsp;</div>
       </div>
-    
+      
       <div id="playlistDiv">
         <ul id="playlist">
           <!-- Loaded via JS -->
         </ul>
       </div>
-    
+      
     </div> <!-- end of #playlistDisplay -->
   
   
     <div id="infoDisplay">
       
       <nav class="clearfix" id="headerMenu">
-        <a href="#">My Library</a>
-        <a href="#">Test</a>
+        <a href="#">My Playlists</a>
+        <a href="#">Sign Up</a>
       </nav>
     
-      <section class="clearfix" id="curPlaylist">
-        <header class="clearfix">
-          <h2 id="curPlaylistTitle">&nbsp;</h2>
-        </header>
-        <article>
-          <span id="curPlaylistDesc">&nbsp;</span>
-        </article>
+      <div id="FS_slider" class="clearfix">
+        <div id="FS_holder">
+          
+          <div id="curPlaylist" class="slide">
+            <section id="curPlaylistInfo">
+              <header class="clearfix">
+                <h2 id="curPlaylistTitle">&nbsp;</h2>
+              </header>
+              <article>
+                <span id="curPlaylistDesc">&nbsp;</span>
+              </article>
         
-        <section id="playlistActions">
-          <a href="#addComment" id="addComment" class="awesome">
-            Add a comment &raquo;
-          </a>
-          <a href="#fbShare" id="fbShare" class="darkblue awesome">
-            Share on Facebook
-          </a>
-          <a href="#twShare" id="twShare" class="blue awesome">
-            Share on Twitter
-          </a>
-        </section> <!-- end of #playlistActions -->
-        
-        <!-- Facebook comments are loaded with JS here -->
-        
-        <!-- <a href="#TODO" id="curPlaylistAuthor">
-          <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-          <div>Feross Aboukhadijeh</div>
-        </a> -->
-      </section> <!-- end of #curPlaylist -->
+              <section id="playlistActions">
+                <a href="#addComment" id="addComment" class="awesome">
+                  Add a comment
+                </a>
+                <a href="#fbShare" id="fbShare" class="darkblue awesome">
+                  Share on Facebook
+                </a>
+                <a href="#twShare" id="twShare" class="blue awesome">
+                  Share on Twitter
+                </a>
+              </section> <!-- end of #playlistActions -->
+                
+              <!-- <a href="#TODO" id="curPlaylistAuthor">
+                <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+                <div>Feross Aboukhadijeh</div>
+              </a> -->
+            </section>
+            
+            <!-- Facebook comments are loaded with JS here -->
+
+            <section id="curPlaying">
+              <header>
+                <h3>Currently Playing</h3>
+              </header>
+              <div class="clearfix" id="curAlbumBlock">
+                <div id="curAlbumImg">
+                  <span class="zoomIcon">&nbsp;</span>
+                </div>
+                <div id="curAlbumInfo">
+                  <div id="curSong">
+                    <h4>&nbsp;</h4>
+                  </div>
+                  <div id="curArtist">
+                    <span class="curLabel">by</span> 
+                    <h4>&nbsp;</h4>
+                  </div>
+                  <div id="curAlbum">
+                    <span class="curLabel">on</span> 
+                    <h4>&nbsp;</h4>
+                  </div>
+                </div>
+                <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
+              </div> <!-- end of #curAlbumBlock -->
+
+              <div id="curDescs">
+                <section id="curSongDesc">
+                  <h4>&nbsp;</h4> 
+                  <article>&nbsp;</article>
+                </section>
+                <section id="curArtistDesc">
+                  <h4>&nbsp;</h4>
+                  <span id="curArtistImg">
+                    <span class="zoomIcon">&nbsp;</span>
+                  </span>
+                  <article>&nbsp;</article>
+                </section>
+              </div> <!-- end of #curDescs -->
+
+            </section> <!-- end of #curPlaying -->
+            
+          </div> <!-- end of #curPlaylist -->
+
+        </div> <!-- end of #FS_holder -->
+      </div> <!-- end of #FS_slider -->
       
-      <section class="clearfix" id="curPlaying">
-        <header>
-          <h3>Currently Playing</h3>
-        </header>
-        <div class="clearfix" id="curAlbumBlock">
-          <div id="curAlbumImg">
-            <span class="zoomIcon">&nbsp;</span>
-          </div>
-          <div id="curAlbumInfo">
-            <div id="curSong">
-              <h4>&nbsp;</h4>
-            </div>
-            <div id="curArtist">
-              <span class="curLabel">by</span> 
-              <h4>&nbsp;</h4>
-            </div>
-            <div id="curAlbum">
-              <span class="curLabel">on</span> 
-              <h4>&nbsp;</h4>
-            </div>
-          </div>
-          <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
-        </div> <!-- end of #curAlbumBlock -->
-      
-        <div id="curDescs">
-          <section id="curSongDesc">
-            <h4>&nbsp;</h4> 
-            <article>&nbsp;</article>
-          </section>
-          <section id="curArtistDesc">
-            <h4>&nbsp;</h4>
-            <span id="curArtistImg">
-              <span class="zoomIcon">&nbsp;</span>
-            </span>
-            <article>&nbsp;</article>
-          </section>
-        </div> <!-- end of #curDescs -->
-      
-      </section> <!-- end of #curPlaying -->
         
       <footer id="footer">
         <strong><a href="#">Instant.fm</a></strong> |
