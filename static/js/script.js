@@ -63,14 +63,45 @@ function onloadPlaylist() {
     
     setupDragDropUploader('p', controller.loadPlaylist);
     
-    // Search
-    var artistSearch = $("#artistSearch");
-    artistSearch.autocomplete({source: '/suggest'});
-    addFocusHandlers(artistSearch);
+    //setupArtistAutocomplete();
+    setupSearch();
 }
 
 
 /* --------------------------- SETUP  --------------------------- */
+
+queryOnTimeout = null;
+prevSearchString = '';
+function setupSearch() {
+  $("#search").keyup(function() {
+    if (queryOnTimeout) {
+      clearTimeout(queryOnTimeout);
+    } 
+    var searchbar = $("#searchbar");
+    var searchString = searchbar.val();
+    if (searchString != prevSearchString) {
+      queryOnTimeout = setTimeout('controller.search("' + searchString + '")', 500);
+    }
+  });
+  
+  addFocusHandlers($("#search"));
+}
+
+function setupArtistAutocomplete() {
+    var artistSearch = $("#search");
+    artistSearch.autocomplete({
+      source: '/suggest', 
+      minLength: 2,        
+      select: function( event, ui ) {
+        var value = ui.item ? ui.item.value : this.value;
+        log( ui.item ? 
+          "Selected: " + ui.item.value + " aka " + ui.item.id :
+          "Nothing selected, input was " + this.value );
+        loadArtistTracks(value);
+      }
+    });
+    addFocusHandlers(artistSearch);
+}
 
 function setupPlaylistDisplay() {
     var maxPlaylistHeight = $(window).height() - (50 + 295 + 1); /* header, player, player border */
@@ -264,8 +295,50 @@ function Controller() {
         
     this.keyEvents = true; // Used to disable keyboard shortuts
     this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
-}
+};
     
+Controller.prototype.search = function(string) {
+  if (!string) {
+    return;
+  }
+  
+  prevSearchString = string;
+  
+  model.lastfm.artist.search({
+        	    artist: string,
+        	    limit: 5,
+        	    autocorrect: 1
+        	}, {
+        	    success: function(data){
+                $("#artistResults").empty();
+  
+        	      var artists = data.results.artistmatches.artist;
+                if (artists.length == 0) {
+                    this.error('artist.search', 'No search results.');
+                    return;
+                }
+                
+                log("matches: " + artists.length);
+                for (var i = 0; i < artists.length; i++) {
+                  var artist = artists[i];
+                  var artistRow = $("<div>").addClass("artist_row");
+                  for (var j = 0; j < artist.image.length; j++) {
+                    if (artist.image[j]['size'] == 'large') {
+                      artistRow.append($('<img>').attr('src', artist.image[j]['#text']));
+                      break;
+                    }
+                  }
+                  artistRow.append($("<span>").text(artist.name));
+                  $("#artistResults").append(artistRow);
+                }
+        	    },
+
+        	    error: function(code, message) {
+                  $("#artistResults").empty();
+        	        log(code + ' ' + message);
+        		}
+	});
+};
 
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
