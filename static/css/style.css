@@ -587,22 +587,30 @@ header .awesome { margin-top: 1px; }
 
 /* Search Results */
 
+#search h3 { margin-bottom: 5px; }
+
 .artistResult {
-    -moz-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
-    -webkit-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
-    box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.0898438);
-    border: 5px solid #fafafa;
     float: left;
-    height: 140px;
+    height: 200px;
     margin: 0 10px 10px 0;
-    overflow: hidden;
-    width: 140px;
+    width: 150px;
+    text-align: center;
+}
+
+
+#artistResults {
+    height: 200px;
 }
 
 #artistResults img {
+    -moz-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
+    -webkit-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
+    box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
+    border: 4px solid #fafafa;
     height: 140px;
     width: 140px;
 }
+
 
 
 /* Misc. */

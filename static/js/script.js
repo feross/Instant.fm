@@ -854,10 +854,15 @@ View.prototype.renderArtists = function(artists) {
     for (var i = 0; i < artists.length; i++) {
         var artist = artists[i];
         
+        if (!artist.image) {
+            artist.image = '/images/anonymous.png';
+        }
+        
         var img = $('<img src="'+artist.image+'" alt="'+artist.name+'">');
         
         $('<div class="artistResult"></div>')
             .append(img)
+            .append('<span>'+artist.name+'</span>')
             .appendTo('#artistResults');
     }
 }
@@ -1162,7 +1167,7 @@ View.prototype.initPlayer = function(firstVideoId) {
     };
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
-    '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=1' +
+    '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
     '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
     'player', '480', '295', '8', null, null, params, atts);
 };
@@ -1235,17 +1240,13 @@ View.prototype.showSearch = function(event) {
     var searchElem = $('<section id="search"></section>')
         .append(header)
         .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>')
-        .append('<div id="artistResults"></div><div id="albumResults"></div><div id="songResults"></div>');
+        .append('<h3>Artists</h3><div id="artistResults"></div><h3>Albums</h3><div id="albumResults"></div><h3>Songs</h3><div id="songResults"></div>');
     browser.push(searchElem);
     setupSearch(searchElem);
     
-    // if (!Modernizr.input.autofocus) {
-    //     $('.search').focus();
-    // }
-    
     window.setTimeout(function() {
         $('#searchBox .search').focus();
-    }, 550);
+    }, 500);
         
     window.setTimeout(function() {
         $('.buttonHeader h2')
