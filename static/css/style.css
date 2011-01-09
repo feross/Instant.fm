@@ -563,6 +563,7 @@ header .awesome { margin-top: 2px; }
 
 #searchBox {
     background: transparent url('/images/search-box.png') top left no-repeat;
+    display: block;
     height: 40px;
     margin: 20px auto;
     width: 480px;

@@ -72,10 +72,9 @@ function onloadPlaylist() {
 prevSearchString = '';
 delaySearch = false;
 function setupSearch(searchElem) {
-    var searchBox = $("#searchBox input.search");
+    var searchInput = $('#searchBox input.search');
     
-    searchElem.keyup(function () {
-        var searchString = searchBox.val();
+    var doSearch = function(searchString) {
         if (!delaySearch && prevSearchString != searchString) {
             prevSearchString = searchString;
             controller.search(searchString);
@@ -84,14 +83,31 @@ function setupSearch(searchElem) {
             window.setTimeout(function() {
                 delaySearch = false;
                 
-                if (searchBox.val() != searchString) {
-                    searchElem.trigger('keyup');
+                if (searchInput.val() != searchString) {
+                    doSearch();
                 }
             }, 500);
         }
+    };
+    
+    // Hit enter
+    $('#searchBox', searchElem).submit(function(event) {
+        event.preventDefault();
+        doSearch(searchInput.val());
     });
-
-    addFocusHandlers(searchBox);
+    
+    // Enters key
+    searchInput.keyup(function() {
+        event.preventDefault();
+        doSearch(searchInput.val());
+    });
+    addFocusHandlers(searchInput);
+    
+    // Clicks search button
+    $('#searchBox input.submit', searchElem).click(function() {
+        event.preventDefault();
+        doSearch(searchInput.val());
+    });
 }
 
 /* NOTE: Unused right now. */
@@ -1315,7 +1331,7 @@ View.prototype.showSearch = function(event) {
     
     var searchElem = $('<section id="search"></section>')
         .append(header)
-        .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>')
+        .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
         .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
     browser.push(searchElem);
     setupSearch(searchElem);
