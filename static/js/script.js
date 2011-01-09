@@ -304,41 +304,83 @@ Controller.prototype.search = function(string) {
   
   prevSearchString = string;
   
-  model.lastfm.artist.search({
-        	    artist: string,
-        	    limit: 5,
-        	    autocorrect: 1
-        	}, {
-        	    success: function(data){
-                $("#artistResults").empty();
+  model.lastfm.artist.search(
+    {
+	    artist: string,
+	    limit: 5,
+	    autocorrect: 1
+  	}, 
+  	{
+	    success: controller.handleArtistSearchResults,
+	    error: function(code, message) 
+	    {
+          $("#artistResults").empty();
+	        log(code + ' ' + message);
+  		}
+    }
+  );
   
-        	      var artists = data.results.artistmatches.artist;
-                if (artists.length == 0) {
-                    this.error('artist.search', 'No search results.');
-                    return;
-                }
-                
-                log("matches: " + artists.length);
-                for (var i = 0; i < artists.length; i++) {
-                  var artist = artists[i];
-                  var artistRow = $("<div>").addClass("artist_row");
-                  for (var j = 0; j < artist.image.length; j++) {
-                    if (artist.image[j]['size'] == 'large') {
-                      artistRow.append($('<img>').attr('src', artist.image[j]['#text']));
-                      break;
-                    }
-                  }
-                  artistRow.append($("<span>").text(artist.name));
-                  $("#artistResults").append(artistRow);
-                }
-        	    },
-
-        	    error: function(code, message) {
-                  $("#artistResults").empty();
-        	        log(code + ' ' + message);
-        		}
-	});
+  model.lastfm.album.search(
+    {
+      album: string,
+    },
+    {
+ 	    success: controller.handleAlbumSearchResults,
+	    error: function(code, message) 
+	    {
+        $("#albumResults").empty();
+        log(code + ' ' + message);
+	    }
+    }
+  );
 };
+
+Controller.prototype.handleAlbumSearchResults = function(data) {
+  $("#albumResults").empty();
+
+  var albums = data.results.albummatches.album;
+  if (albums.length == 0) {
+      this.error('album.search', 'No search results.');
+      return;
+  }
+  
+  for (var i = 0; i < albums.length; i++) {
+    var album = albums[i];
+    var albumRow = $("<div>").addClass("album_row");
+    for (var j = 0; j < album.image.length; j++) {
+      if (album.image[j]['size'] == 'large') {
+        albumRow.append($('<img>').attr('src', album.image[j]['#text']));
+        break;
+      }
+    }
+    albumRow.append($("<span>").text(album.name));
+    $("#albumResults").append(albumRow);
+  };
+};
+
+Controller.prototype.handleArtistSearchResults = function(data) {
+   $("#artistResults").empty();
+
+  var artists = data.results.artistmatches.artist;
+  if (artists.length == 0) {
+      this.error('artist.search', 'No search results.');
+      return;
+  }
+  
+  log("matches: " + artists.length);
+  for (var i = 0; i < artists.length; i++) {
+    var artist = artists[i];
+    var artistRow = $("<div>").addClass("artist_row");
+    for (var j = 0; j < artist.image.length; j++) {
+      if (artist.image[j]['size'] == 'large') {
+        artistRow.append($('<img>').attr('src', artist.image[j]['#text']));
+        break;
+      }
+    }
+    artistRow.append($("<span>").text(artist.name));
+    $("#artistResults").append(artistRow);
+  };
+}
 
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
