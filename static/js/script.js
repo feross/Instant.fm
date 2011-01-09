@@ -53,6 +53,9 @@ function onloadPlaylist() {
     $(window).resize(setupPlaylistDisplay);
     
     setupDragDropUploader('p', controller.loadPlaylist);
+    
+    // Search
+    $("#artistSearch").autocomplete({source: 'http://localhost/suggest'});
 }
 
 function setupPlaylistDisplay() {
