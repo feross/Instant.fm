@@ -79,7 +79,7 @@ function setupSearch(searchElem) {
         prevSearchString = searchString;
         controller.search(searchString);
       } 
-    }, 200);
+    }, 100);
   });
   
   addFocusHandlers(searchBox);
