@@ -20,6 +20,15 @@ var appSettings = {
 
 /* --------------------------- SETUP --------------------------- */
 
+function addFocusHandlers(elem) {
+    elem.focus(function() {
+        controller.keyEvents = false;
+    })
+    .blur(function() {
+        controller.keyEvents = true;
+    }); 
+}
+
 function onloadHome() {
     controller = new Controller();
     
@@ -55,7 +64,9 @@ function onloadPlaylist() {
     setupDragDropUploader('p', controller.loadPlaylist);
     
     // Search
-    $("#artistSearch").autocomplete({source: 'http://localhost/suggest'});
+    var artistSearch = $("#artistSearch");
+    artistSearch.autocomplete({source: '/suggest'});
+    addFocusHandlers(artistSearch);
 }
 
 function setupPlaylistDisplay() {
@@ -729,13 +740,7 @@ View.prototype.makeEditable = function(elem, updateCallback) {
             
             // disable key events while textarea is focused
             controller.keyEvents = false;
-            $('textarea', $(this).parent())
-                .focus(function() {
-                    controller.keyEvents = false;
-                })
-                .blur(function() {
-                    controller.keyEvents = true;
-                });
+            addFocusHandlers($('textarea', $(this).parent()));
         }))
         .editable(function(value, settings) {
             $(this).next().removeClass('hidden');
