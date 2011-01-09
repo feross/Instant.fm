@@ -1,6 +1,7 @@
 var model;
 var view;
 var controller;
+var browser;
 
 var appSettings = {
     fancyZoom: {directory: '/images/fancyzoom'},
@@ -47,6 +48,7 @@ function onloadPlaylist() {
     view = new View();
     model = new Model();
     controller = new Controller();
+    browser = new MiniBrowser();
     
     setupAutogrowInputType();
     controller.loadPlaylist(initial_playlist);
@@ -104,14 +106,14 @@ function setupArtistAutocomplete() {
 }
 
 function setupPlaylistDisplay() {
-    var maxPlaylistHeight = $(window).height() - (50 + 295 + 1); /* header, player, player border */
+    var maxPlaylistHeight = $(window).height() - (50 + 295); /* header, player */
     var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     $('#playlistDiv').height(newHeight);
 }
 
 function setupAutogrowInputType() {
     $.editable.addInputType('autogrow', {
-        element : function(settings, original) {
+        element: function(settings, original) {
             var textarea = $('<textarea />');
             if (settings.rows) {
                 textarea.attr('rows', settings.rows);
@@ -126,7 +128,7 @@ function setupAutogrowInputType() {
             $(this).append(textarea);
             return(textarea);
         },
-        plugin : function(settings, original) {
+        plugin: function(settings, original) {
             var elemId = $(this).parent().attr('id');
             var width;
             switch(elemId) {
@@ -164,7 +166,6 @@ function setupKeyboardListeners() {
             return;
         }
         var k = event.which;
-        log(k);
         switch(k) {
             case 39: case 40: // down, right
                 doKeyEvent(controller.playNextSong);
@@ -253,7 +254,7 @@ function setupPlaylistActionButtons() {
             picture: view.bestAlbumImg || 'http://instant.fm/images/unknown.png',
             caption: 'Instant.fm Playlist',
             description: model.description + '\n',
-            properties: {'Featured Artists': model.getTopArtists(4).join(', ')},
+            properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
             actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
           },
           function(response) {
@@ -285,6 +286,92 @@ function setupDragDropUploader(dropId, callback) {
     new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
 }
 
+
+/* --------------------------- MINI BROWSER --------------------------- */
+
+// Animated image slider code from: http://goo.gl/t3vPZ
+var MiniBrowser = function() {
+  
+    // Setup vendor prefix
+    this.vP = '';
+    if ($.browser.webkit) {
+    	this.vP = "-webkit-";
+    } else if ($.browser.msie) {
+    	this.vP = "-ms-";
+    } else if ($.browser.mozilla) {
+    	this.vP = "-moz-";
+    } else if ($.browser.opera) {
+    	this.vP = "-o-";
+    }
+
+    this.refreshContents();
+};
+
+MiniBrowser.prototype.refreshContents = function() {
+    // width of slide + margin-right of slide
+    this.sliderWidth = $('#FS_slider').width() + 50;
+    this.numSlides = $('#FS_holder .slide').length;
+    
+    // $("#FS_slider #FS_holder").width(this.sliderWidth * this.numSlides);
+    // $("#FS_slider #FS_holder").height($("#FS_slider .slide").height());
+};
+
+MiniBrowser.prototype.push = function(elem) {
+    $(elem)
+        .addClass('slide')
+        .appendTo('#FS_holder');
+
+    this.refreshContents();
+    this.slideTo(this.numSlides);
+};
+
+MiniBrowser.prototype.pop = function() {
+    if (this.numSlides <= 1) {
+        return;
+    }
+    this.slideTo(this.numSlides - 1);
+    window.setTimeout(function() {
+        $('#FS_holder .slide').last().remove();
+        browser.refreshContents();
+    }, 800);
+};
+
+MiniBrowser.prototype.slideTo = function(slide) {
+    
+	var pixels = this.sliderWidth * (slide - 1);
+
+	if (Modernizr.csstransforms3d && Modernizr.csstransforms && Modernizr.csstransitions) {
+
+		$("#FS_holder").css(this.vP+"transform","translate3d(-"+pixels+"px, 0px, 0px)");
+		   $("#FS_holder").css("transform","translate3d(-"+pixels+"px, 0px, 0px)");			
+
+	} else if (Modernizr.csstransforms && Modernizr.csstransitions) {
+
+		$("#FS_holder").css(this.vP+"transform","translate(-"+pixels+"px, 0px)");
+		   $("#FS_holder").css("transform","translate(-"+pixels+"px, 0px)");		
+
+	} else if (Modernizr.csstransitions) {
+
+		$("#FS_holder").css("margin-left","-"+pixels+"px");
+
+	} else {
+
+		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"},600); // If you animate left, IE breaks.
+
+	}		
+};
+
+MiniBrowser.prototype.makeBackButton = function(text) {
+    text = text || '&laquo; Back';
+    
+    var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
+    button.click(function(event) {
+        event.preventDefault();
+        browser.pop();
+    });
+    
+    return button;
+};
 
 
 /* --------------------------- CONTROLLER --------------------------- */
@@ -704,6 +791,7 @@ Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
 function View() {
     this.isPlayerInit = false; // have we initialized the player?
     this.player; // YouTube DOM element
+    this.volume = 100;
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
@@ -804,6 +892,10 @@ View.prototype.renderPlaylist = function(playlist, start) {
         if (playlist.editable) {
             view.makeEditable($('#curPlaylistTitle'), model.updateTitle);
             view.makeEditable($('#curPlaylistDesc'), model.updateDesc);
+            
+            $('<a href="#addSongs" id="addSongs" class="awesome">Add songs &raquo;</a>')
+                .click(view.showSearch)
+                .prependTo('#curPlaylistInfo header');
         }
         
         $('#playlist li').remove(); // clear the playlist
@@ -882,14 +974,24 @@ View.prototype.makeEditable = function(elem, updateCallback) {
             $.extend(appSettings.jeditable.autogrow, autogrowSettings);
 
             $(this).prev().trigger('editable');
-            $(this).addClass('hidden');
+            $(this).hide();
+            
+            log($(this).prev().attr('id'));
+            if($(this).prev().attr('id') == 'curPlaylistTitle') {
+                $('#addSongs').hide();
+            }
             
             // disable key events while textarea is focused
             controller.keyEvents = false;
             addFocusHandlers($('textarea', $(this).parent()));
         }))
         .editable(function(value, settings) {
-            $(this).next().removeClass('hidden');
+            $(this).next().show();
+            
+            if($(this).attr('id') == 'curPlaylistTitle') {
+                $('#addSongs').show();
+            }
+            
             updateCallback(value);
             return value;
         }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
@@ -963,7 +1065,7 @@ View.prototype.loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
-    $('#addComment').html('Add a comment &raquo;');
+    $('#addComment').html('Add a comment');
     
     // Load Facebook comment box
     $('#comments')
@@ -975,7 +1077,7 @@ View.prototype.loadComments = function(playlist_id, title) {
             .css({height: 0});
         $('#commentsDiv')
             .data('loaded', true)
-            .appendTo('#curPlaylist');
+            .appendTo('#curPlaylistInfo');
     });
     
     // Resize comment box on comment
@@ -1016,6 +1118,7 @@ View.prototype.initPlayer = function(firstVideoId) {
 View.prototype.playVideoById = function(id) {
     if (this.player) {
         view.player.loadVideoById(id, 0, 'hd720');
+        view.player.setVolume(view.volume);
     } else {
         if (!this.isPlayerInit) {
             this.initPlayer(id);
@@ -1054,17 +1157,45 @@ View.prototype.increaseVolume = function() {
     if (view.player.isMuted()) {
         view.player.unMute();
     }
-    var volume = view.player.getVolume() + 20;
-    volume = (volume <= 100) ? volume : 100;
+    view.volume += 20;
+    view.volume = (view.volume <= 100) ? view.volume : 100;
     
-    view.player.setVolume(volume);
+    view.player.setVolume(view.volume);
 }
 
 View.prototype.decreaseVolume = function() {
-    var volume = view.player.getVolume() - 20;
-    volume = (volume >= 0) ? volume : 0;
+    view.volume -= 20;
+    view.volume = (view.volume >= 0) ? view.volume : 0;
     
-    view.player.setVolume(volume);
+    view.player.setVolume(view.volume);
+}
+
+View.prototype.showSearch = function(event) {
+    event.preventDefault();
+    
+    var backButton = browser.makeBackButton();
+    
+    var header = $('<header class="clearfix buttonHeader"></header>')
+        .append(backButton)
+        .append('<h2>Add Songs</h2>');
+    
+    var searchElem = $('<section id="search"></section>')
+        .append(header)
+        .append('<div id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></div>');
+    browser.push(searchElem);
+    
+    // if (!Modernizr.input.autofocus) {
+    //     $('.search').focus();
+    // }
+    
+    window.setTimeout(function() {
+        $('#searchBox .search').focus();
+    }, 550);
+        
+    window.setTimeout(function() {
+        $('.buttonHeader h2')
+            .css('left', -1 * $('.backButton').width());
+    }, 0);
 }
 
 
@@ -1082,6 +1213,12 @@ View.prototype.showHelpDialog = function() {
 function onYouTubePlayerReady(playerId) {
     view.player = document.getElementById(playerId);
     view.player.addEventListener("onStateChange", "onYouTubePlayerStateChange");
+    
+    // If the user manually changes the volume in the YouTube player,
+    // we want to know about the change.
+    window.setInterval(function() {
+        view.volume = view.player.getVolume();
+    }, 2000);
 }
 
 function onYouTubePlayerStateChange(newState) {
