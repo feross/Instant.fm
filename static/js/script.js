@@ -314,8 +314,8 @@ Controller.prototype.search = function(string) {
 	    success: controller.handleArtistSearchResults,
 	    error: function(code, message) 
 	    {
-          $("#artistResults").empty();
 	        log(code + ' ' + message);
+          renderArtists([]);
   		}
     }
   );
@@ -328,59 +328,59 @@ Controller.prototype.search = function(string) {
  	    success: controller.handleAlbumSearchResults,
 	    error: function(code, message) 
 	    {
-        $("#albumResults").empty();
         log(code + ' ' + message);
+        renderAlbums([]);
 	    }
     }
   );
 };
 
 Controller.prototype.handleAlbumSearchResults = function(data) {
-  $("#albumResults").empty();
-
-  var albums = data.results.albummatches.album;
-  if (albums.length == 0) {
-      this.error('album.search', 'No search results.');
-      return;
-  }
+  var albums = [];
+  var albumResults = data.results.albummatches.album;
   
-  for (var i = 0; i < albums.length; i++) {
-    var album = albums[i];
-    var albumRow = $("<div>").addClass("album_row");
-    for (var j = 0; j < album.image.length; j++) {
-      if (album.image[j]['size'] == 'large') {
-        albumRow.append($('<img>').attr('src', album.image[j]['#text']));
+  for (var i = 0; i < albumResults.length; i++) {
+    var albumResult = albumResults[i];
+    var album = {};
+    
+    album.name = albumResult.name;
+    album.artist = albumResult.artist;
+    album.image = '';
+    for (var j = 0; j < albumResult.image.length; j++) {
+      if (albumResult.image[j]['size'] == 'medium') {
+        album.image = albumResult.image[j]['#text'];
         break;
       }
     }
-    albumRow.append($("<span>").text(album.name));
-    $("#albumResults").append(albumRow);
+    
+    albums.push(album);
   };
+  
+  view.renderAlbums(albums);
 };
 
 Controller.prototype.handleArtistSearchResults = function(data) {
-   $("#artistResults").empty();
-
-  var artists = data.results.artistmatches.artist;
-  if (artists.length == 0) {
-      this.error('artist.search', 'No search results.');
-      return;
-  }
+  var artists = [];
+  var artistResults = data.results.artistmatches.artist;
   
-  log("matches: " + artists.length);
-  for (var i = 0; i < artists.length; i++) {
-    var artist = artists[i];
-    var artistRow = $("<div>").addClass("artist_row");
-    for (var j = 0; j < artist.image.length; j++) {
-      if (artist.image[j]['size'] == 'large') {
-        artistRow.append($('<img>').attr('src', artist.image[j]['#text']));
+  for (var i = 0; i < artistResults.length; i++) {
+    var artistResult = artistResults[i];
+    var artist = {};
+    
+    artist.name = artistResult.name;
+    artist.image = '';
+    for (var j = 0; j < artistResult.image.length; j++) {
+      if (artistResult.image[j]['size'] == 'medium') {
+        artist.image = artistResult.image[j]['#text'];
         break;
       }
     }
-    artistRow.append($("<span>").text(artist.name));
-    $("#artistResults").append(artistRow);
+    
+    artists.push(artist);
   };
-}
+  
+  view.renderArtists(artists);
+};
 
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
@@ -709,6 +709,24 @@ function View() {
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
     
     this.bestAlbumImg; // Use first non-blank album as share image
+}
+
+/* Rendering search results */
+
+/* Takes an array of objects with properties 'name', 'artist', 'image' 
+ * If there is no image, image will be the empty string. 
+ */
+View.prototype.renderAlbums = function(albums) {
+  // TODO: This is fer Foross to do cause he's good at the CSS.
+  log(albums);
+}
+
+/* Takes an array of objects with properties 'name', 'image' 
+ * If there is no image, image will be the empty string. 
+ */
+View.prototype.renderArtists = function(artists) {
+  // TODO: This is fer Foross to do cause he's good at the CSS.
+  log(artists);
 }
 
 /* Info Display */
