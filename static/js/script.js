@@ -74,8 +74,8 @@ delaySearch = false;
 function setupSearch(searchElem) {
     var searchInput = $('#searchBox input.search');
     
-    var doSearch = function(searchString) {
-        if (!delaySearch && prevSearchString != searchString) {
+    var doSearch = function(searchString) {        
+        if (!delaySearch && (prevSearchString != searchString)) {
             prevSearchString = searchString;
             controller.search(searchString);
             
@@ -84,7 +84,7 @@ function setupSearch(searchElem) {
                 delaySearch = false;
                 
                 if (searchInput.val() != searchString) {
-                    doSearch();
+                    doSearch(searchInput.val());
                 }
             }, 500);
         }
@@ -98,7 +98,6 @@ function setupSearch(searchElem) {
     
     // Enters key
     searchInput.keyup(function() {
-        event.preventDefault();
         doSearch(searchInput.val());
     });
     addFocusHandlers(searchInput);
@@ -186,7 +185,7 @@ function setupKeyboardListeners() {
     $(window).keydown(function(event) {
         var k = event.which;
         switch(k) {
-            // Music control
+            // Playback control
             case 39: case 40: // down, right
                 doKeyEvent(controller.playNextSong);
                 break;
@@ -228,13 +227,29 @@ function setupKeyboardListeners() {
                 doKeyEvent(browser.pop);
                 break;
             case 27: // escape
-                // Always capture escape button (even when focused in text boxes)
+                // We're not using the doKeyEvent() wrapper since we always want to
+                // capture the escape button (even when focused in text boxes)
                 event.preventDefault();
                 
                 // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
                 controller.keyEvents = true;
                 
                 browser.pop();
+                break;
+            
+            // Share playlists
+            case 70: // f
+                doKeyEvent(function() {
+                    $('#fbShare').trigger('click');
+                });
+                break;
+            case 84: // t
+                doKeyEvent(function() {
+                    $('#twShare').trigger('click'); 
+                });
+                break;
+            case 66:
+                doKeyEvent(shareOnBuzz);
                 break;
         }
     });
@@ -318,16 +333,20 @@ function setupPlaylistActionButtons() {
         var url = 'http://twitter.com/share'+
                   '?url=http://instant.fm/p/'+model.playlistId+
                   '&text='+tweetText;
-        newwindow = window.open(url,'name','height=450,width=550');
-        if (window.focus) {
-            newwindow.focus();
-        }
+        view.showPop(url, 'twitterShare');
     });
 }
 
 function setupDragDropUploader(dropId, callback) {
     new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
 }
+
+
+function shareOnBuzz() {
+    var url = 'http://www.google.com/buzz/post?url='+window.location;
+    view.showPop(url, 'buzzShare', 420, 700);
+}
+
 
 
 /* --------------------------- MINI BROWSER --------------------------- */
@@ -1344,6 +1363,16 @@ View.prototype.showSearch = function(event) {
         $('.buttonHeader h2')
             .css('left', -1 * $('.backButton').width());
     }, 0);
+}
+
+View.prototype.showPop = function(url, name, height, width) {
+    name = name || 'name';
+    height = height || 450;
+    width = width || 550;
+    newwindow = window.open(url, name, 'height='+height+',width='+width);
+    if (window.focus) {
+        newwindow.focus();
+    }
 }
 
 
