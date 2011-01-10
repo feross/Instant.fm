@@ -137,8 +137,8 @@ class BaseHandler(tornado.web.RequestHandler):
 class MiniViewHandler(BaseHandler):
     def get(self, template):
         # TODO: Right now, we don't have any mini-views we can actually render. Start adding some.
-        if (self.get_argument('artist', strip=True)):
-            self.render('artist.html', artist=self.get_argument('artist'));
+        if (template == 'search'):
+            self.render('mini-browser-views/search.html');
             
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
