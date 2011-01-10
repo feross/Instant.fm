@@ -483,7 +483,7 @@ a:hover .zoomIcon {
     font-family: 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
     font-size: 13px;
     font-weight: bold;
-    padding: 3px 7px;
+    padding: 4px 7px 3px 7px;
     margin-right: 7px;
     text-shadow: #000 0 1px 1px;
 }

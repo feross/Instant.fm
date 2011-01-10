@@ -141,7 +141,9 @@ function setupKeyboardListeners() {
     // Detect key codes
     $(window).keydown(function(event) {
         var k = event.which;
+        
         switch(k) {
+            
             // Playback control
             case 39: case 40: // down, right
                 doKeyEvent(player.playNextSong);
@@ -157,11 +159,6 @@ function setupKeyboardListeners() {
                 break;
             case 189: // -
                 doKeyEvent(player.decreaseVolume);
-                break;
-            case 191: // ?
-                doKeyEvent(function() {
-                    $('#helpLink').trigger('click');
-                });
                 break;
                 
             // Playlist editing
@@ -192,6 +189,14 @@ function setupKeyboardListeners() {
                 keyEvents = true;
                 
                 browser.pop();
+                break;
+            case 191: // ?
+                doKeyEvent(function() {
+                    $('#helpLink').trigger('click');
+                });
+                break;
+            case 76: // l
+                doKeyEvent(player.showCurrentSong)
                 break;
             
             // Share playlists
@@ -796,6 +801,7 @@ Player.prototype.playSong = function(i) {
     $('#song' + i).toggleClass('playing');
 
     playlistview.updateCurPlaying(title, artist, songIndex);
+    player.moveSongIntoView();
 };
 
 // Play next song in the playlist
@@ -814,6 +820,15 @@ Player.prototype.playPrevSong = function() {
     player.playSong(--songIndex);
 };
 
+Player.prototype.moveSongIntoView = function() {
+    var relativeScrollDistance = $('.playing').position().top - $('#playlistDiv').position().top;
+    if (relativeScrollDistance <= 0) {
+        scrollTo('.playing', '#playlistDiv', false, false);
+    } else if (relativeScrollDistance > $('#playlistDiv').height() - $('.playing').height()) {
+        scrollTo('.playing', '#playlistDiv', true, false);
+    }
+}
+
 // Play top video for given search query
 Player.prototype.playSongBySearch = function(q) {
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
@@ -826,7 +841,15 @@ Player.prototype.playSongBySearch = function(q) {
                 var videos = responseData.data.items;
                 player.playSongById(videos[0].id)
             } else {
-                player.playNextSong();
+                player.pause();
+                var failedSongIndex = songIndex;
+                // Go to next song in a few seconds
+                // (to give users using keyboard shortcuts a chance to scroll up past this song)
+                window.setTimeout(function() {
+                    if (songIndex == failedSongIndex) {
+                        player.playNextSong();
+                    }
+                }, 4000);
                 log('No songs found for: ' + q);
             }
         }
@@ -1069,6 +1092,11 @@ Player.prototype.renderRowColoring = function() {
         .removeClass('odd')
         .filter(':odd')
         .addClass('odd');
+};
+
+// Show currently playing song
+Player.prototype.showCurrentSong = function() {
+    scrollTo('.playing', '#playlistDiv');
 };
 
 
@@ -1540,6 +1568,24 @@ function showPop(url, _name, _height, _width) {
     newwindow = window.open(url, name, 'height='+height+',width='+width);
     if (window.focus) {
         newwindow.focus();
+    }
+}
+
+// Scroll element into view
+function scrollTo(selectedElem, _container, _scrollAtBottom, _noAnimation) {
+    var container = _container || 'html,body';
+    
+    var relativeScrollDistance = $(selectedElem).position().top - $(container).position().top;
+    var absScrollTop = $(container).scrollTop() + relativeScrollDistance;
+    
+    if (_scrollAtBottom) {
+        absScrollTop += ($(selectedElem).height() - $(container).height());
+    }
+    
+    if (_noAnimation) {
+        $(container).animate({scrollTop: absScrollTop}, 500);
+    } else {
+        $(container).scrollTop(absScrollTop);
     }
 }
 
