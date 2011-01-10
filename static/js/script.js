@@ -55,7 +55,8 @@ function onloadPlaylist() {
     player.loadPlaylist(initial_playlist);
     
     setupPlaylistDisplay();
-    setupKeyboardListeners();
+    setupPlayerHoverButtons();
+    setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
     setupNavigationLinks();
@@ -119,8 +120,15 @@ function setupAutogrowInputType() {
     });
 }
 
+function setupPlayerHoverButtons() {
+    $('#showHideVideo').click(function(event) {
+        event.preventDefault();
+        player.showHideVideo();
+    });
+}
+
 function setupPlaylistDisplay() {
-    var maxPlaylistHeight = $(window).height() - (50 + 295); /* header, player */
+    var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height()); /* header, player */
     var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     $('#playlistDiv').height(newHeight);
 }
@@ -128,92 +136,91 @@ function setupPlaylistDisplay() {
 // Set up keyboard shortcuts in a cross-browser manner
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
-function setupKeyboardListeners() {
+function setupKeyboardShortcuts() {
     
-    // Convenience function for doing key events
-    var doKeyEvent = function(func) {
-        if (keyEvents) {
-            event.preventDefault(); // prevent default event
-            func();
-        }
-    }
-    
-    // Detect key codes
     $(window).keydown(function(event) {
         var k = event.which;
+        var nothingPressed;
         
-        switch(k) {
-            
-            // Playback control
-            case 39: case 40: // down, right
-                doKeyEvent(player.playNextSong);
-                break;
-            case 37: case 38: // up, left
-                doKeyEvent(player.playPrevSong);
-                break;
-            case 32: // space
-                doKeyEvent(player.playPause);
-                break;
-            case 187: // +
-                doKeyEvent(player.increaseVolume);
-                break;
-            case 189: // -
-                doKeyEvent(player.decreaseVolume);
-                break;
-                
-            // Playlist editing
-            case 65: // a
-                doKeyEvent(SearchView.show);
-                break;
-            case 74: // j
-                doKeyEvent(function() {
-                    player.moveSongDown(songIndex)
-                });
-                break;
-            case 75: // k
-                doKeyEvent(function() {
+        if (keyEvents) {
+            switch(k) {
+                // Playback control
+                case 39: case 40: // down, right
+                    player.playNextSong();
+                    break;
+                case 37: case 38: // up, left
+                    player.playPrevSong();
+                    break;
+                case 32: // space
+                    player.playPause();
+                    break;
+                case 187: // +
+                case 61: // + on Fx
+                    player.increaseVolume();
+                    break;
+                case 189: // -
+                case 109: // - on Fx
+                    player.decreaseVolume();
+                    break;
+                case 86:
+                    player.showHideVideo();
+                    break;
+
+                // Playlist editing
+                case 65: // a
+                    SearchView.show();
+                    break;
+                case 74: // j
+                    player.moveSongDown(songIndex);
+                    break;
+                case 75: // k
                     player.moveSongUp(songIndex);
-                })
-                break;
-            
-            // Navigation
-            case 8: // backspace
-                doKeyEvent(browser.pop);
-                break;
-            case 27: // escape
-                // We're not using the doKeyEvent() wrapper since we always want to
-                // capture the escape button (even when focused in text boxes)
-                event.preventDefault();
-                
-                // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
-                keyEvents = true;
-                
-                browser.pop();
-                break;
-            case 191: // ?
-                doKeyEvent(function() {
+                    break;
+
+                // Navigation
+                case 8: // backspace
+                    browser.pop();
+                    break;
+                case 191: // ?
                     $('#helpLink').trigger('click');
-                });
-                break;
-            case 76: // l
-                doKeyEvent(player.showCurrentSong)
-                break;
-            
-            // Share playlists
-            case 70: // f
-                doKeyEvent(function() {
+                    break;
+                case 76: // l
+                    player.showCurrentSong();
+                    break;
+
+                // Share playlists
+                case 70: // f
                     $('#fbShare').trigger('click');
-                });
-                break;
-            case 84: // t
-                doKeyEvent(function() {
+                    break;
+                case 84: // t
                     $('#twShare').trigger('click'); 
-                });
-                break;
-            case 66: // b
-                doKeyEvent(shareOnBuzz);
-                break;
+                    break;
+                case 66: // b
+                    shareOnBuzz();
+                    break;
+                default:
+                    nothingPressed = true;
+                    break;
+            }
+        
+        } else { // These keyboard events will always get captured (even when textboxes are focused)
+            switch (k) {
+                case 27: // escape
+                    // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
+                    keyEvents = true;
+                    
+                    browser.pop();
+                    break;
+                default:
+                    nothingPressed = true;
+                    break;
+            }
         }
+        
+        if (!nothingPressed) {
+            event.preventDefault();
+        }
+
     });
 }
 
@@ -832,6 +839,8 @@ Player.prototype.moveSongIntoView = function() {
 // Play top video for given search query
 Player.prototype.playSongBySearch = function(q) {
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
+    
+    var srcIndex = songIndex;
     $.ajax({
         dataType: 'jsonp',
         type: 'GET',
@@ -842,11 +851,10 @@ Player.prototype.playSongBySearch = function(q) {
                 player.playSongById(videos[0].id)
             } else {
                 player.pause();
-                var failedSongIndex = songIndex;
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
-                    if (songIndex == failedSongIndex) {
+                    if (songIndex == srcIndex) {
                         player.playNextSong();
                     }
                 }, 4000);
@@ -897,6 +905,27 @@ Player.prototype._initPlayer = function(firstVideoId) {
     '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
     '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
     'player', '480', '295', '8', null, null, params, atts);
+};
+
+Player.prototype.showHideVideo = function() {
+    var $videoDiv = $('#videoDiv');
+    if ($videoDiv.hasClass('noVideo')) {
+        $('#videoDiv').removeClass('noVideo');
+    } else {
+        $('#videoDiv').addClass('noVideo');
+    }
+    if (Modernizr.csstransitions) {
+        var animateResize = function(numCalls) {
+            log('animate');
+            if (numCalls < 80) {
+                setupPlaylistDisplay();
+                window.setTimeout(function() {
+                    animateResize(++numCalls);
+                }, 10);
+            }
+        }
+        animateResize(0);
+    }
 };
 
 
@@ -1565,7 +1594,7 @@ function showPop(url, _name, _height, _width) {
     var name = _name || 'name';
     var height = _height || 450;
     var width = _width || 550;
-    newwindow = window.open(url, name, 'height='+height+',width='+width);
+    var newwindow = window.open(url, name, 'height='+height+',width='+width);
     if (window.focus) {
         newwindow.focus();
     }
@@ -1583,9 +1612,9 @@ function scrollTo(selectedElem, _container, _scrollAtBottom, _noAnimation) {
     }
     
     if (_noAnimation) {
-        $(container).animate({scrollTop: absScrollTop}, 500);
-    } else {
         $(container).scrollTop(absScrollTop);
+    } else {
+        $(container).animate({scrollTop: absScrollTop}, 500);
     }
 }
 

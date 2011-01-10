@@ -235,27 +235,57 @@ input.file {
     width: 424px;
 }
 
-#videoDiv { height: 295px; position: relative; width: 480px; }
+#videoDiv {
+    height: 295px;
+    overflow: hidden;
+    position: relative;
+    width: 480px;
+    
+    -webkit-transition: all 1.0s ease-in-out;
+	-moz-transition: all 1.0s ease-in-out;
+	-o-transition: all 1.0s ease-in-out;
+	transition: all 1.0s ease-in-out;
+}
+
+#ytPlayer {
+    position: relative;
+    top: 0;
+    
+    -webkit-transition: all 1.0s ease-in-out;
+	-moz-transition: all 1.0s ease-in-out;
+	-o-transition: all 1.0s ease-in-out;
+	transition: all 1.0s ease-in-out;
+}
+
+#videoDiv.noVideo { height: 30px; }
+
+#videoDiv.noVideo #ytPlayer { top: -265px; }
 
 /* Video Tools */
 
 #videoTools {
     background-color: transparent;
     color: #fff;
-    height: 30px;
+    opacity: 0;
     position: absolute;
     top: 10px;
     width: 470px;
+    z-index: 2;
+    -webkit-transition: all 0.3s ease-in-out;
+	-moz-transition: all 0.3s ease-in-out;
+	-o-transition: all 0.3s ease-in-out;
+	transition: all 0.3s ease-in-out;
 }
 
-#videoTools a {
-    display: none;
-    margin: 0 0 0 10px;
-}
+#videoTools a { display: inline-block; margin: 0 0 0 8px; }
 
-#videoDiv:hover #videoTools a {
-    display: inline;
+#videoTools a#showHideVideo { float: right; }
+
+#videoDiv:hover #videoTools {
+    opacity: 1;
 }
+#videoDiv.noVideo:hover #videoTools { display: none; }
+
 
 #playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
 
@@ -456,7 +486,7 @@ a:hover .zoomIcon {
 }
 
 .helpSection {
-    float: left;
+    display: inline-block;
     margin-right: 25px;
 }
 
@@ -546,10 +576,10 @@ header .awesome { margin-top: 2px; }
 }
 
 #FS_holder {
-	-webkit-transition: all 0.5s ease-in-out;
-	-moz-transition: all 0.5s ease-in-out;
-	-o-transition: all 0.5s ease-in-out;
-	transition: all 0.5s ease-in-out;
+	-webkit-transition: all 1.0s ease-in-out;
+	-moz-transition: all 1.0s ease-in-out;
+	-o-transition: all 1.0s ease-in-out;
+	transition: all 1.0s ease-in-out;
 	width: 10000px; /* As long as it's big enough, JS replaces this value. */
 }
 #FS_holder .slide {
