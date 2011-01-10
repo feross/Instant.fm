@@ -138,7 +138,7 @@ function setupPlaylistDisplay() {
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
-        if (event.altKey || event.ctrlKey) {
+        if (event.altKey || event.ctrlKey || event.metaKey) {
             return;
         }
         
@@ -835,9 +835,9 @@ Player.prototype.playPrevSong = function() {
 Player.prototype.moveSongIntoView = function() {
     var relativeScrollDistance = $('.playing').position().top - $('#playlistDiv').position().top;
     if (relativeScrollDistance <= 0) {
-        scrollTo('.playing', '#playlistDiv', false, false);
+        scrollTo('.playing', '#playlistDiv', false, true);
     } else if (relativeScrollDistance > $('#playlistDiv').height() - $('.playing').height()) {
-        scrollTo('.playing', '#playlistDiv', true, false);
+        scrollTo('.playing', '#playlistDiv', true, true);
     }
 }
 
