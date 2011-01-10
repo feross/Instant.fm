@@ -955,7 +955,10 @@ Player.prototype.renderPlaylist = function(playlist, start) {
     if (!start) { // only run this the first time
         start = 0;
         
-        $('.editLink').remove();
+        $('#playlist li').remove(); // clear the playlist
+        $('.editLink').remove(); // remove all edit links
+        $('#addSong').remove(); // remove the add button (if it exists)
+        
         $('#curPlaylistTitle')
             .text(playlist.title);
         $('#curPlaylistDesc')
@@ -970,7 +973,6 @@ Player.prototype.renderPlaylist = function(playlist, start) {
                 .prependTo('#curPlaylistInfo header');
         }
         
-        $('#playlist li').remove(); // clear the playlist
     }
 
     if (start >= playlist.songs.length) { // we're done
@@ -1176,20 +1178,17 @@ PlaylistView.prototype.updateCurPlaying = function(t, a, srcIndex) {
 	});
 };
 
-// Private method to hide the currently playing info 
+// Private method to hide the currently playing info with animation
 PlaylistView.prototype._hideCurPlayling = function() {
-    // Hide old values with animation
-    var hide = function() {
-        if ($('#curAlbum').css('display') != '0') {
-            $('#curAlbum').fadeOut('fast');
-        }
-        if ($('#curSongDesc').css('display') != '0') {
-            $('#curSongDesc').fadeOut('fast');
-        }
-        if ($('#curArtistDesc').css('display') != '0') {
-            $('#curArtistDesc').fadeOut('fast');
-        }
-    };
+    if ($('#curAlbum').css('display') != '0') {
+        $('#curAlbum').fadeOut('fast');
+    }
+    if ($('#curSongDesc').css('display') != '0') {
+        $('#curSongDesc').fadeOut('fast');
+    }
+    if ($('#curArtistDesc').css('display') != '0') {
+        $('#curArtistDesc').fadeOut('fast');
+    }
 }
 
 // Private method to handle song search results from Last.fm
