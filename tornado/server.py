@@ -31,6 +31,7 @@ class Application(tornado.web.Application):
             (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
             (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
             (r"/terms$", TermsHandler),
+            (r"/partial/([a-zA-Z0-9]+)", MiniViewHandler),
             (r"/suggest$", ArtistAutocompleteHandler),
             (r".*", ErrorHandler),
         ]
@@ -133,6 +134,12 @@ class BaseHandler(tornado.web.RequestHandler):
             new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('user_id', str(new_id))
             
+class MiniViewHandler(BaseHandler):
+    def get(self, template):
+        # TODO: Right now, we don't have any mini-views we can actually render. Start adding some.
+        if (self.get_argument('artist', strip=True)):
+            self.render('artist.html', artist=self.get_argument('artist'));
+            
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
         self.set_header("Access-Control-Allow-Origin", "http://localhost") # TODO: Remove before production
@@ -166,7 +173,7 @@ class PlaylistHandler(BaseHandler):
             raise tornado.web.HTTPError(404)
         
         playlist = self.makePlaylistJSON(playlist_entry)
-        self.render("playlist.html", playlist=playlist)
+        self.render("now_playing_wrapper.html", playlist=playlist)
     
     def get(self, playlist_alpha_id):
         self.set_user_cookie()

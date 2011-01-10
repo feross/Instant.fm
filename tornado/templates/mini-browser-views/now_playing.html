@@ -1,0 +1,72 @@
+{% block mini-browser %}
+  <div id="curPlaylist" class="slide">
+    <section id="curPlaylistInfo">
+      <header class="clearfix">
+        <h2 id="curPlaylistTitle">&nbsp;</h2>
+      </header>
+      <article>
+        <span id="curPlaylistDesc">&nbsp;</span>
+      </article>
+
+      <section id="playlistActions">
+        <a href="#addComment" id="addComment" class="awesome">
+          Add a comment +
+        </a>
+        <a href="#fbShare" id="fbShare" class="darkblue awesome">
+          Share on Facebook
+        </a>
+        <a href="#twShare" id="twShare" class="blue awesome">
+          Share on Twitter
+        </a>
+      </section> <!-- end of #playlistActions -->
+        
+      <!-- <a href="#TODO" id="curPlaylistAuthor">
+        <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+        <div>Feross Aboukhadijeh</div>
+      </a> -->
+    </section>
+    
+    <!-- Facebook comments are loaded with JS here -->
+
+    <section id="curPlaying">
+      <header>
+        <h3>Currently Playing</h3>
+      </header>
+      <div class="clearfix" id="curAlbumBlock">
+        <div id="curAlbumImg">
+          <span class="zoomIcon">&nbsp;</span>
+        </div>
+        <div id="curAlbumInfo">
+          <div id="curSong">
+            <h4>&nbsp;</h4>
+          </div>
+          <div id="curArtist">
+            <span class="curLabel">by</span> 
+            <h4>&nbsp;</h4>
+          </div>
+          <div id="curAlbum">
+            <span class="curLabel">on</span> 
+            <h4>&nbsp;</h4>
+          </div>
+        </div>
+        <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
+      </div> <!-- end of #curAlbumBlock -->
+
+      <div id="curDescs">
+        <section id="curSongDesc">
+          <h4>&nbsp;</h4> 
+          <article>&nbsp;</article>
+        </section>
+        <section id="curArtistDesc">
+          <h4>&nbsp;</h4>
+          <span id="curArtistImg">
+            <span class="zoomIcon">&nbsp;</span>
+          </span>
+          <article>&nbsp;</article>
+        </section>
+      </div> <!-- end of #curDescs -->
+
+    </section> <!-- end of #curPlaying -->
+    
+  </div> <!-- end of #curPlaylist -->
+{% end %}
