@@ -1,7 +1,19 @@
-var model;
-var view;
-var controller;
+var player;
 var browser;
+
+// TODO: remove
+var model; // ?
+var view; // ?
+
+var playlistview;
+var searchview;
+
+// jQuery.fx.off = true;
+
+var songIndex; // Current position in the playlist
+var queuedVideo; // Used when player is in loading state so we don't interrupt it.
+var keyEvents = true; // Used to disable keyboard shortuts
+var commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 
 var appSettings = {
     fancyZoom: {directory: '/images/fancyzoom'},
@@ -16,23 +28,12 @@ var appSettings = {
         }
     },
 };
-// jQuery.fx.off = true;
 
 
 /* --------------------------- ON LOAD --------------------------- */
 
-function addFocusHandlers(elem) {
-    elem.focus(function() {
-        controller.keyEvents = false;
-    })
-    .blur(function() {
-        controller.keyEvents = true;
-    }); 
-}
-
 function onloadHome() {
-    controller = new Controller();
-    
+
     $('.file').change(function(event) {
         var val = $(this).val();
         if (val.length) {
@@ -40,97 +41,47 @@ function onloadHome() {
         }
     });
     
-    setupDragDropUploader('home', controller.redirectToPlaylist);
+    setupDragDropUploader('home', redirectToPlaylist);
 }
 
 
 function onloadPlaylist() {
-    view = new View();
     model = new Model();
-    controller = new Controller();
+    player = new Player();
     browser = new MiniBrowser();
+    playlistview = new PlaylistView();
     
     setupAutogrowInputType();
-    controller.loadPlaylist(initial_playlist);
+    player.loadPlaylist(initial_playlist);
     
     setupPlaylistDisplay();
     setupKeyboardListeners();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
+    setupNavigationLinks();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
     
-    window.onpopstate = controller.onPopState;
+    window.onpopstate = onPopState;
     $(window).resize(setupPlaylistDisplay);
     
-    setupDragDropUploader('p', controller.loadPlaylist);
+    setupDragDropUploader('p', player.loadPlaylist);
+}
+
+
+/* --------------------------- ADD HANDLER FUNCTIONS -------------------------- */
+
+function addFocusHandlers(elem) {
+    elem.focus(function() {
+        keyEvents = false;
+    })
+    .blur(function() {
+        keyEvents = true;
+    }); 
 }
 
 
 /* --------------------------- SETUP  --------------------------- */
-
-prevSearchString = '';
-delaySearch = false;
-function setupSearch(searchElem) {
-    var searchInput = $('#searchBox input.search');
-    
-    var doSearch = function(searchString) {        
-        if (!delaySearch && (prevSearchString != searchString)) {
-            prevSearchString = searchString;
-            controller.search(searchString);
-            
-            delaySearch = true;            
-            window.setTimeout(function() {
-                delaySearch = false;
-                
-                if (searchInput.val() != searchString) {
-                    doSearch(searchInput.val());
-                }
-            }, 500);
-        }
-    };
-    
-    // Hit enter
-    $('#searchBox', searchElem).submit(function(event) {
-        event.preventDefault();
-        doSearch(searchInput.val());
-    });
-    
-    // Enters key
-    searchInput.keyup(function() {
-        doSearch(searchInput.val());
-    });
-    addFocusHandlers(searchInput);
-    
-    // Clicks search button
-    $('#searchBox input.submit', searchElem).click(function() {
-        event.preventDefault();
-        doSearch(searchInput.val());
-    });
-}
-
-/* NOTE: Unused right now. */
-function setupArtistAutocomplete() {
-    var artistSearch = $("#searchBox");
-    artistSearch.autocomplete({
-      source: '/suggest', 
-      minLength: 2,        
-      select: function( event, ui ) {
-        var value = ui.item ? ui.item.value : this.value;
-        log( ui.item ? 
-          "Selected: " + ui.item.value + " aka " + ui.item.id :
-          "Nothing selected, input was " + this.value );
-        loadArtistTracks(value);
-      }
-    });
-    addFocusHandlers(artistSearch);
-}
-
-function setupPlaylistDisplay() {
-    var maxPlaylistHeight = $(window).height() - (50 + 295); /* header, player */
-    var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
-    $('#playlistDiv').height(newHeight);
-}
 
 function setupAutogrowInputType() {
     $.editable.addInputType('autogrow', {
@@ -168,6 +119,12 @@ function setupAutogrowInputType() {
     });
 }
 
+function setupPlaylistDisplay() {
+    var maxPlaylistHeight = $(window).height() - (50 + 295); /* header, player */
+    var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
+    $('#playlistDiv').height(newHeight);
+}
+
 // Set up keyboard shortcuts in a cross-browser manner
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
@@ -175,7 +132,7 @@ function setupKeyboardListeners() {
     
     // Convenience function for doing key events
     var doKeyEvent = function(func) {
-        if (controller.keyEvents) {
+        if (keyEvents) {
             event.preventDefault(); // prevent default event
             func();
         }
@@ -187,19 +144,19 @@ function setupKeyboardListeners() {
         switch(k) {
             // Playback control
             case 39: case 40: // down, right
-                doKeyEvent(controller.playNextSong);
+                doKeyEvent(player.playNextSong);
                 break;
             case 37: case 38: // up, left
-                doKeyEvent(controller.playPrevSong);
+                doKeyEvent(player.playPrevSong);
                 break;
             case 32: // space
-                doKeyEvent(view.playPause);
+                doKeyEvent(player.playPause);
                 break;
             case 187: // +
-                doKeyEvent(view.increaseVolume);
+                doKeyEvent(player.increaseVolume);
                 break;
             case 189: // -
-                doKeyEvent(view.decreaseVolume);
+                doKeyEvent(player.decreaseVolume);
                 break;
             case 191: // ?
                 doKeyEvent(function() {
@@ -209,16 +166,16 @@ function setupKeyboardListeners() {
                 
             // Playlist editing
             case 65: // a
-                doKeyEvent(view.showSearch);
+                doKeyEvent(SearchView.show);
                 break;
             case 74: // j
                 doKeyEvent(function() {
-                    controller.moveSongDown(controller.songIndex)
+                    player.moveSongDown(songIndex)
                 });
                 break;
             case 75: // k
                 doKeyEvent(function() {
-                    controller.moveSongUp(controller.songIndex);
+                    player.moveSongUp(songIndex);
                 })
                 break;
             
@@ -232,7 +189,7 @@ function setupKeyboardListeners() {
                 event.preventDefault();
                 
                 // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
-                controller.keyEvents = true;
+                keyEvents = true;
                 
                 browser.pop();
                 break;
@@ -248,7 +205,7 @@ function setupKeyboardListeners() {
                     $('#twShare').trigger('click'); 
                 });
                 break;
-            case 66:
+            case 66: // b
                 doKeyEvent(shareOnBuzz);
                 break;
         }
@@ -265,7 +222,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        view.tryLoadComments(playlist.playlist_id, playlist.title);
+        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {
@@ -282,58 +239,24 @@ function setupPlaylistActionButtons() {
     
     $('#addComment').click(function(event) {
         event.preventDefault();
-        if (!$('#commentsDiv').data('loaded')) {
-            return;
-        }
-        
-        // This is a workaround for a JQuery bug where the Facebook comment box
-        // animation is jumpy. (http://goo.gl/so18k)
-        if ($('#commentsDiv').is(':visible')) {
-            $('#addComment').html('Add a comment +');
-            $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
-                $('#commentsDiv').hide();
-            }});
-        } else {
-            $('#addComment').html('Close comments');
-            $('#commentsDiv')
-                .show()
-                .animate({height: controller.commentsHeight}, {duration: 'slow'});
-        }
+        showHideComments();
     });
     
     $('#fbShare').click(function(event) {
         event.preventDefault();
-        
-        FB.ui(
-          {
-            method: 'feed',
-            name: model.title,
-            link: 'http://instant.fm/p/'+model.playlistId,
-            picture: view.bestAlbumImg || 'http://instant.fm/images/unknown.png',
-            caption: 'Instant.fm Playlist',
-            description: model.description + '\n',
-            properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
-            actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
-          },
-          function(response) {
-            if (response && response.post_id) {
-                // TODO: show status message in UI
-              log('Post was published.');
-            } else {
-              log('Post was not published.');
-            }
-          }
-        );
+        shareOnFacebook();
     });
     
     $('#twShare').click(function(event) {
         event.preventDefault();
-        
-        var tweetText = encodeURIComponent('♫ I\'m listening to "'+model.title+'"');
-        var url = 'http://twitter.com/share'+
-                  '?url=http://instant.fm/p/'+model.playlistId+
-                  '&text='+tweetText;
-        view.showPop(url, 'twitterShare');
+        shareOnTwitter();
+    });
+}
+
+function setupNavigationLinks() {
+    $('#signUp').click(function(event) {
+        event.preventDefault();
+        browser.pushStatic('signup.html', 'Sign Up');
     });
 }
 
@@ -342,18 +265,84 @@ function setupDragDropUploader(dropId, callback) {
 }
 
 
-function shareOnBuzz() {
-    var url = 'http://www.google.com/buzz/post?url='+window.location;
-    view.showPop(url, 'buzzShare', 420, 700);
+/* --------------------------- SOCIAL FEATURES ----------------------------- */
+
+function showHideComments() {
+    if (!$('#commentsDiv').data('loaded')) {
+        return;
+    }
+    
+    // This is a workaround for a JQuery bug where the Facebook comment box
+    // animation is jumpy. (http://goo.gl/so18k)
+    if ($('#commentsDiv').is(':visible')) {
+        $('#addComment').html('Add a comment +');
+        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
+            $('#commentsDiv').hide();
+        }});
+    } else {
+        $('#addComment').html('Close comments');
+        $('#commentsDiv')
+            .show()
+            .animate({height: commentsHeight}, {duration: 'slow'});
+    }
 }
 
+function shareOnFacebook() {
+    FB.ui(
+      {
+        method: 'feed',
+        name: model.title,
+        link: 'http://instant.fm/p/'+model.playlistId,
+        picture: playlistview.bestAlbumImg || 'http://instant.fm/images/unknown.png',
+        caption: 'Instant.fm Playlist',
+        description: model.description + '\n',
+        properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
+        actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
+      },
+      function(response) {
+        if (response && response.post_id) {
+            // TODO: show status message in UI
+          log('Post was published.');
+        } else {
+          log('Post was not published.');
+        }
+      }
+    );
+}
+
+function shareOnTwitter() {
+    var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
+    var url = 'http://twitter.com/share'+
+              '?url=http://instant.fm/p/'+model.playlistId+
+              '&text='+tweetText;
+    showPop(url, 'instantfmTwitterShare');
+}
+
+function shareOnBuzz() {
+    var url = 'http://www.google.com/buzz/post?url=http://instant.fm/p/'+model.playlistId;
+    showPop(url, 'instantfmBuzzShare', 420, 700);
+}
+
+
+/* -------------------------- HOME PAGE FUNCTIONS --------------------- */
+
+// Redirect to playlist with the given id
+function redirectToPlaylist(response) {
+    var playlist = $.parseJSON(response);
+    if(playlist.status != 'ok') {
+        log('Error loading playlist: ' + playlist.status);
+        return;
+    }
+    var id = playlist.playlist_id;
+    window.location = '/p/'+id;
+}
 
 
 /* --------------------------- MINI BROWSER --------------------------- */
 
 // Animated image slider code from: http://goo.gl/t3vPZ
 var MiniBrowser = function() {
-  
+    
     // Setup vendor prefix
     this.vP = '';
     if ($.browser.webkit) {
@@ -369,61 +358,84 @@ var MiniBrowser = function() {
     this.refreshContents();
 };
 
+// Re-calculate the browser's slide width and number of slides
 MiniBrowser.prototype.refreshContents = function() {
     // width of slide + margin-right of slide
     this.sliderWidth = $('#FS_slider').width() + 50;
     this.numSlides = $('#FS_holder .slide').length;
-    
-    // $("#FS_slider #FS_holder").width(this.sliderWidth * this.numSlides);
-    // $("#FS_slider #FS_holder").height($("#FS_slider .slide").height());
 };
 
-MiniBrowser.prototype.push = function(elem) {
+// Push a new element onto the browser. If a title is specified, then we'll show
+// a title header with a back button.
+MiniBrowser.prototype.push = function(elem, _title) {
+    if (_title) {
+        var backButton = browser._makeBackButton();
+
+        var header = $('<header class="clearfix buttonHeader"></header>')
+            .append(backButton)
+            .append('<h2>'+_title+'</h2>');
+            
+        $(elem).prepend(header);
+    }
+    
     $(elem)
         .addClass('slide')
         .appendTo('#FS_holder');
 
+    window.setTimeout(function() {
+        $('.buttonHeader h2', elem)
+            .css('left', -1 * $('.backButton', elem).width());
+    }, 0);
+        
     this.refreshContents();
-    this.slideTo(this.numSlides);
+    this._slideTo(this.numSlides);
 };
 
+// Push a static HTML file onto the browser. Files get loaded from /html/.
+MiniBrowser.prototype.pushStatic = function(path, _title) {
+    $.get('/html/'+path, function(data, textStatus, xhr) {
+        log(data);
+        
+        var slide = $('<div>'+data+'</div>');
+        browser.push(slide, _title);
+    });
+};
+
+// Pop the top-most page off of the browser.
 MiniBrowser.prototype.pop = function() {
     if (browser.numSlides <= 1) {
         return;
     }
-    browser.slideTo(browser.numSlides - 1);
+    browser._slideTo(browser.numSlides - 1);
     window.setTimeout(function() {
         $('#FS_holder .slide').last().remove();
         browser.refreshContents();
     }, 800);
 };
 
-MiniBrowser.prototype.slideTo = function(slide) {
-    
+// Private function used to animate the transition between pages in the browser.
+MiniBrowser.prototype._slideTo = function(slide) {
 	var pixels = this.sliderWidth * (slide - 1);
 
 	if (Modernizr.csstransforms3d && Modernizr.csstransforms && Modernizr.csstransitions) {
-
 		$("#FS_holder").css(this.vP+"transform","translate3d(-"+pixels+"px, 0px, 0px)");
-		   $("#FS_holder").css("transform","translate3d(-"+pixels+"px, 0px, 0px)");			
+		$("#FS_holder").css("transform","translate3d(-"+pixels+"px, 0px, 0px)");			
 
 	} else if (Modernizr.csstransforms && Modernizr.csstransitions) {
-
 		$("#FS_holder").css(this.vP+"transform","translate(-"+pixels+"px, 0px)");
-		   $("#FS_holder").css("transform","translate(-"+pixels+"px, 0px)");		
+		$("#FS_holder").css("transform","translate(-"+pixels+"px, 0px)");		
 
 	} else if (Modernizr.csstransitions) {
-
 		$("#FS_holder").css("margin-left","-"+pixels+"px");
 
 	} else {
-
-		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"},600); // If you animate left, IE breaks.
-
+	    // If you animate left, IE breaks.
+		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"},600);
 	}		
 };
 
-MiniBrowser.prototype.makeBackButton = function(text) {
+// Private function used to make a back button for browser navigation.
+MiniBrowser.prototype._makeBackButton = function(text) {
     text = text || 'Back';
     
     var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
@@ -436,123 +448,89 @@ MiniBrowser.prototype.makeBackButton = function(text) {
 };
 
 
-/* --------------------------- CONTROLLER --------------------------- */
+/* --------------------------- SEARCHER --------------------------- */
 
-function Controller() {
-    this.songIndex; // Current position in the playlist
-    this.queuedVideo;
-        
-    this.keyEvents = true; // Used to disable keyboard shortuts
-    this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
-};
+var prevSearchString = ''; // Used to prevent repeating identical searches
+var delaySearch = false; // Used to force a delay between searches
+
+function SearchView(searchElem) {
     
-Controller.prototype.search = function(string) {
-    if (!string) {
+    // TODO: Make this load from static
+    this.searchElem = $('<section id="search"></section>')
+        .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
+        .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
+    browser.push(this.searchElem, 'Add Songs');
+    
+    this.addSearchHandlers();
+    
+    window.setTimeout(function() {
+        $('#searchBox input.search').focus();
+    }, 550);
+};
+
+// Factory method to make a new searchview
+SearchView.show = function(event) {
+    event && event.preventDefault();
+    searchview = new SearchView();
+};
+
+// Perform a search for given search string
+SearchView.prototype.search = function(searchString) {
+    if (!searchString) {
         return;
     }
 
-    prevSearchString = string;
+    prevSearchString = searchString;
 
     model.lastfm.artist.search({
-        artist: string,
+        artist: searchString,
         limit: 3,
-    }, 
+    },
     {
-        success: controller.handleArtistSearchResults,
+        success: searchview.handleArtistSearchResults,
         error: function(code, message) {
             log(code + ' ' + message);
-            view.renderArtists([]);
-    	}
+            searchview.renderArtists([]);
+        }
     });
 
     model.lastfm.album.search(
     {
-      album: string,
-      limit: 3,
+        album: searchString,
+        limit: 3,
     },
     {
-    	success: controller.handleAlbumSearchResults,
-        error: function(code, message) 
+        success: searchview.handleAlbumSearchResults,
+        error: function(code, message)
         {
             log(code + ' ' + message);
-            view.renderAlbums([]);
+            searchview.renderAlbums([]);
         }
     });
-  
-  model.lastfm.track.search(
+
+    model.lastfm.track.search(
     {
-      track: string,
-      limit: 15,
+        track: searchString,
+        limit: 10,
     },
     {
- 	    success: controller.handleTrackSearchResults,
- 	    error: function(code, message) 
-	    {
-        log(code + ' ' + message);
-        view.renderTracks([]);
-	    }	    
+        success: searchview.handleSongSearchResults,
+        error: function(code, message)
+        {
+            log(code + ' ' + message);
+            searchview.renderSongs([]);
+        }
     }
-  )
-};
-
-Controller.prototype.handleTrackSearchResults = function(data) {
-  var tracks = [];
-  var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
-  
-  if (!trackResults) {
-    view.renderTracks([]);
-    return;
-  }
-  
-  for (var i = 0; i < trackResults.length; i++) {
-    var trackResult = trackResults[i];
-    var track = {};
-    
-    track.name = trackResult.name;
-    track.artist = trackResult.artist;
-    
-    if (trackResult.image) {
-        track.image =  trackResult.image[0]['#text'];
-    } else {
-        track.image = '';
-    }
-    
-    tracks.push(track);
-  };
-  
-  view.renderTracks(tracks);
+    )
 };
 
 
-Controller.prototype.handleAlbumSearchResults = function(data) {
-  var albums = [];
-  var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
-  
-  if (!albumResults) {
-    view.renderAlbums([]);
-    return;
-  }
-  
-  for (var i = 0; i < albumResults.length; i++) {
-    var albumResult = albumResults[i];
-    var album = {};
-    
-    album.name = albumResult.name;
-    album.artist = albumResult.artist;
-    album.image = albumResult.image[2]['#text'];
-    
-    albums.push(album);
-  };
-  
-  view.renderAlbums(albums);
-};
-
-Controller.prototype.handleArtistSearchResults = function(data) {
+SearchView.prototype.handleArtistSearchResults = function(data) {
     var artists = [];
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
 
     if (!artistResults) {
-        view.renderArtists([]);
+        searchview.renderArtists([]);
         return;
     }
 
@@ -568,373 +546,13 @@ Controller.prototype.handleArtistSearchResults = function(data) {
         artists.push(artist);
     };
 
-    view.renderArtists(artists);
+    searchview.renderArtists(artists);
 };
-
-// Load a playlist based on the xhr response or the initial embedded playlist
-// @response - response body
-Controller.prototype.loadPlaylist = function(response) {
-    if ($.isPlainObject(response)) { // playlist is embedded in html
-        var playlist = response;
-        if(Modernizr.history) {
-            window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
-        }
-
-    } else { // playlist is from xhr response      
-        var playlist = $.parseJSON(response);
-        if(playlist.status != 'ok') {
-            log('Error loading playlist: ' + playlist.status);
-            return;
-        }
-        if(Modernizr.history) {
-            window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
-        }
-        view.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#infoDisplay').effect('pulsate');
-    }
-
-    model.updatePlaylist(playlist);
-    view.renderPlaylist(playlist);
-
-    controller.playSong(0);
-    log('Loaded playlist: ' + playlist.playlist_id);
-};
-
-// Redirect to playlist with the given id
-Controller.prototype.redirectToPlaylist = function(response) {
-    var playlist = $.parseJSON(response);
-    if(playlist.status != 'ok') {
-        log('Error loading playlist: ' + playlist.status);
-        return;
-    }
-    var id = playlist.playlist_id;
-    window.location = '/p/'+id;
-};
-
-// Load a playlist with the given id
-Controller.prototype.loadPlaylistById = function(id) {
-    var the_url = '/p/'+id+'/json';
-    $.ajax({
-        dataType: 'json',
-        type: 'GET',
-        url: the_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            controller.loadPlaylist(responseData);
-        }
-    });
-};
-
-// Play a song at the given playlist index
-Controller.prototype.playSong = function(i) {
-    this.songIndex = i;
-    var song = model.songs[i];
-    var title = cleanSongTitle(song.t);
-    var artist = song.a;
-
-    var q = title + ' ' + artist;
-    this.playSongBySearch(q);
-
-    $('.playing').toggleClass('playing');
-    $('#song' + i).toggleClass('playing');
-
-    this.updateCurPlaying(title, artist, this.songIndex);
-};
-
-// Play next song in the playlist
-Controller.prototype.playNextSong = function() {
-    if (controller.songIndex == model.songs.length - 1) {
-        return;
-    }
-    controller.playSong(++controller.songIndex);
-};
-
-// Play prev song in the playlist
-Controller.prototype.playPrevSong = function() {
-    if (controller.songIndex == 0) {
-        return;
-    }
-    controller.playSong(--controller.songIndex);
-};
-
-// Manually move the current song up
-Controller.prototype.moveSongUp = function(oldId) {
-    if (oldId <= 0) {
-        return;
-    }
-    var songItem = $('#song'+oldId);
-    songItem.prev().before(songItem);
-    
-    view.onReorder(null, {item: songItem});
-}
-
-// Manually move the current dong down
-Controller.prototype.moveSongDown = function(oldId) {
-    if (oldId >= model.songs.length - 1) {
-        return;
-    }
-    var songItem = $('#song'+oldId);
-    songItem.next().after(songItem);
-    
-    view.onReorder(null, {item: songItem});
-}
-
-// Play top video for given search query
-Controller.prototype.playSongBySearch = function(q) {
-    var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
-    $.ajax({
-        dataType: 'jsonp',
-        type: 'GET',
-        url: the_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            if (responseData.data.items) {
-                var videos = responseData.data.items;
-                controller.playSongById(videos[0].id)
-            } else {
-                controller.playNextSong();
-                log('No songs found for: ' + q);
-            }
-        }
-    });
-};
-
-// Attempts to play the video with the given ID. If the player is in a loading state,
-// we queue up the video. We don't want to interrupt the player since that causes the
-// "An error occurred, please try again later" message.
-Controller.prototype.playSongById = function(id) {
-    if (view.player && view.player.getPlayerState() == 3) { // Don't interrupt player while it's loading
-        this.queuedVideo = id;
-    
-    } else { // Play it immediately
-        view.playVideoById(id); 
-    }
-};
-
-// Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
-// If there is saved state, load the correct playlist.
-Controller.prototype.onPopState = function(event) {
-    var state = event.state;
-    if (state && state.playlistId != model.playlistId) {
-        controller.loadPlaylistById(state.playlistId);
-    }
-};
-
-// Update the currently playing song with Last.fm data
-// @t - song title
-// @a - song artist
-// @songIndex - Song index that generated this Last.fm request. We'll check that the song
-//              hasn't changed before we update the DOM.
-// TODO: Find a way to decompose this monstrous function
-Controller.prototype.updateCurPlaying = function(t, a, songIndex) {
-    // Hide old values with animation
-    var hide = function() {
-        if ($('#curAlbum').css('display') != '0') {
-            $('#curAlbum').fadeOut('fast');
-        }
-        if ($('#curSongDesc').css('display') != '0') {
-            $('#curSongDesc').fadeOut('fast');
-        }
-        if ($('#curArtistDesc').css('display') != '0') {
-            $('#curArtistDesc').fadeOut('fast');
-        }
-    };
-
-    // 1. Search for track.
-	model.lastfm.track.search({
-	    artist: a,
-	    limit: 1,
-	    track: t
-	}, {
-
-	    success: function(data){
-	        if (controller.songIndex != songIndex) {
-	            return; // The request was too slow. We don't need it anymore.
-	        }
-            if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
-                this.error('track.search', 'Empty set.');
-                return;
-            }
-        
-            hide(); 
-        
-            var track = data.results.trackmatches.track;
-            var trackName = track.name || t;
-            var artistName = track.artist || a;
-            var albumImg = track.image && track.image[track.image.length - 1]['#text'];
-        
-            // Update song title, artist name
-            $('#curSong h4').text(trackName);
-            $('#curArtist h4').text(artistName);
-        
-            // Update album art
-            // We'll set alt text once we know album name
-            view.updateAlbumImg(albumImg, ''); 
-        
-            // 2. Get detailed track info
-            trackName && artistName && model.lastfm.track.getInfo({
-        	    artist: artistName,
-        	    autocorrect: 1,
-        	    track: trackName
-        	}, {
-    	    
-        	    success: function(data){
-        	        if (controller.songIndex != songIndex) {
-        	            return; // The request was too slow. We don't need it anymore.
-        	        }
-                    if (!data.track) {
-                        this.error('track.getInfo', 'Empty set.');
-                        return;
-                    }
-                                    
-                    var track = data.track;
-                    var artistName = track.artist && track.artist.name;
-                    var albumName = track.album && track.album.title;
-                    var trackSummary = track.wiki && track.wiki.summary;
-                    var trackLongDesc = track.wiki && track.wiki.content;
-                                    
-                    // Update album name
-                    albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
-                
-                    // Update album image alt text
-                    var albumAlt = albumName;
-                    albumAlt += artistName ? (' by ' + artistName) : '';
-                    albumName && $('#curAlbumImg').attr('alt', albumAlt);
-                
-                    // Update song summary
-                    var shortContent;
-                    if (trackSummary) {       
-                        shortContent = cleanHTML(trackSummary);                 
-                        $('#curSongDesc article').html(shortContent);
-                        $('#curSongDesc h4').text('About '+track.name);
-                        $('#curSongDesc').fadeIn('fast');
-                    }
-                
-                    // Add link to longer description
-                    if (trackSummary && trackLongDesc) {
-                        var longContent = cleanHTML(trackLongDesc);
-                        
-                        $('#curSongDesc article')
-                            .data('longContent', longContent)
-                            .data('shortContent', shortContent);
-                        
-                        var link = makeSeeMoreLink(view.showMoreText);
-                        $('#curSongDesc article').append(' ').append(link);
-                    }
-        	    },
-
-        	    error: function(code, message) {
-        	        log(code + ' ' + message);
-        		}
-        	});
-    	
-        	// 3. Get detailed artist info (proceeds simultaneously with 2)
-        	artistName && model.lastfm.artist.getInfo({
-        	    artist: artistName,
-        	    autocorrect: 1
-        	}, {
-    	    
-        	    success: function(data){
-        	        if (controller.songIndex != songIndex) {
-        	            return; // The request was too slow. We don't need it anymore.
-        	        }
-                    if (!data.artist) {
-                        this.error('track.getInfo', 'Empty set.');
-                        return;
-                    }
-                                    
-                    var artist = data.artist;
-                    var artistSummary = artist.bio && artist.bio.summary;
-                    var artistLongDesc = artist.bio && artist.bio.content;
-                    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
-                
-                    // Update artist image
-                    view.updateArtistImg(artistImg, artistName);
-                
-                    // Update artist summary
-                    var shortContent;
-                    if (artistSummary) {                  
-                        shortContent = cleanHTML(artistSummary);
-                        $('#curArtistDesc article').html(shortContent);
-                        $('#curArtistDesc h4').text('About '+artistName);
-                        $('#curArtistDesc').fadeIn('fast');
-                    }
-                
-                    // Add link to longer description
-                    if (artistSummary && artistLongDesc) {
-                        var longContent = cleanHTML(artistLongDesc); 
-                        
-                        $('#curArtistDesc article')
-                            .data('longContent', longContent)
-                            .data('shortContent', shortContent);
-                                                                       
-                        var link = makeSeeMoreLink(view.showMoreText);
-                        $('#curArtistDesc article').append(' ').append(link);
-                    }
-        	    },
-
-        	    error: function(code, message) {
-        	        log(code + ' ' + message);
-        		}
-        	});
-	    },
-    
-	    error: function(code, message) {
-	        log(code + ' ' + message);
-	        $('#curSong h4').text(t);
-            $('#curArtist h4').text(a);
-            view.updateAlbumImg(null);
-            hide();
-		}
-	});
-};
-
-
-/* --------------------------- VIEW --------------------------- */
-
-function View() {
-    this.isPlayerInit = false; // have we initialized the player?
-    this.player; // YouTube DOM element
-    this.volume = 100;
-    this.reorderedSong = false; // Used to distinguish between dragging and clicking
-    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
-    this.renderPlaylistTimeout = 100; // Time between rendering each chunk
-    
-    this.bestAlbumImg; // Use first non-blank album as share image
-}
-
-/* Rendering search results */
-
-/* Takes an array of objects with properties 'name', 'artist', 'image' 
- * If there is no image, image will be the empty string. 
- */
-View.prototype.renderAlbums = function(albums) {
-    if (!albums.length) {
-        $('#albumResults').hide();
-    } else {
-        $('.albumResult').remove();
-        $('#albumResults').show();
-    }
-
-    for (var i = 0; i < albums.length; i++) {
-        var album = albums[i];
-
-        if (!album.image) {
-            album.image = '/images/unknown.png';
-        }
-
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="' + album.image + '">');
-
-        $('<div class="albumResult"></div>')
-        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
-        .append(img)
-        .appendTo('#albumResults');
-    }
-}
 
 /* Takes an array of objects with properties 'name', 'image' 
  * If there is no image, image will be the empty string. 
  */
-View.prototype.renderArtists = function(artists) {
+SearchView.prototype.renderArtists = function(artists) {
     if(!artists.length) {
         $('#artistResults').hide();
     } else {
@@ -957,12 +575,91 @@ View.prototype.renderArtists = function(artists) {
             .append(img)
             .appendTo('#artistResults');
     }
-}
+};
+
+SearchView.prototype.handleAlbumSearchResults = function(data) {
+  var albums = [];
+  var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
+  
+  if (!albumResults) {
+    searchview.renderAlbums([]);
+    return;
+  }
+  
+  for (var i = 0; i < albumResults.length; i++) {
+    var albumResult = albumResults[i];
+    var album = {};
+    
+    album.name = albumResult.name;
+    album.artist = albumResult.artist;
+    album.image = albumResult.image[2]['#text'];
+    
+    albums.push(album);
+  };
+  
+  searchview.renderAlbums(albums);
+};
 
 /* Takes an array of objects with properties 'name', 'artist', 'image' 
  * If there is no image, image will be the empty string. 
  */
-View.prototype.renderTracks = function(tracks) {
+SearchView.prototype.renderAlbums = function(albums) {
+    if (!albums.length) {
+        $('#albumResults').hide();
+    } else {
+        $('.albumResult').remove();
+        $('#albumResults').show();
+    }
+
+    for (var i = 0; i < albums.length; i++) {
+        var album = albums[i];
+
+        if (!album.image) {
+            album.image = '/images/unknown.png';
+        }
+
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="' + album.image + '">');
+
+        $('<div class="albumResult"></div>')
+        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append(img)
+        .appendTo('#albumResults');
+    }
+};
+
+SearchView.prototype.handleSongSearchResults = function(data) {
+  var tracks = [];
+  var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
+  
+  if (!trackResults) {
+    searchview.renderSongs([]);
+    return;
+  }
+  
+  for (var i = 0; i < trackResults.length; i++) {
+    var trackResult = trackResults[i];
+    var track = {};
+    
+    track.name = trackResult.name;
+    track.artist = trackResult.artist;
+    
+    if (trackResult.image) {
+        track.image =  trackResult.image[0]['#text'];
+    } else {
+        track.image = '';
+    }
+    
+    tracks.push(track);
+  };
+  
+  searchview.renderSongs(tracks);
+};
+
+/* Takes an array of objects with properties 'name', 'artist', 'image' 
+ * If there is no image, image will be the empty string. 
+ */
+SearchView.prototype.renderSongs = function(tracks) {
     if(!tracks.length) {
         $('#trackResults').hide();
     } else {
@@ -983,76 +680,281 @@ View.prototype.renderTracks = function(tracks) {
         $('<div class="trackResult clearfix"></div>')
             .append(img)
             .append('<div>'+track.name+'<span>'+track.artist+'</span></div>')
+            .click(function() {
+                player.addSongToPlaylist(track.name, track.artist);
+            })
             .appendTo('#trackResults');
     }
+};
+
+// Private function that adds handlers to the search box and makes it all work
+SearchView.prototype.addSearchHandlers = function() {
+    var searchInput = $('#searchBox input.search', this.searchElem);
+    
+    var handleSearch = function(searchString) {        
+        if (!delaySearch && (prevSearchString != searchString)) {
+            prevSearchString = searchString;
+            searchview.search(searchString);
+            
+            delaySearch = true;            
+            window.setTimeout(function() {
+                delaySearch = false;
+                
+                if (searchInput.val() != searchString) {
+                    handleSearch(searchInput.val());
+                }
+            }, 500);
+        }
+    };
+    
+    // Hits enter
+    $('#searchBox', this.searchElem).submit(function(event) {
+        event.preventDefault();
+        handleSearch(searchInput.val());
+    });
+    
+    // Pushes a key
+    searchInput.keyup(function() {
+        handleSearch(searchInput.val());
+    });
+    addFocusHandlers(searchInput);
+    
+    // Clicks search button
+    $('#searchBox input.submit', this.searchElem).click(function() {
+        event.preventDefault();
+        handleSearch(searchInput.val());
+    });
+};
+
+
+/* -------------------------- PLAYER CONTROL ------------------------ */
+
+function Player() {
+    this.isPlayerInit = false; // have we initialized the player?
+    this.ytplayer = null; // YouTube DOM element
+    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
+    this.renderPlaylistTimeout = 100; // Time between rendering each chunk
+    this.volume = 100; // Player volume
+    this.reorderedSong = false; // Used to distinguish between dragging and clicking
 }
 
-/* Info Display */
-
-// Update album art to point to given src url
-// @src - Image src url. Pass null to show the Unknown Album image.
-// @alt - Image alt text. (required, when src != null)
-View.prototype.updateAlbumImg = function(src, alt) {
-    view.bestAlbumImg = view.bestAlbumImg || src;
-    
-    if (!src) {
-        src = '/images/unknown.png';
-        alt = 'Unknown album';
-    }
-    var imgBlock = makeFancyZoomImg('curAlbumImg', src, alt);
-    $('#curAlbumImg').replaceWith(imgBlock);
+Player.prototype.play = function() {
+    player.ytplayer && player.ytplayer.playVideo();
 };
 
-// Update artist img to point to given src url
-// @src - Image src url. Pass null to show nothing.
-// @alt - Image alt text. (required, when src != null)
-View.prototype.updateArtistImg = function(src, alt) {    
-    if (src) {
-        var imgBlock = makeFancyZoomImg('curArtistImg', src, alt);  
-        $('#curArtistImg').replaceWith(imgBlock);
-    
+Player.prototype.pause = function() {
+    player.ytplayer && player.ytplayer.pauseVideo();
+};
+
+Player.prototype.playPause = function() {
+    if (!player.ytplayer) {
+        return;
+    }
+    if (player.isPlaying()) {
+        player.pause();
     } else {
-        $('#curArtistImg').replaceWith($('<span id="curArtistImg"></span>'));
+        player.play();
     }
 };
 
-// Shows more information about a song, album, or artist by expanding the text
-// @event - the triggering event
-View.prototype.showMoreText = function(event) {
-    event.preventDefault();
-
-    var elem = $(this).parent();
-    var newContent = elem.data('longContent') + ' ';
-    var link = makeSeeMoreLink(view.showLessText, 'show less');
-
-    elem
-        .html(newContent)
-        .append(link);
+Player.prototype.isPlaying = function() {
+    return this.ytplayer && (this.ytplayer.getPlayerState() == 1);
 };
 
-// Shows less information about a song, album, or artist by shrinking the text
-// @event - the triggering event
-View.prototype.showLessText = function(event) {
-    event.preventDefault();
+Player.prototype.isPaused = function() {
+    return this.ytplayer && (this.ytplayer.getPlayerState() == 2);
+};
 
-    var elem = $(this).parent();
-    var newContent = elem.data('shortContent') + ' ';
-    var link = makeSeeMoreLink(view.showMoreText);
+Player.prototype.increaseVolume = function() {
+    if (player.ytplayer.isMuted()) {
+        player.ytplayer.unMute();
+    }
+    player.volume += 20;
+    player.volume = (player.volume <= 100) ? player.volume : 100;
+    
+    player.ytplayer.setVolume(player.volume);
+};
 
-    elem
-        .html(newContent)
-        .append(link);
+Player.prototype.decreaseVolume = function() {
+    player.volume -= 20;
+    player.volume = (player.volume >= 0) ? player.volume : 0;
+    
+    player.ytplayer.setVolume(player.volume);
+};
+
+// Play a song at the given playlist index
+Player.prototype.playSong = function(i) {
+    songIndex = i;
+    var song = model.songs[i];
+    var title = cleanSongTitle(song.t);
+    var artist = song.a;
+
+    var q = title + ' ' + artist;
+    player.playSongBySearch(q);
+
+    $('.playing').toggleClass('playing');
+    $('#song' + i).toggleClass('playing');
+
+    playlistview.updateCurPlaying(title, artist, songIndex);
+};
+
+// Play next song in the playlist
+Player.prototype.playNextSong = function() {
+    if (songIndex == model.songs.length - 1) {
+        return;
+    }
+    player.playSong(++songIndex);
+};
+
+// Play prev song in the playlist
+Player.prototype.playPrevSong = function() {
+    if (songIndex == 0) {
+        return;
+    }
+    player.playSong(--songIndex);
+};
+
+// Play top video for given search query
+Player.prototype.playSongBySearch = function(q) {
+    var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
+    $.ajax({
+        dataType: 'jsonp',
+        type: 'GET',
+        url: the_url,
+        success: function(responseData, textStatus, XMLHttpRequest) {
+            if (responseData.data.items) {
+                var videos = responseData.data.items;
+                player.playSongById(videos[0].id)
+            } else {
+                player.playNextSong();
+                log('No songs found for: ' + q);
+            }
+        }
+    });
+};
+
+// Attempts to play the video with the given ID. If the player is in a loading state,
+// we queue up the video. We don't want to interrupt the player since that causes the
+// "An error occurred, please try again later" message.
+Player.prototype.playSongById = function(id) {
+    if (player.ytplayer && player.ytplayer.getPlayerState() == 3) { // Don't interrupt player while it's loading
+        this.queuedVideo = id;
+    
+    } else { // Play it immediately
+        player._playVideoById(id); 
+    }
+};
+
+// Private method to play video with given id
+Player.prototype._playVideoById = function(id) {
+    if (this.ytplayer) {
+        player.ytplayer.loadVideoById(id, 0, 'hd720');
+        player.ytplayer.setVolume(player.volume);
+    } else {
+        if (!this.isPlayerInit) {
+            this._initPlayer(id);
+        }
+    }
+};
+
+// Initialize the YouTube player
+Player.prototype._initPlayer = function(firstVideoId) {
+    this.isPlayerInit = true;
+
+    var params = {
+        allowScriptAccess: "always",
+        wmode : 'opaque' // Allow lightboxes to cover player
+    };
+    var atts = {
+        id: 'ytPlayer',
+        allowFullScreen: 'true'
+    };
+    swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
+    '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
+    '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
+    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
+    'player', '480', '295', '8', null, null, params, atts);
 };
 
 
-/* Playlist */
+/* Playlist editing */
+
+// Manually move the current song up
+Player.prototype.moveSongUp = function(oldId) {
+    if (oldId <= 0) {
+        return;
+    }
+    var songItem = $('#song'+oldId);
+    songItem.prev().before(songItem);
+    
+    player.onPlaylistReorder(null, {item: songItem});
+};
+
+// Manually move the current dong down
+Player.prototype.moveSongDown = function(oldId) {
+    if (oldId >= model.songs.length - 1) {
+        return;
+    }
+    var songItem = $('#song'+oldId);
+    songItem.next().after(songItem);
+    
+    player.onPlaylistReorder(null, {item: songItem});
+};
+
+Player.prototype.addSongToPlaylist = function(title, artist) {
+    log(title + ' - ' + artist);
+};
+
+
+/* Playlist related functions */
+
+// Load a playlist based on the xhr response or the initial embedded playlist
+// @response - response body
+Player.prototype.loadPlaylist = function(response) {
+    if ($.isPlainObject(response)) { // playlist is embedded in html
+        var playlist = response;
+        if(Modernizr.history) {
+            window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+        }
+
+    } else { // playlist is from xhr response      
+        var playlist = $.parseJSON(response);
+        if(playlist.status != 'ok') {
+            log('Error loading playlist: ' + playlist.status);
+            return;
+        }
+        if(Modernizr.history) {
+            window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+        }
+        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        $('#infoDisplay').effect('pulsate');
+    }
+
+    model.updatePlaylist(playlist);
+    player.renderPlaylist(playlist);
+
+    player.playSong(0);
+    log('Loaded playlist: ' + playlist.playlist_id);
+};
+
+// Load a playlist with the given id
+Player.prototype.loadPlaylistById = function(id) {
+    var the_url = '/p/'+id+'/json';
+    $.ajax({
+        dataType: 'json',
+        type: 'GET',
+        url: the_url,
+        success: function(responseData, textStatus, XMLHttpRequest) {
+            player.loadPlaylist(responseData);
+        }
+    });
+};
 
 // Updates the playlist table
-View.prototype.renderPlaylist = function(playlist, start) {
-    
+Player.prototype.renderPlaylist = function(playlist, start) {
     if (!start) { // only run this the first time
         start = 0;
-    
+        
         $('.editLink').remove();
         $('#curPlaylistTitle')
             .text(playlist.title);
@@ -1060,11 +962,11 @@ View.prototype.renderPlaylist = function(playlist, start) {
             .text(playlist.description);
         
         if (playlist.editable) {
-            view.makeEditable($('#curPlaylistTitle'), model.updateTitle);
-            view.makeEditable($('#curPlaylistDesc'), model.updateDesc);
+            playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+            playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
             
             $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-                .click(view.showSearch)
+                .click(SearchView.show)
                 .prependTo('#curPlaylistInfo header');
         }
         
@@ -1082,7 +984,7 @@ View.prototype.renderPlaylist = function(playlist, start) {
                         $('body').toggleClass('sorting', true);
                     },
                     stop: function(event, ui) {
-                        view.onReorder(event, ui);
+                        player.onPlaylistReorder(event, ui);
                         $('body').toggleClass('sorting', false);
                     },
                     tolerance: 'pointer'
@@ -1090,14 +992,14 @@ View.prototype.renderPlaylist = function(playlist, start) {
         }
             
         $('#playlist').disableSelection().mouseup(function(event) {
-            view.reorderedSong = null; // we're done dragging now
+            player.reorderedSong = null; // we're done dragging now
         });
 
-        view.renderRowColoring();
+        player.renderRowColoring();
         return;
     }
 
-    var end = Math.min(start + view.renderPlaylistChunkSize, playlist.songs.length);
+    var end = Math.min(start + player.renderPlaylistChunkSize, playlist.songs.length);
 
     for (var i = start; i < end; i++) {
         var v = playlist.songs[i];
@@ -1105,79 +1007,19 @@ View.prototype.renderPlaylist = function(playlist, start) {
             .appendTo('#playlist')
             .click(function(event) {
                 var songId = parseInt($(this).attr('id').substring(4));
-                view.reorderedSong || controller.playSong(songId);
+                player.reorderedSong || player.playSong(songId);
             });
     }
 
     window.setTimeout(function() {
-        view.renderPlaylist(playlist, start + view.renderPlaylistChunkSize);
-    }, view.renderPlaylistTimeout);
-};
-
-// Makes the given element editable by adding an edit link.
-// @elem - the element to make editable
-// @updateCallback - the function to call when the value is modified
-View.prototype.makeEditable = function(elem, updateCallback) {    
-    var elemId = elem.attr('id');
-    var buttonClass, autogrowSettings;
-    switch (elemId) {
-        case 'curPlaylistTitle':
-            autogrowSettings = {
-                expandTolerance: 0.05,
-                lineHeight: 30,
-                minHeight: 30,
-            };
-            buttonClass = 'large awesome';
-            break;
-        default:
-            autogrowSettings = {
-                expandTolerance: 0.1,
-                lineHeight: 16,
-                minHeight: 16,
-            };
-            buttonClass = 'small awesome';
-            break;
-    }
-    
-    elem.after(makeEditLink(function(event) {
-            event.preventDefault();
-            $.extend(appSettings.jeditable.autogrow, autogrowSettings);
-
-            $(this).prev().trigger('editable');
-            $(this).hide();
-            
-            if($(this).prev().attr('id') == 'curPlaylistTitle') {
-                $('#addSongs').hide();
-            }
-            
-            // disable key events while textarea is focused
-            controller.keyEvents = false;
-            addFocusHandlers($('textarea', $(this).parent()));
-        }))
-        .editable(function(value, settings) {
-            $(this).next().show();
-            
-            if($(this).attr('id') == 'curPlaylistTitle') {
-                $('#addSongs').show();
-            }
-            
-            updateCallback(value);
-            return value;
-        }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
-};
-
-// Recolors the playlist rows
-View.prototype.renderRowColoring = function() {
-    $('#playlist li')
-        .removeClass('odd')
-        .filter(':odd')
-        .addClass('odd');
+        player.renderPlaylist(playlist, start + player.renderPlaylistChunkSize);
+    }, player.renderPlaylistTimeout);
 };
 
 // Called by JQuery UI "Sortable" when a song has been reordered
 // @event - original browser event
 // @ui - prepared ui object (see: http://jqueryui.com/demos/sortable/)
-View.prototype.onReorder = function(event, ui) {
+Player.prototype.onPlaylistReorder = function(event, ui) {
     this.reorderedSong = true; // mark the song as reordered so we don't think it was clicked
 
     var oldId = parseInt(ui.item.attr('id').substring(4));
@@ -1212,25 +1054,326 @@ View.prototype.onReorder = function(event, ui) {
     songItem.attr('id', 'song'+newId); // Add back the reordered song's id
 
     // If we move the current song, keep our position in the playlist up to date
-    if (oldId == controller.songIndex) {
-        controller.songIndex = newId;
+    if (oldId == songIndex) {
+        songIndex = newId;
     }
 
     this.renderRowColoring();
 };
 
+// Recolors the playlist rows
+Player.prototype.renderRowColoring = function() {
+    $('#playlist li')
+        .removeClass('odd')
+        .filter(':odd')
+        .addClass('odd');
+};
+
+
+/*--------------------- BROWSER EVENTS --------------------- */
+
+// Shows more information about a song, album, or artist by expanding the text
+// @event - the triggering event
+function onShowMoreText(event) {
+    event.preventDefault();
+
+    var elem = $(this).parent();
+    var newContent = elem.data('longContent') + ' ';
+    var link = makeSeeMoreLink(onShowLessText, 'show less');
+
+    elem
+        .html(newContent)
+        .append(link);
+}
+
+// Shows less information about a song, album, or artist by shrinking the text
+// @event - the triggering event
+function onShowLessText(event) {
+    event.preventDefault();
+
+    var elem = $(this).parent();
+    var newContent = elem.data('shortContent') + ' ';
+    var link = makeSeeMoreLink(onShowMoreText);
+
+    elem
+        .html(newContent)
+        .append(link);
+}
+
+// Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
+// If there is saved state, load the correct playlist.
+function onPopState(event) {
+    var state = event.state;
+    if (state && state.playlistId != model.playlistId) {
+        player.loadPlaylistById(state.playlistId);
+    }
+}
+
+function onYouTubePlayerReady(playerId) {
+    player.ytplayer = document.getElementById(playerId);
+    player.ytplayer.addEventListener("onStateChange", "onYouTubePlayerStateChange");
+    
+    // If the user manually changes the volume in the YouTube player,
+    // we want to know about the change.
+    window.setInterval(function() {
+        player.volume = player.ytplayer.getVolume();
+    }, 2000);
+}
+
+function onYouTubePlayerStateChange(newState) {
+    switch(newState) {
+        case 0: // just finished a video
+            player.playNextSong();
+            break;
+        case 1: // playing
+        
+            // Bugfix: Force first video play to be HD
+            player.ytplayer.setPlaybackQuality('hd720');
+            
+            $('.playing').toggleClass('paused', false);
+            if (queuedVideo) {
+                player.playSongById(queuedVideo);
+                queuedVideo = null;
+            }
+            break;
+        case 2: // paused
+            $('.playing').toggleClass('paused', true);
+            break;
+    }
+}
+
+
+/* ------------------- CURRENTLY PLAYING -------------------- */
+
+function PlaylistView() {
+    this.bestAlbumImg; // Use first non-blank album as share image
+}
+
+
+// Update the currently playing song with Last.fm data
+// @t - song title
+// @a - song artist
+// @srcIndex - Song index that generated this Last.fm request. We'll check that the song
+//              hasn't changed before we update the DOM.
+PlaylistView.prototype.updateCurPlaying = function(t, a, srcIndex) {
+
+    // 1. Search for track.
+	model.lastfm.track.search({
+	    artist: a,
+	    limit: 1,
+	    track: t
+	}, {
+	    success: function(data) {
+	      playlistview._handleSongResults(t, a, srcIndex, data);
+	    },
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+	        $('#curSong h4').text(t);
+            $('#curArtist h4').text(a);
+            playlistview._updateAlbumImg(null);
+            playlistview._hideCurPlayling();
+		}
+	});
+};
+
+// Private method to hide the currently playing info 
+PlaylistView.prototype._hideCurPlayling = function() {
+    // Hide old values with animation
+    var hide = function() {
+        if ($('#curAlbum').css('display') != '0') {
+            $('#curAlbum').fadeOut('fast');
+        }
+        if ($('#curSongDesc').css('display') != '0') {
+            $('#curSongDesc').fadeOut('fast');
+        }
+        if ($('#curArtistDesc').css('display') != '0') {
+            $('#curArtistDesc').fadeOut('fast');
+        }
+    };
+}
+
+// Private method to handle song search results from Last.fm
+PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
+    if (songIndex != srcIndex) {
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+        this.error('track.search', 'Empty set.');
+        return;
+    }
+
+    playlistview._hideCurPlayling(); 
+
+    var track = data.results.trackmatches.track;
+    var trackName = track.name || t;
+    var artistName = track.artist || a;
+    var albumImg = track.image && track.image[track.image.length - 1]['#text'];
+
+    // Update song title, artist name
+    $('#curSong h4').text(trackName);
+    $('#curArtist h4').text(artistName);
+
+    // Update album art
+    // We'll set alt text once we know album name
+    playlistview._updateAlbumImg(albumImg, ''); 
+
+    // 2. Get detailed track info
+    trackName && artistName && model.lastfm.track.getInfo({
+	    artist: artistName,
+	    autocorrect: 1,
+	    track: trackName
+	}, {
+    
+	    success: function(data){
+	        playlistview._handleSongInfo(trackName, artistName, srcIndex, data);
+	    },
+
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+		}
+	});
+
+	// 3. Get detailed artist info (proceeds simultaneously with 2)
+	artistName && model.lastfm.artist.getInfo({
+	    artist: artistName,
+	    autocorrect: 1
+	}, {
+    
+	    success: function(data){
+	        playlistview._handleArtistInfo(artistName, srcIndex, data);
+	    },
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+		}
+	});
+};
+
+// Private method to handle song information from Last.fm
+PlaylistView.prototype._handleSongInfo = function(trackName, artistName, srcIndex, data) {
+    if (songIndex != srcIndex) {
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.track) {
+        this.error('track.getInfo', 'Empty set.');
+        return;
+    }
+                    
+    var track = data.track;
+    var artistName = track.artist && track.artist.name;
+    var albumName = track.album && track.album.title;
+    var trackSummary = track.wiki && track.wiki.summary;
+    var trackLongDesc = track.wiki && track.wiki.content;
+                    
+    // Update album name
+    albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
+
+    // Update album image alt text
+    var albumAlt = albumName;
+    albumAlt += artistName ? (' by ' + artistName) : '';
+    albumName && $('#curAlbumImg').attr('alt', albumAlt);
+
+    // Update song summary
+    var shortContent;
+    if (trackSummary) {       
+        shortContent = cleanHTML(trackSummary);                 
+        $('#curSongDesc article').html(shortContent);
+        $('#curSongDesc h4').text(track.name);
+        $('#curSongDesc').fadeIn('fast');
+    }
+
+    // Add link to longer description
+    if (trackSummary && trackLongDesc) {
+        var longContent = cleanHTML(trackLongDesc);
+        
+        $('#curSongDesc article')
+            .data('longContent', longContent)
+            .data('shortContent', shortContent);
+        
+        var link = makeSeeMoreLink(onShowMoreText);
+        $('#curSongDesc article').append(' ').append(link);
+    }
+}
+
+// Private method to handle artist information from Last.fm
+PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
+    if (songIndex != srcIndex) {
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.artist) {
+        this.error('track.getInfo', 'Empty set.');
+        return;
+    }
+                    
+    var artist = data.artist;
+    var artistSummary = artist.bio && artist.bio.summary;
+    var artistLongDesc = artist.bio && artist.bio.content;
+    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
+
+    // Update artist image
+    playlistview._updateArtistImg(artistImg, artistName);
+
+    // Update artist summary
+    var shortContent;
+    if (artistSummary) {                  
+        shortContent = cleanHTML(artistSummary);
+        $('#curArtistDesc article').html(shortContent);
+        $('#curArtistDesc h4').text(artistName+' Bio');
+        $('#curArtistDesc').fadeIn('fast');
+    }
+
+    // Add link to longer description
+    if (artistSummary && artistLongDesc) {
+        var longContent = cleanHTML(artistLongDesc); 
+        
+        $('#curArtistDesc article')
+            .data('longContent', longContent)
+            .data('shortContent', shortContent);
+                                                       
+        var link = makeSeeMoreLink(onShowMoreText);
+        $('#curArtistDesc article').append(' ').append(link);
+    }
+}
+
+// Private method to update album art to point to given src url
+// @src - Image src url. Pass null to show the Unknown Album image.
+// @alt - Image alt text. (required, when src != null)
+PlaylistView.prototype._updateAlbumImg = function(src, alt) {
+    playlistview.bestAlbumImg = playlistview.bestAlbumImg || src;
+    
+    if (!src) {
+        src = '/images/unknown.png';
+        alt = 'Unknown album';
+    }
+    var imgBlock = makeFancyZoomImg('curAlbumImg', src, alt);
+    $('#curAlbumImg').replaceWith(imgBlock);
+};
+
+// Private method to update artist img to point to given src url
+// @src - Image src url. Pass null to show nothing.
+// @alt - Image alt text. (required, when src != null)
+PlaylistView.prototype._updateArtistImg = function(src, alt) {    
+    if (src) {
+        var imgBlock = makeFancyZoomImg('curArtistImg', src, alt);  
+        $('#curArtistImg').replaceWith(imgBlock);
+    
+    } else {
+        $('#curArtistImg').replaceWith($('<span id="curArtistImg"></span>'));
+    }
+};
+
 // Optimization: Don't load Facebook comments until video is playing
-View.prototype.tryLoadComments = function(playlist_id, title) {
-    if (view.isPlaying()) {
-        view.loadComments(playlist_id, title);
+PlaylistView.prototype.tryLoadComments = function(playlist_id, title) {
+    if (player.isPlaying()) {
+        playlistview._loadComments(playlist_id, title);
     } else {
         window.setTimeout(function() {
-            view.tryLoadComments(playlist_id, title);
+            playlistview.tryLoadComments(playlist_id, title);
         }, 1000);
     }
 };
 
-View.prototype.loadComments = function(playlist_id, title) {
+// Private method to load playlist's comments
+PlaylistView.prototype._loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
@@ -1240,7 +1383,7 @@ View.prototype.loadComments = function(playlist_id, title) {
     $('#comments')
         .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
-        controller.commentsHeight = $('#commentsDiv').height();
+        commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
             .hide()
             .css({height: 0});
@@ -1256,173 +1399,66 @@ View.prototype.loadComments = function(playlist_id, title) {
         // Update the stored height of the comment box after it's had time to resize
         // (I think that Facebook autoresizes the iframe)
         window.setTimeout(function() {
-            controller.commentsHeight = $('#commentsDiv').height();
+            commentsHeight = $('#commentsDiv').height();
         }, 1000);
     });
-}
-
-
-/* Player */
-
-// Initialize the YouTube player
-View.prototype.initPlayer = function(firstVideoId) {
-    this.isPlayerInit = true;
-
-    var params = {
-        allowScriptAccess: "always",
-        wmode : 'opaque' // Allow lightboxes to cover player
-    };
-    var atts = {
-        id: 'ytPlayer',
-        allowFullScreen: 'true'
-    };
-    swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
-    '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
-    '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
-    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
-    'player', '480', '295', '8', null, null, params, atts);
-};
-
-// Play video with given id
-View.prototype.playVideoById = function(id) {
-    if (this.player) {
-        view.player.loadVideoById(id, 0, 'hd720');
-        view.player.setVolume(view.volume);
-    } else {
-        if (!this.isPlayerInit) {
-            this.initPlayer(id);
-        }
-    }
-};
-
-View.prototype.play = function() {
-    view.player && view.player.playVideo();
-};
-
-View.prototype.pause = function() {
-    view.player && view.player.pauseVideo();
-};
-
-View.prototype.playPause = function() {
-    if (!view.player) {
-        return;
-    }
-    if (view.isPlaying()) {
-        view.pause();
-    } else {
-        view.play();
-    }
-};
-
-View.prototype.isPlaying = function() {
-    return this.player && (this.player.getPlayerState() == 1);
-};
-
-View.prototype.isPaused = function() {
-    return this.player && (this.player.getPlayerState() == 2);
-};
-
-View.prototype.increaseVolume = function() {
-    if (view.player.isMuted()) {
-        view.player.unMute();
-    }
-    view.volume += 20;
-    view.volume = (view.volume <= 100) ? view.volume : 100;
-    
-    view.player.setVolume(view.volume);
-}
-
-View.prototype.decreaseVolume = function() {
-    view.volume -= 20;
-    view.volume = (view.volume >= 0) ? view.volume : 0;
-    
-    view.player.setVolume(view.volume);
-}
-
-View.prototype.showSearch = function(event) {
-    event && event.preventDefault();
-    
-    var backButton = browser.makeBackButton();
-    
-    var header = $('<header class="clearfix buttonHeader"></header>')
-        .append(backButton)
-        .append('<h2>Add Songs</h2>');
-    
-    var searchElem = $('<section id="search"></section>')
-        .append(header)
-        .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
-        .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
-    browser.push(searchElem);
-    setupSearch(searchElem);
-    
-    window.setTimeout(function() {
-        $('#searchBox .search').focus();
-    }, 500);
-        
-    window.setTimeout(function() {
-        $('.buttonHeader h2')
-            .css('left', -1 * $('.backButton').width());
-    }, 0);
-}
-
-View.prototype.showPop = function(url, name, height, width) {
-    name = name || 'name';
-    height = height || 450;
-    width = width || 550;
-    newwindow = window.open(url, name, 'height='+height+',width='+width);
-    if (window.focus) {
-        newwindow.focus();
-    }
-}
-
-
-/* Misc */
-
-// Open dialog that shows keyboard shortcuts
-View.prototype.showHelpDialog = function() {
-    event.preventDefault();
-    controller.showDialog($('#help'), 'Keyboard Shortcuts');
 };
 
 
-/* Player Events */
-
-function onYouTubePlayerReady(playerId) {
-    view.player = document.getElementById(playerId);
-    view.player.addEventListener("onStateChange", "onYouTubePlayerStateChange");
-    
-    // If the user manually changes the volume in the YouTube player,
-    // we want to know about the change.
-    window.setInterval(function() {
-        view.volume = view.player.getVolume();
-    }, 2000);
-}
-
-function onYouTubePlayerStateChange(newState) {
-    switch(newState) {
-        case 0: // just finished a video
-            controller.playNextSong();
+// Makes the given element editable by adding an edit link.
+// @elem - the element to make editable
+// @updateCallback - the function to call when the value is modified
+PlaylistView.prototype._makeEditable = function(elem, updateCallback) {    
+    var elemId = elem.attr('id');
+    var buttonClass, autogrowSettings;
+    switch (elemId) {
+        case 'curPlaylistTitle':
+            autogrowSettings = {
+                expandTolerance: 0.05,
+                lineHeight: 30,
+                minHeight: 30,
+            };
+            buttonClass = 'large awesome';
             break;
-        case 1: // playing
-        
-            // Bugfix: Force first video play to be HD
-            view.player.setPlaybackQuality('hd720');
+        default:
+            autogrowSettings = {
+                expandTolerance: 0.1,
+                lineHeight: 16,
+                minHeight: 16,
+            };
+            buttonClass = 'small awesome';
+            break;
+    }
+    
+    elem.after(makeEditLink(function(event) {
+            event.preventDefault();
+            $.extend(appSettings.jeditable.autogrow, autogrowSettings);
+
+            $(this).prev().trigger('editable');
+            $(this).hide();
             
-            $('.playing').toggleClass('paused', false);
-            if (controller.queuedVideo) {
-                controller.playSongById(controller.queuedVideo);
-                controller.queuedVideo = null;
+            if($(this).prev().attr('id') == 'curPlaylistTitle') {
+                $('#addSongs').hide();
             }
-            break;
-        case 2: // paused
-            $('.playing').toggleClass('paused', true);
-            break;
-    }
-}
+            
+            // disable key events while textarea is focused
+            keyEvents = false;
+            addFocusHandlers($('textarea', $(this).parent()));
+        }))
+        .editable(function(value, settings) {
+            $(this).next().show();
+            
+            if($(this).attr('id') == 'curPlaylistTitle') {
+                $('#addSongs').show();
+            }
+            
+            updateCallback(value);
+            return value;
+        }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
+};
 
 
 /* --------------------------- MODEL --------------------------- */
-
 
 function Model(playlist) {
     playlist && this.updatePlaylist(playlist);
@@ -1495,9 +1531,18 @@ Model.prototype.savePlaylist = function(data) {
 }
 
 
-
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
+// Show a popup window
+function showPop(url, _name, _height, _width) {
+    var name = _name || 'name';
+    var height = _height || 450;
+    var width = _width || 550;
+    newwindow = window.open(url, name, 'height='+height+',width='+width);
+    if (window.focus) {
+        newwindow.focus();
+    }
+}
 
 // Make an image that opens a fancyzoom lightbox when clicked on
 // @thumbId - id of the thumbnail image
