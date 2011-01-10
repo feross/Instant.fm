@@ -137,8 +137,11 @@ function setupPlaylistDisplay() {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    
     $(window).keydown(function(event) {
+        if (event.altKey || event.ctrlKey) {
+            return;
+        }
+        
         var k = event.which;
         var nothingPressed;
         
@@ -483,7 +486,9 @@ function SearchView(searchElem) {
 // Factory method to make a new searchview
 SearchView.show = function(event) {
     event && event.preventDefault();
-    searchview = new SearchView();
+    if (model.editable) {
+        searchview = new SearchView();
+    }
 };
 
 // Perform a search for given search string
