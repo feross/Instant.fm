@@ -407,7 +407,7 @@ MiniBrowser.prototype.push = function(elem, _title) {
     }, 0);
         
     this.refreshContents();
-    this._slideTo(this.numSlides);
+    //this._slideTo(this.numSlides);
 };
 
 // Push a static HTML file onto the browser. Files get loaded from /html/.
