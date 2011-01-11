@@ -138,14 +138,13 @@ function setupPlaylistDisplay() {
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
-        if (event.altKey || event.ctrlKey || event.metaKey) {
-            return;
-        }
-        
         var k = event.which;
         var nothingPressed;
         
         if (keyEvents) {
+            if (event.altKey || event.ctrlKey || event.metaKey) {
+                return;
+            }
             switch(k) {
                 // Playback control
                 case 39: case 40: // down, right
@@ -1176,12 +1175,6 @@ function onPopState(event) {
 function onYouTubePlayerReady(playerId) {
     player.ytplayer = document.getElementById(playerId);
     player.ytplayer.addEventListener("onStateChange", "onYouTubePlayerStateChange");
-    
-    // If the user manually changes the volume in the YouTube player,
-    // we want to know about the change.
-    window.setInterval(function() {
-        player.volume = player.ytplayer.getVolume();
-    }, 2000);
 }
 
 function onYouTubePlayerStateChange(newState) {
@@ -1378,7 +1371,7 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
     if (artistSummary) {                  
         shortContent = cleanHTML(artistSummary);
         $('#curArtistDesc article').html(shortContent);
-        $('#curArtistDesc h4').text(artistName+' Bio');
+        $('#curArtistDesc h4').text(artistName);
         $('#curArtistDesc').fadeIn('fast');
     }
 

@@ -344,7 +344,7 @@ input.file {
     text-shadow: #000 0 1px 1px;
 }
 
-#headerMenu a { display: inline-block; margin-left: 15px; }
+#headerMenu a { display: inline-block; margin-left: 18px; }
 
 #infoDisplay header { border-bottom: #444 1px solid; }
 
@@ -518,7 +518,7 @@ a:hover .zoomIcon {
     text-shadow: #000 0 1px 1px;
 }
 
-.action { color: #555; float: left; font-size: 12px; padding-top: 3px; }
+.action { color: #555; float: left; font-size: 12px; padding-top: 5px; }
 
 
 /* Footer */
