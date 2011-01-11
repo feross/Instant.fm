@@ -1,9 +1,6 @@
 var player;
 var browser;
-
-// TODO: remove
-var model; // ?
-var view; // ?
+var model;
 
 var playlistview;
 var searchview;
@@ -11,9 +8,7 @@ var searchview;
 // jQuery.fx.off = true;
 
 var songIndex; // Current position in the playlist
-var queuedVideo; // Used when player is in loading state so we don't interrupt it.
 var keyEvents = true; // Used to disable keyboard shortuts
-var commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 
 var appSettings = {
     fancyZoom: {directory: '/images/fancyzoom'},
@@ -140,6 +135,7 @@ function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
         var k = event.which;
         var nothingPressed;
+        log(k);
         
         if (keyEvents) {
             if (event.altKey || event.ctrlKey || event.metaKey) {
@@ -180,6 +176,9 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
+                case 67: // c
+                    $('#addComment').trigger('click');
+                    break;
                 case 8: // backspace
                     browser.pop();
                     break;
@@ -253,7 +252,7 @@ function setupPlaylistActionButtons() {
     
     $('#addComment').click(function(event) {
         event.preventDefault();
-        showHideComments();
+        playlistview.showHideComments();
     });
     
     $('#fbShare').click(function(event) {
@@ -280,26 +279,6 @@ function setupDragDropUploader(dropId, callback) {
 
 
 /* --------------------------- SOCIAL FEATURES ----------------------------- */
-
-function showHideComments() {
-    if (!$('#commentsDiv').data('loaded')) {
-        return;
-    }
-    
-    // This is a workaround for a JQuery bug where the Facebook comment box
-    // animation is jumpy. (http://goo.gl/so18k)
-    if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a comment +');
-        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
-            $('#commentsDiv').hide();
-        }});
-    } else {
-        $('#addComment').html('Close comments');
-        $('#commentsDiv')
-            .show()
-            .animate({height: commentsHeight}, {duration: 'slow'});
-    }
-}
 
 function shareOnFacebook() {
     FB.ui(
@@ -328,7 +307,7 @@ function shareOnTwitter() {
     var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm/p/'+model.playlistId+
-              '&text='+tweetText;
+              '&text='+tweetText+'&via=instantDOTfm';
     showPop(url, 'instantfmTwitterShare');
 }
 
@@ -752,6 +731,8 @@ function Player() {
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
     this.volume = 100; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
+    this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
+    
 }
 
 Player.prototype.play = function() {
@@ -873,7 +854,7 @@ Player.prototype.playSongBySearch = function(q) {
 // "An error occurred, please try again later" message.
 Player.prototype.playSongById = function(id) {
     if (player.ytplayer && player.ytplayer.getPlayerState() == 3) { // Don't interrupt player while it's loading
-        this.queuedVideo = id;
+        player.queuedVideo = id;
     
     } else { // Play it immediately
         player._playVideoById(id); 
@@ -929,6 +910,8 @@ Player.prototype.showHideVideo = function() {
             }
         }
         animateResize(0);
+    } else {
+        setupPlaylistDisplay();
     }
 };
 
@@ -1188,9 +1171,9 @@ function onYouTubePlayerStateChange(newState) {
             player.ytplayer.setPlaybackQuality('hd720');
             
             $('.playing').toggleClass('paused', false);
-            if (queuedVideo) {
-                player.playSongById(queuedVideo);
-                queuedVideo = null;
+            if (player.queuedVideo) {
+                player.playSongById(player.queuedVideo);
+                player.queuedVideo = null;
             }
             break;
         case 2: // paused
@@ -1204,6 +1187,8 @@ function onYouTubePlayerStateChange(newState) {
 
 function PlaylistView() {
     this.bestAlbumImg; // Use first non-blank album as share image
+    this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
+    
 }
 
 
@@ -1437,7 +1422,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     $('#comments')
         .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
-        commentsHeight = $('#commentsDiv').height();
+        playlistview.commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
             .hide()
             .css({height: 0});
@@ -1453,7 +1438,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
         // Update the stored height of the comment box after it's had time to resize
         // (I think that Facebook autoresizes the iframe)
         window.setTimeout(function() {
-            commentsHeight = $('#commentsDiv').height();
+            playlistview.commentsHeight = $('#commentsDiv').height();
         }, 1000);
     });
 };
@@ -1509,6 +1494,26 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             updateCallback(value);
             return value;
         }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
+};
+
+PlaylistView.prototype.showHideComments = function() {
+    if (!$('#commentsDiv').data('loaded')) {
+        return;
+    }
+    
+    // This is a workaround for a JQuery bug where the Facebook comment box
+    // animation is jumpy. (http://goo.gl/so18k)
+    if ($('#commentsDiv').is(':visible')) {
+        $('#addComment').html('Add a comment +');
+        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
+            $('#commentsDiv').hide();
+        }});
+    } else {
+        $('#addComment').html('Close comments');
+        $('#commentsDiv')
+            .show()
+            .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
+    }
 };
 
 
