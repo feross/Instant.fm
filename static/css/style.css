@@ -566,8 +566,6 @@ header .awesome { margin-top: 2px; }
     z-index: 2;
 }
 
-.slide { width: 485px; }
-
 #FS_slider {
     margin: 60px 0 0 0;
 	overflow: hidden;
