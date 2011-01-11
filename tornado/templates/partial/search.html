@@ -1,3 +1,17 @@
 {% block mini-browser %}
-<div> Well, it's loaded! </div>
+<section id="search" class="slide">
+  <form id="searchBox">
+    <input type="text" class="search" name="search">
+    <input type="submit" class="submit" name="submit" value="Search">
+  </form>
+  <div id="artistResults" class="clearfix" style="display: none;">
+    <h3>Artists</h3>
+  </div>
+  <div id="albumResults" class="clearfix" style="display: none;">
+    <h3>Albums</h3>
+  </div>
+  <div id="trackResults" class="clearfix" style="display: none;">
+    <h3>Songs</h3>
+  </div>
+</section>
 {% end %}

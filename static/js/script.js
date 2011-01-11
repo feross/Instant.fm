@@ -1,9 +1,6 @@
 var player;
 var browser;
-
-// TODO: remove
-var model; // ?
-var view; // ?
+var model;
 
 var playlistview;
 var searchview;
@@ -11,9 +8,7 @@ var searchview;
 // jQuery.fx.off = true;
 
 var songIndex; // Current position in the playlist
-var queuedVideo; // Used when player is in loading state so we don't interrupt it.
 var keyEvents = true; // Used to disable keyboard shortuts
-var commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 
 var appSettings = {
     fancyZoom: {directory: '/images/fancyzoom'},
@@ -140,6 +135,7 @@ function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
         var k = event.which;
         var nothingPressed;
+        log(k);
         
         if (keyEvents) {
             if (event.altKey || event.ctrlKey || event.metaKey) {
@@ -180,6 +176,9 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
+                case 67: // c
+                    $('#addComment').trigger('click');
+                    break;
                 case 8: // backspace
                     browser.pop();
                     break;
@@ -253,7 +252,7 @@ function setupPlaylistActionButtons() {
     
     $('#addComment').click(function(event) {
         event.preventDefault();
-        showHideComments();
+        playlistview.showHideComments();
     });
     
     $('#fbShare').click(function(event) {
@@ -280,26 +279,6 @@ function setupDragDropUploader(dropId, callback) {
 
 
 /* --------------------------- SOCIAL FEATURES ----------------------------- */
-
-function showHideComments() {
-    if (!$('#commentsDiv').data('loaded')) {
-        return;
-    }
-    
-    // This is a workaround for a JQuery bug where the Facebook comment box
-    // animation is jumpy. (http://goo.gl/so18k)
-    if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a comment +');
-        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
-            $('#commentsDiv').hide();
-        }});
-    } else {
-        $('#addComment').html('Close comments');
-        $('#commentsDiv')
-            .show()
-            .animate({height: commentsHeight}, {duration: 'slow'});
-    }
-}
 
 function shareOnFacebook() {
     FB.ui(
@@ -328,7 +307,7 @@ function shareOnTwitter() {
     var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm/p/'+model.playlistId+
-              '&text='+tweetText;
+              '&text='+tweetText+'&via=instantDOTfm';
     showPop(url, 'instantfmTwitterShare');
 }
 
@@ -379,11 +358,6 @@ MiniBrowser.prototype.refreshContents = function() {
     this.numSlides = $('#FS_holder .slide').length;
 };
 
-MiniBrowser.prototype.fetchAndPushPartial = function(partial, title, params) {
-    this.pushStatic('/partial/' + partial, title, params);
-};
-
-
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title) {
@@ -395,7 +369,6 @@ MiniBrowser.prototype.push = function(elem, _title) {
             .append('<h2>'+_title+'</h2>');
             
         $(elem).prepend(header);
-        log($(elem));
     }
     
     $(elem).appendTo('#FS_holder');
@@ -409,14 +382,32 @@ MiniBrowser.prototype.push = function(elem, _title) {
     this._slideTo(this.numSlides);
 };
 
-// Push a static HTML file onto the browser. Files get loaded from /html/.
-MiniBrowser.prototype.pushStatic = function(path, _title, params) {
-    $.get(path, params, function(data, textStatus, xhr) {
+// Push a static HTML file onto the browser.
+// Options:
+//  beforeVisible - callback function to execute after we've received the partial from
+//                  the server and pushed it onto the browser, but before it's visible
+//  afterVisible  - callback function to execute after the partial is fully slided into view
+MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
+    var options = _options || {};
+    $.get(path, options.params, function(data, textStatus, xhr) {
         log(data);
         
-        var slide = $('<div class="slide">'+data+'</div>');
+        var slide = $(data);
         browser.push(slide, _title);
+        
+        options.beforeVisible && options.beforeVisible();
+        
+        if (options.afterVisible) {
+            window.setTimeout(function() {
+                options.afterVisible();
+            }, 550);
+        }
     });
+};
+
+// Fetch a partial from the server, push it onto the minibrowser.
+MiniBrowser.prototype.pushPartial = function(partial, _title, _options) {
+    this.pushStatic('/partial/' + partial, _title, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -473,18 +464,14 @@ var delaySearch = false; // Used to force a delay between searches
 
 function SearchView(searchElem) {
     
-    // TODO: Make this load from static
-    this.searchElem = $('<section id="search"></section>')
-        .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
-        .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
-    //browser.push(this.searchElem, 'Add Songs');
-    browser.fetchAndPushPartial('search', "Add Songs");
-    
-    this.addSearchHandlers();
-    
-    window.setTimeout(function() {
-        $('#searchBox input.search').focus();
-    }, 550);
+    browser.pushPartial('search', "Add Songs", {
+        beforeVisible: function() {
+            searchview.addSearchHandlers();
+        },
+        afterVisible: function() {
+            $('#searchBox input.search').focus();
+        }
+    });
 };
 
 // Factory method to make a new searchview
@@ -493,7 +480,6 @@ SearchView.show = function(event) {
     if (model.editable) {
         searchview = new SearchView();
     }
-    
 };
 
 // Perform a search for given search string
@@ -758,6 +744,8 @@ function Player() {
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
     this.volume = 100; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
+    this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
+    
 }
 
 Player.prototype.play = function() {
@@ -879,7 +867,7 @@ Player.prototype.playSongBySearch = function(q) {
 // "An error occurred, please try again later" message.
 Player.prototype.playSongById = function(id) {
     if (player.ytplayer && player.ytplayer.getPlayerState() == 3) { // Don't interrupt player while it's loading
-        this.queuedVideo = id;
+        player.queuedVideo = id;
     
     } else { // Play it immediately
         player._playVideoById(id); 
@@ -935,6 +923,8 @@ Player.prototype.showHideVideo = function() {
             }
         }
         animateResize(0);
+    } else {
+        setupPlaylistDisplay();
     }
 };
 
@@ -1196,9 +1186,9 @@ function onYouTubePlayerStateChange(newState) {
             player.ytplayer.setPlaybackQuality('hd720');
             
             $('.playing').toggleClass('paused', false);
-            if (queuedVideo) {
-                player.playSongById(queuedVideo);
-                queuedVideo = null;
+            if (player.queuedVideo) {
+                player.playSongById(player.queuedVideo);
+                player.queuedVideo = null;
             }
             break;
         case 2: // paused
@@ -1212,6 +1202,8 @@ function onYouTubePlayerStateChange(newState) {
 
 function PlaylistView() {
     this.bestAlbumImg; // Use first non-blank album as share image
+    this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
+    
 }
 
 
@@ -1445,7 +1437,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     $('#comments')
         .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
-        commentsHeight = $('#commentsDiv').height();
+        playlistview.commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
             .hide()
             .css({height: 0});
@@ -1461,7 +1453,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
         // Update the stored height of the comment box after it's had time to resize
         // (I think that Facebook autoresizes the iframe)
         window.setTimeout(function() {
-            commentsHeight = $('#commentsDiv').height();
+            playlistview.commentsHeight = $('#commentsDiv').height();
         }, 1000);
     });
 };
@@ -1517,6 +1509,26 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             updateCallback(value);
             return value;
         }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
+};
+
+PlaylistView.prototype.showHideComments = function() {
+    if (!$('#commentsDiv').data('loaded')) {
+        return;
+    }
+    
+    // This is a workaround for a JQuery bug where the Facebook comment box
+    // animation is jumpy. (http://goo.gl/so18k)
+    if ($('#commentsDiv').is(':visible')) {
+        $('#addComment').html('Add a comment +');
+        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
+            $('#commentsDiv').hide();
+        }});
+    } else {
+        $('#addComment').html('Close comments');
+        $('#commentsDiv')
+            .show()
+            .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
+    }
 };
 
 
