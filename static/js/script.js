@@ -204,18 +204,19 @@ function setupKeyboardShortcuts() {
                     break;
             }
         
-        } else { // These keyboard events will always get captured (even when textboxes are focused)
-            switch (k) {
-                case 27: // escape
-                    // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
-                    keyEvents = true;
-                    
-                    browser.pop();
-                    break;
-                default:
-                    nothingPressed = true;
-                    break;
-            }
+        }
+        
+        // These keyboard events will always get captured (even when textboxes are focused)
+        switch (k) {
+            case 27: // escape
+                // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
+                keyEvents = true;
+                
+                browser.pop();
+                break;
+            default:
+                nothingPressed = true;
+                break;
         }
         
         if (!nothingPressed) {
