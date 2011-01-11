@@ -134,9 +134,10 @@ function setupPlaylistDisplay() {
 function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
         var k = event.which;
-        var nothingPressed;
-        log(k);
-        
+        var nothingPressed1 = false;
+        var nothingPressed2 = false;
+
+        // Disablable events
         if (keyEvents) {
             if (event.altKey || event.ctrlKey || event.metaKey) {
                 return;
@@ -200,29 +201,30 @@ function setupKeyboardShortcuts() {
                     shareOnBuzz();
                     break;
                 default:
-                    nothingPressed = true;
+                    nothingPressed1 = true;
                     break;
             }
-        
+
         }
-        
+
+        // Non-disablable events
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
                 // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
                 keyEvents = true;
-                
+
                 browser.pop();
                 break;
             default:
-                nothingPressed = true;
+                nothingPressed2 = true;
                 break;
         }
-        
-        if (!nothingPressed) {
+
+        // If we executed a keyboard shortcut, prevent the browser default event from happening
+        if (!nothingPressed1 || !nothingPressed2) {
             event.preventDefault();
         }
-
     });
 }
 
@@ -391,8 +393,6 @@ MiniBrowser.prototype.push = function(elem, _title) {
 MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
     var options = _options || {};
     $.get(path, options.params, function(data, textStatus, xhr) {
-        log(data);
-        
         var slide = $(data);
         browser.push(slide, _title);
         
@@ -743,7 +743,7 @@ function Player() {
     this.ytplayer = null; // YouTube DOM element
     this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
-    this.volume = 100; // Player volume
+    this.volume; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
     
@@ -769,11 +769,11 @@ Player.prototype.playPause = function() {
 };
 
 Player.prototype.isPlaying = function() {
-    return this.ytplayer && (this.ytplayer.getPlayerState() == 1);
+    return player.ytplayer && (player.ytplayer.getPlayerState() == 1);
 };
 
 Player.prototype.isPaused = function() {
-    return this.ytplayer && (this.ytplayer.getPlayerState() == 2);
+    return player.ytplayer && (player.ytplayer.getPlayerState() == 2);
 };
 
 Player.prototype.increaseVolume = function() {
@@ -879,6 +879,9 @@ Player.prototype.playSongById = function(id) {
 Player.prototype._playVideoById = function(id) {
     if (this.ytplayer) {
         player.ytplayer.loadVideoById(id, 0, 'hd720');
+        
+        log(player.volume);
+        log(player.ytplayer.getVolume());
         player.ytplayer.setVolume(player.volume);
     } else {
         if (!this.isPlayerInit) {
@@ -902,7 +905,7 @@ Player.prototype._initPlayer = function(firstVideoId) {
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
     '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
-    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF',
+    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF&disablekb=1',
     'player', '480', '295', '8', null, null, params, atts);
 };
 
@@ -1129,6 +1132,7 @@ Player.prototype.renderRowColoring = function() {
 // Show currently playing song
 Player.prototype.showCurrentSong = function() {
     scrollTo('.playing', '#playlistDiv');
+    $('.playing').effect('pulsate');
 };
 
 
@@ -1174,6 +1178,11 @@ function onPopState(event) {
 function onYouTubePlayerReady(playerId) {
     player.ytplayer = document.getElementById(playerId);
     player.ytplayer.addEventListener("onStateChange", "onYouTubePlayerStateChange");
+    
+    if (player.volume === undefined) {
+        player.volume = player.ytplayer.getVolume() || 100; // if the player is muted, let's unmute it for the first video
+        player.ytplayer.setVolume(player.volume);
+    }
 }
 
 function onYouTubePlayerStateChange(newState) {
@@ -1531,6 +1540,10 @@ PlaylistView.prototype.showHideComments = function() {
             .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
     }
 };
+
+function ArtistView() {
+    
+}
 
 
 /* --------------------------- MODEL --------------------------- */
