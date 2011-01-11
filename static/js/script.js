@@ -235,7 +235,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {
@@ -269,7 +269,7 @@ function setupPlaylistActionButtons() {
 function setupNavigationLinks() {
     $('#signUp').click(function(event) {
         event.preventDefault();
-        browser.pushStatic('signup.html', 'Sign Up');
+        browser.pushStatic('signup.html', 'Sign Up', {});
     });
 }
 
@@ -371,9 +371,7 @@ MiniBrowser.prototype.push = function(elem, _title) {
         $(elem).prepend(header);
     }
     
-    $(elem)
-        .addClass('slide')
-        .appendTo('#FS_holder');
+    $(elem).appendTo('#FS_holder');
 
     window.setTimeout(function() {
         $('.buttonHeader h2', elem)
@@ -384,14 +382,32 @@ MiniBrowser.prototype.push = function(elem, _title) {
     this._slideTo(this.numSlides);
 };
 
-// Push a static HTML file onto the browser. Files get loaded from /html/.
-MiniBrowser.prototype.pushStatic = function(path, _title) {
-    $.get('/html/'+path, function(data, textStatus, xhr) {
+// Push a static HTML file onto the browser.
+// Options:
+//  beforeVisible - callback function to execute after we've received the partial from
+//                  the server and pushed it onto the browser, but before it's visible
+//  afterVisible  - callback function to execute after the partial is fully slided into view
+MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
+    var options = _options || {};
+    $.get(path, options.params, function(data, textStatus, xhr) {
         log(data);
         
-        var slide = $('<div>'+data+'</div>');
+        var slide = $(data);
         browser.push(slide, _title);
+        
+        options.beforeVisible && options.beforeVisible();
+        
+        if (options.afterVisible) {
+            window.setTimeout(function() {
+                options.afterVisible();
+            }, 550);
+        }
     });
+};
+
+// Fetch a partial from the server, push it onto the minibrowser.
+MiniBrowser.prototype.pushPartial = function(partial, _title, _options) {
+    this.pushStatic('/partial/' + partial, _title, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -448,17 +464,14 @@ var delaySearch = false; // Used to force a delay between searches
 
 function SearchView(searchElem) {
     
-    // TODO: Make this load from static
-    this.searchElem = $('<section id="search"></section>')
-        .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
-        .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
-    browser.push(this.searchElem, 'Add Songs');
-    
-    this.addSearchHandlers();
-    
-    window.setTimeout(function() {
-        $('#searchBox input.search').focus();
-    }, 550);
+    browser.pushPartial('search', "Add Songs", {
+        beforeVisible: function() {
+            searchview.addSearchHandlers();
+        },
+        afterVisible: function() {
+            $('#searchBox input.search').focus();
+        }
+    });
 };
 
 // Factory method to make a new searchview
@@ -950,7 +963,9 @@ Player.prototype.addSongToPlaylist = function(title, artist) {
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
 Player.prototype.loadPlaylist = function(response) {
-    if ($.isPlainObject(response)) { // playlist is embedded in html
+    if (response == null) {
+      return;
+    } else if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
         if(Modernizr.history) {
             window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
@@ -958,7 +973,7 @@ Player.prototype.loadPlaylist = function(response) {
 
     } else { // playlist is from xhr response      
         var playlist = $.parseJSON(response);
-        if(playlist.status != 'ok') {
+        if(!playlist && playlist.status != 'ok') {
             log('Error loading playlist: ' + playlist.status);
             return;
         }

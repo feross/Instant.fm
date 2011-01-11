@@ -27,11 +27,11 @@ class Application(tornado.web.Application):
         handlers = [
             (r"/", HomeHandler),
             (r"/upload", UploadHandler),
-            (r"/p/([a-zA-Z0-9]*)$", PlaylistHandler),
+            (r"((?:/partial)?)/p/([a-zA-Z0-9]*)$", PlaylistHandler),
+            (r"((?:/partial)?)/search$", SearchHandler),
             (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
             (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
             (r"/terms$", TermsHandler),
-            (r"/partial/([a-zA-Z0-9]+)", MiniViewHandler),
             (r"/suggest$", ArtistAutocompleteHandler),
             (r".*", ErrorHandler),
         ]
@@ -133,13 +133,7 @@ class BaseHandler(tornado.web.RequestHandler):
             create_date = datetime.utcnow().isoformat(' ')
             new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('user_id', str(new_id))
-            
-class MiniViewHandler(BaseHandler):
-    def get(self, template):
-        # TODO: Right now, we don't have any mini-views we can actually render. Start adding some.
-        if (template == 'search'):
-            self.render('mini-browser-views/search.html');
-            
+           
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
         self.set_header("Access-Control-Allow-Origin", "http://localhost") # TODO: Remove before production
@@ -158,29 +152,38 @@ class TermsHandler(BaseHandler):
         self.render("terms.html")
         
     
-class PlaylistHandler(BaseHandler):
+class PlaylistBaseHandler(BaseHandler):
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
-    
-    def _get_playlist(self, playlist_id):
-        print "Getting playlist ID: " + str(playlist_id)
-        return self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
-    
-    def _render_playlist(self, playlist_id):
+    def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
-        playlist_entry = self._get_playlist(playlist_id)
+        print "Getting playlist ID: " + str(playlist_id)
+        playlist_entry = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
         if not playlist_entry:
             print "Couldn't find playlist"
             raise tornado.web.HTTPError(404)
         
         playlist = self.makePlaylistJSON(playlist_entry)
-        self.render("now_playing_wrapper.html", playlist=playlist)
-    
-    def get(self, playlist_alpha_id):
+        return playlist
+        
+    def _render_playlist_view(self, template_name, is_partial, playlist):
+        template = ('partial/' if is_partial else '') + template_name;
+        self.render(template, playlist=playlist)
+       
+class PlaylistHandler(PlaylistBaseHandler):
+    """Landing page for a playlist"""
+    def get(self, is_partial, playlist_alpha_id):
         self.set_user_cookie()
         playlist_id = self.base36_10(playlist_alpha_id)
-        self._render_playlist(playlist_id)
-
-
+        playlist = self._get_playlist_by_id(playlist_id)
+        self._render_playlist_view('now_playing.html', is_partial, playlist);
+        
+class SearchHandler(PlaylistBaseHandler):
+    """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
+    def get(self, is_partial):
+        self.set_user_cookie()
+        playlist = None # Default to an empty playlist
+        self._render_playlist_view('search.html', is_partial, playlist)
+ 
 class PlaylistJSONHandler(PlaylistHandler):
     """Handles requests to get playlists from the database"""
     

@@ -150,7 +150,7 @@
 {% end %}
 
 {% block scripts %}
-    <script>var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') }};</script>
+    <script>var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};</script>
     <script>
       $(function() {
           onloadPlaylist();
