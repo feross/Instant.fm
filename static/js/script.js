@@ -237,7 +237,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {
@@ -271,7 +271,7 @@ function setupPlaylistActionButtons() {
 function setupNavigationLinks() {
     $('#signUp').click(function(event) {
         event.preventDefault();
-        browser.pushStatic('signup.html', 'Sign Up');
+        browser.pushStatic('signup.html', 'Sign Up', {});
     });
 }
 
@@ -380,6 +380,11 @@ MiniBrowser.prototype.refreshContents = function() {
     this.numSlides = $('#FS_holder .slide').length;
 };
 
+MiniBrowser.prototype.fetchAndPushPartial = function(partial, title, params) {
+    this.pushStatic('/partial/' + partial, title, params);
+};
+
+
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title) {
@@ -391,11 +396,10 @@ MiniBrowser.prototype.push = function(elem, _title) {
             .append('<h2>'+_title+'</h2>');
             
         $(elem).prepend(header);
+        log($(elem));
     }
     
-    $(elem)
-        .addClass('slide')
-        .appendTo('#FS_holder');
+    $(elem).appendTo('#FS_holder');
 
     window.setTimeout(function() {
         $('.buttonHeader h2', elem)
@@ -407,11 +411,11 @@ MiniBrowser.prototype.push = function(elem, _title) {
 };
 
 // Push a static HTML file onto the browser. Files get loaded from /html/.
-MiniBrowser.prototype.pushStatic = function(path, _title) {
-    $.get('/html/'+path, function(data, textStatus, xhr) {
+MiniBrowser.prototype.pushStatic = function(path, _title, params) {
+    $.get(path, params, function(data, textStatus, xhr) {
         log(data);
         
-        var slide = $('<div>'+data+'</div>');
+        var slide = $('<div class="slide">'+data+'</div>');
         browser.push(slide, _title);
     });
 };
@@ -474,7 +478,8 @@ function SearchView(searchElem) {
     this.searchElem = $('<section id="search"></section>')
         .append('<form id="searchBox"><input type="text" class="search" name="search"><input type="submit" class="submit" name="submit" value="Search"></form>')
         .append('<div id="artistResults" class="clearfix" style="display: none;"><h3>Artists</h3></div><div id="albumResults" class="clearfix" style="display: none;"><h3>Albums</h3></div><div id="trackResults" class="clearfix" style="display: none;"><h3>Songs</h3></div>');
-    browser.push(this.searchElem, 'Add Songs');
+    //browser.push(this.searchElem, 'Add Songs');
+    browser.fetchAndPushPartial('search', "Add Songs");
     
     this.addSearchHandlers();
     
@@ -489,6 +494,7 @@ SearchView.show = function(event) {
     if (model.editable) {
         searchview = new SearchView();
     }
+    
 };
 
 // Perform a search for given search string
@@ -968,7 +974,9 @@ Player.prototype.addSongToPlaylist = function(title, artist) {
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
 Player.prototype.loadPlaylist = function(response) {
-    if ($.isPlainObject(response)) { // playlist is embedded in html
+    if (response == null) {
+      return;
+    } else if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
         if(Modernizr.history) {
             window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
@@ -976,7 +984,7 @@ Player.prototype.loadPlaylist = function(response) {
 
     } else { // playlist is from xhr response      
         var playlist = $.parseJSON(response);
-        if(playlist.status != 'ok') {
+        if(!playlist && playlist.status != 'ok') {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
