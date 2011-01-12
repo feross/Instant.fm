@@ -136,7 +136,7 @@ function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
         var k = event.which;
         var nothingPressed;
-        log(k);
+        //log(k);
         
         if (keyEvents) {
             if (event.altKey || event.ctrlKey || event.metaKey) {
@@ -366,6 +366,9 @@ MiniBrowser.prototype.refreshContents = function() {
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title) {
+    // Set elem as top view's contents
+    getTopView().content = elem;
+    
     if (_title) {
         var backButton = browser._makeBackButton();
 
@@ -398,7 +401,6 @@ MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
         log(data);
         
         var slide = $(data);
-        log(slide);
         log(getTopView()); // Associate the element with its view controller
         browser.push(slide, _title);
         
@@ -719,11 +721,11 @@ SearchView.prototype.renderSongs = function(tracks) {
 // Private function that adds handlers to the search box and makes it all work
 SearchView.prototype.addSearchHandlers = function() {
     var searchInput = $('.searchBox input.search', this.content);
-    log('Adding search handlers to ' + searchInput + '.');
+    log(this.content);
     
     var handleSearch = function(searchString) {        
+        log('Handling a search: "' + searchString + '"');
         if (!this.delaySearch && (this.prevSearchString != searchString)) {
-            log('Handling a search');
             this.prevSearchString = searchString;
             searchview.search(searchString);
             
