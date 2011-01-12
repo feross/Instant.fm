@@ -3,7 +3,7 @@ var browser;
 var model;
 
 var playlistview;
-var viewStack = [];
+    viewStack = []; 
 
 // jQuery.fx.off = true;
 
@@ -78,6 +78,14 @@ function onloadPlaylist() {
     $(window).resize(setupPlaylistDisplay);
     
     setupDragDropUploader('p', player.loadPlaylist);
+    addLinkHandlers();
+    
+    // If the page starts with a view controller on the stack (which it should),
+    // we need to call methods on it
+    if (viewStack.length > 0) {
+      getTopView().willSlide();
+      getTopView().didSlide();
+    }
 }
 
 
@@ -90,6 +98,13 @@ function addFocusHandlers(elem) {
     .blur(function() {
         keyEvents = true;
     }); 
+}
+
+function addLinkHandlers(elem) {
+    $('a[rel="partial"]', elem).click(function(event) {
+        event.preventDefault();
+        browser.pushPartial($(this).attr('href'), $(this).attr('title'));
+    });
 }
 
 
@@ -180,7 +195,7 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 65: // a
-                    (new SearchView()).push();
+                    browser.pushPartial('/search', 'Add Songs');
                     break;
                 case 74: // j
                     player.moveSongDown(songIndex);
@@ -382,9 +397,7 @@ MiniBrowser.prototype.refreshContents = function() {
 
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
-MiniBrowser.prototype.push = function(elem, _title, context) {
-    context.content = elem;
-    
+MiniBrowser.prototype.push = function(elem, _title) {
     var title = _title || '';
     var backButton = browser._makeBackButton();
 
@@ -404,7 +417,11 @@ MiniBrowser.prototype.push = function(elem, _title, context) {
     window.setTimeout(function() {
       // Tell context to do anything it has to now that content is in DOM
       context.didSlide();
-    }, 550);
+    }, 500);
+    
+    context = getTopView(); // Is there a more robust way we can do this?
+    context.content = elem;
+    addLinkHandlers(elem);
         
     this.refreshContents();
     this._slideTo(this.numSlides);
@@ -415,29 +432,17 @@ MiniBrowser.prototype.push = function(elem, _title, context) {
 //  beforeVisible - callback function to execute after we've received the partial from
 //                  the server and pushed it onto the browser, but before it's visible
 //  afterVisible  - callback function to execute after the partial is fully slided into view
-MiniBrowser.prototype.pushStatic = function(path, _title, context, _options) {
+MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
     var options = _options || {};
     $.get(path, options.params, function(data, textStatus, xhr) {
         var slide = $(data);
-        log(getTopView()); // Associate the element with its view controller
-        browser.push(slide, _title, context);
-        
-        // Invoke the function and set 'this' to be context.
-        options.beforeVisible && options.beforeVisible.apply(context);
-        
-        if (options.afterVisible) {
-            window.setTimeout(function() {
-                
-                // Invoke the function and set 'this' to be context.
-                options.afterVisible.apply(context);
-            }, 500);
-        }
+        browser.push(slide, _title);
     });
 };
 
 // Fetch a partial from the server, push it onto the minibrowser.
-MiniBrowser.prototype.pushPartial = function(path, _title, context, _options) {
-    this.pushStatic('/partial/' + path, _title, context, _options);
+MiniBrowser.prototype.pushPartial = function(path, _title, _options) {
+    this.pushStatic('/partial' + path, _title, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -520,7 +525,7 @@ BaseView.prototype.didSlide = function() {};
  * well have it. 
  */
 BaseView.prototype.willPop = function() {};
-  
+/*  
 BaseView.prototype.push = function(event) {
     event && event.preventDefault();
     if (model.editable) {
@@ -529,6 +534,7 @@ BaseView.prototype.push = function(event) {
       browser.pushPartial(this.getNameOfPartial(), this.getTitle(), this); 
     }
 };
+*/
 
 /* --------------------------- SEARCH VIEW --------------------------- */
 
@@ -1475,12 +1481,10 @@ Player.prototype.renderPlaylist = function(playlist, start) {
             playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
             playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
             
-            $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-                .click(function(event) { (new SearchView()).push(); event.preventDefault(); })
+            $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
                 .prependTo('#curPlaylistInfo header');
         }
         // TODO: END ---- This shouldn't be in Player.renderPlaylist()
-        
     }
 
     if (start >= playlist.songs.length) { // we're done
