@@ -164,7 +164,7 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 65: // a
-                    SearchView.show();
+                    (new SearchView()).push();
                     break;
                 case 74: // j
                     player.moveSongDown(songIndex);
@@ -367,9 +367,8 @@ MiniBrowser.prototype.refreshContents = function() {
 
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
-MiniBrowser.prototype.push = function(elem, _title) {
-    // Set elem as top view's contents
-    getTopView().content = elem;
+MiniBrowser.prototype.push = function(elem, _title, context) {
+    context.content = elem;
     
     var title = _title || '';
     var backButton = browser._makeBackButton();
@@ -384,7 +383,13 @@ MiniBrowser.prototype.push = function(elem, _title) {
     window.setTimeout(function() {
         $('.buttonHeader h2', elem)
             .css('left', -1 * $('.backButton', elem).width());
+        context.willSlide();
     }, 0);
+    
+    window.setTimeout(function() {
+      // Tell context to do anything it has to now that content is in DOM
+      context.didSlide();
+    }, 550);
         
     this.refreshContents();
     this._slideTo(this.numSlides);
@@ -400,7 +405,7 @@ MiniBrowser.prototype.pushStatic = function(path, _title, context, _options) {
     $.get(path, options.params, function(data, textStatus, xhr) {
         var slide = $(data);
         log(getTopView()); // Associate the element with its view controller
-        browser.push(slide, _title);
+        browser.push(slide, _title, context);
         
         // Invoke the function and set 'this' to be context.
         options.beforeVisible && options.beforeVisible.apply(context);
@@ -424,6 +429,7 @@ MiniBrowser.prototype.pushPartial = function(path, _title, context, _options) {
 MiniBrowser.prototype.pop = function() {
     // Tell the view controller it's going to be popped, then pop it
     getTopView().willHide();
+    getTopView().willPop();
     viewStack.pop();
     
     if (browser.numSlides <= 1) {
@@ -477,30 +483,45 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 function SearchView() {
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
-    
-    // Push onto view stack
-    viewStack.push(this);
-    
-    browser.pushPartial('search', "Add Songs", this, {
-        beforeVisible: this._addSearchHandlers,
-        afterVisible: function() {
-            $('.searchBox input.search', getTopView().content).focus();
-        }
-    });
 };
 
-// Factory method to make a new SearchView
-SearchView.show = function(event) {
+SearchView.prototype.getNameOfPartial = function() {
+    return 'search';
+}
+
+SearchView.prototype.getTitle = function() {
+    return 'Add Songs';
+}
+
+SearchView.prototype.push = function(event) {
     event && event.preventDefault();
     if (model.editable) {
-        new SearchView();
+      // Push onto view stack
+      viewStack.push(this);
+      browser.pushPartial(this.getNameOfPartial(), this.getTitle(), this); 
     }
 };
 
+// Called before animation starts to either push a new view (hiding this one), or pop this one.
 SearchView.prototype.willHide = function() {
-  // TODO: Re-enable keyboard shortcuts here.
-  // That's probably all this stub needs to do.
-  log('SearchView is ready to be popped.');
+    log('SearchView will hide.');
+}
+
+SearchView.prototype.willSlide = function() {
+    // TODO Focus the search bar
+    log('SearchView will show.');
+    this._addSearchHandlers();
+}
+
+// Called after the content is added to the DOM
+SearchView.prototype.didSlide = function() {
+    $('.searchBox input.search', this.content).focus();
+    log('SearchView did show.');
+}
+
+// I can't think of any circumstance when we'll use this, but might as well have it.
+SearchView.prototype.willPop = function() {
+    log('SearchView will pop.');
 }
 
 // Perform a search for given search string
@@ -1392,7 +1413,7 @@ Player.prototype.renderPlaylist = function(playlist, start) {
             playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
             
             $('<a href="#addSongs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-                .click(SearchView.show)
+                .click(function(event) { (new SearchView()).push(); event.preventDefault(); })
                 .prependTo('#curPlaylistInfo header');
         }
         
