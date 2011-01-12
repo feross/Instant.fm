@@ -320,8 +320,8 @@ input.file {
 .sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
 
 #playlist li.playing { background-color: #3990ea; color: #fff}
-.playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
-.playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }
+#playlist .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
+#playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }
 
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
@@ -629,7 +629,7 @@ header .awesome { margin-top: 2px; }
 
 /* Search Results */
 
-.search h3 { margin: 12px 0 8px 0; }
+.searchSection h3 { margin: 0 0 5px 0; }
 
 .artistResult, .albumResult {
     float: left;
@@ -676,34 +676,61 @@ header .awesome { margin-top: 2px; }
     border: 5px solid #499bd1;
 }
 
-.trackResult {
+.songResult {
     border-top: #333 1px solid; 
     clear: both;
     padding: 6px 0;
+    position: relative;
+    cursor: pointer;
 }
 
-.trackResult img {
+.songResult img, .songResultPlay {
     float: left;
     height: 34px;
     margin-right: 10px;
     width: 34px;
 }
 
-.trackResult div {
-    float: left;
-    font-size: 15px;
-    font-weight: bold;
-    margin: -1px 0 0 0;
-    width: 435px;
+.songResultPlay {
+    background: transparent url('/images/play.png') 9px 7px no-repeat;
+    display: none;
+    height: 34px;
+    left: 0;
+    position: absolute;
+    margin-top: 6px;
+    top: 0;
+    width: 34px;
+    z-index: 2;
 }
 
-.trackResult span {
+.songResult .songInfo {
+    float: left;
+    width: 380px;
+}
+
+.songResult .songInfo .title {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.songResult .songInfo .artist {
     display: block;
     font-size: 12px;
     font-weight: normal;
     margin-top: 3px;
 }
 
+.songResult:hover .songResultPlay { display: block; background-color: rgba(0, 0, 0, 0.4); }
+.songResult:hover .songInfo .title { color: #499bd1; }
+
+.songResult .addSong {
+    float: right;
+    margin-top: 5px;
+}
+
+.songResult.playing .title, .songResult.playing .artist {
+    text-shadow: 0 0 5px rgb(73, 155, 209), -1px -1px 10px rgb(73, 155, 209);
+}
 
 
 

@@ -22,6 +22,11 @@ var appSettings = {
             maxHeight: 512
         }
     },
+    sortable: {
+        axis: 'y',
+        scrollSensitivity: 25,
+        tolerance: 'pointer'
+    }
 };
 
 /* ------------------------- INHERITANCE ------------------------- */
@@ -195,7 +200,7 @@ function setupKeyboardShortcuts() {
                     $('#helpLink').trigger('click');
                     break;
                 case 76: // l
-                    player.showCurrentSong();
+                    player.highlightSong('.playing');
                     break;
 
                 // Share playlists
@@ -233,7 +238,6 @@ function setupKeyboardShortcuts() {
 
         // If we executed a keyboard shortcut, prevent the browser default event from happening
         if (pressed1 || pressed2) {
-            log('blocked default event');
             event.preventDefault();
         }
     });
@@ -426,7 +430,7 @@ MiniBrowser.prototype.pushStatic = function(path, _title, context, _options) {
                 
                 // Invoke the function and set 'this' to be context.
                 options.afterVisible.apply(context);
-            }, 550);
+            }, 500);
         }
     });
 };
@@ -553,7 +557,7 @@ SearchView.prototype.didSlide = function() {
 
 // Perform a search for given search string
 SearchView.prototype.search = function(searchString) {
-    log('Searching for "' + searchString + '"');
+    log('Searching for "' + searchString + '".');
     if (!searchString) {
         return;
     }
@@ -614,8 +618,8 @@ SearchView.prototype.handleArtistSearchResults = function(data) {
     var artists = [];
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
     
-    if (!artistResults) {
-        this.renderArtists([]);
+    if (!artistResults || !artistResults.length) {
+        $('.artistResults', this.content).slideUp();
         return;
     }
 
@@ -630,149 +634,84 @@ SearchView.prototype.handleArtistSearchResults = function(data) {
 
         artists.push(artist);
     }
-
-    this.renderArtists(artists);
-};
-
-/* Takes an array of objects with properties 'name', 'image' 
- * If there is no image, image will be the empty string. 
- */
-SearchView.prototype.renderArtists = function(artists) {
-    if(!artists.length) {
-        $('.artistResults', this.content).hide();
-    } else {
-        $('.artistResult', this.content).remove();
-        $('.artistResults', this.content).show();
-    }
     
-    for (var i = 0; i < artists.length; i++) {
-        var artist = artists[i];
-        
-        if (!artist.image) {
-            artist.image = '/images/anonymous.png';
-        }
-        
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="'+artist.image+'">');
-        
-        $('<div class="artistResult"></div>')
-            .append('<div>'+artist.name+'</div>')
-            .append(img)
-            .appendTo($('.artistResults', this.content));
-    }
+    $('.artistResults div', this.content).remove();
+    $('.artistResults', this.content)
+        .append(makeArtistList(artists))
+        .slideDown();
 };
+
 
 SearchView.prototype.handleAlbumSearchResults = function(data) {
-  var albums = [];
-  var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
-  
-  if (!albumResults) {
-    this.renderAlbums([]);
-    return;
-  }
-  
-  for (var i = 0; i < albumResults.length; i++) {
-    var albumResult = albumResults[i];
-    var album = {};
-    
-    album.name = albumResult.name;
-    album.artist = albumResult.artist;
-    album.image = albumResult.image[2]['#text'];
-    
-    albums.push(album);
-  };
-  
-  this.renderAlbums(albums);
-};
+    var albums = [];
+    var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
 
-/* Takes an array of objects with properties 'name', 'artist', 'image' 
- * If there is no image, image will be the empty string. 
- */
-SearchView.prototype.renderAlbums = function(albums) {
-    if (!albums.length) {
-        $('.albumResults', this.content).hide();
-    } else {
-        $('.albumResult', this.content).remove();
-        $('.albumResults', this.content).show();
+    if (!albumResults || !albumResults.length) {
+        $('.albumResults', this.content).slideUp();
+        return;
     }
 
-    for (var i = 0; i < albums.length; i++) {
-        var album = albums[i];
+    for (var i = 0; i < albumResults.length; i++) {
+        var albumResult = albumResults[i];
+        var album = {};
 
-        if (!album.image) {
-            album.image = '/images/unknown.png';
-        }
+        album.name = albumResult.name;
+        album.artist = albumResult.artist;
+        album.image = albumResult.image[2]['#text'];
 
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="' + album.image + '">');
+        albums.push(album);
+    };
 
-        $('<div class="albumResult"></div>')
-        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
-        .append(img)
-        .appendTo($('.albumResults', this.content));
-    }
+    $('.albumResults div', this.content).remove();
+    $('.albumResults', this.content)
+        .append(makeAlbumList(albums))
+        .slideDown();
 };
 
 SearchView.prototype.handleSongSearchResults = function(data) {
-  var tracks = [];
-  var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
-  
-  if (!trackResults) {
-    this.renderSongs([]);
-    return;
-  }
-  
-  for (var i = 0; i < trackResults.length; i++) {
-    var trackResult = trackResults[i];
-    var track = {};
-    
-    track.name = trackResult.name;
-    track.artist = trackResult.artist;
-    
-    if (trackResult.image) {
-        track.image =  trackResult.image[0]['#text'];
-    } else {
-        track.image = '';
-    }
-    
-    tracks.push(track);
-  };
-  
-  this.renderSongs(tracks);
-};
+    var tracks = [];
+    var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
 
-/* Takes an array of objects with properties 'name', 'artist', 'image' 
- * If there is no image, image will be the empty string. 
- */
-SearchView.prototype.renderSongs = function(tracks) {
-    if(!tracks.length) {
-        $('.trackResults', this.content).hide();
-    } else {
-        $('.trackResult', this.content).remove();
-        $('.trackResults', this.content).show();
+    if (!trackResults || !trackResults) {
+        $('.songResults', this.content).slideUp();
+        return;
     }
-    
-    for (var i = 0; i < tracks.length; i++) {
-        var track = tracks[i];
-        
-        if (!track.image) {
-            track.image = '/images/unknown.png';
+
+    for (var i = 0; i < trackResults.length; i++) {
+        var trackResult = trackResults[i];
+        var track = {};
+
+        track.name = trackResult.name;
+        track.artist = trackResult.artist;
+
+        if (trackResult.image) {
+            track.image = trackResult.image[0]['#text'];
+        } else {
+            track.image = '';
         }
-        
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="'+track.image+'">');
-        
-        $('<div class="trackResult clearfix"></div>')
-            .append(img)
-            .append('<div>'+track.name+'<span>'+track.artist+'</span></div>')
-            .click(function() {
-                player.addSongToPlaylist(track.name, track.artist);
-            })
-            .appendTo($('.trackResults', this.content));
-    }
+
+        tracks.push(track);
+    };
+
+    $('.songResults div', this.content).remove();
+    
+    var songlist = new SongList(tracks, {
+        playSong: function(song) {
+            var q = song.name+' '+song.artist;
+            player.playSongBySearch(q);
+            $('.playing').toggleClass('playing');
+            $(this).toggleClass('playing');
+        },
+        addSong: function(song) {
+            player.addSongToPlaylist(song.name, song.artist);
+        }
+    });
+    $('.songResults', this.content)
+        .append(songlist.render())
+        .slideDown();
 };
 
-// Private function that adds handlers to the search box and makes it all work
+// Private function that adds handlers to the search box
 SearchView.prototype._addSearchHandlers = function() {
     var searchInput = $('.searchBox input.search', this.content);
     
@@ -796,14 +735,13 @@ SearchView.prototype._addSearchHandlers = function() {
     });
 };
 
+// Private function that hand
 SearchView.prototype._handleSearch = function(searchString) {
-    log('called handlesearch');
     if (!this.delaySearch && (this.prevSearchString != searchString)) {
-        log('Handling a search');
         this.prevSearchString = searchString;
         this.search(searchString);
         
-        // Don't allow another search for 500ms.
+        // Don't allow another search for a while.
         this.delaySearch = true;
         var that = this;
         window.setTimeout(function() {
@@ -813,9 +751,101 @@ SearchView.prototype._handleSearch = function(searchString) {
             if (searchInput.val() != searchString) {
                 that._handleSearch(searchInput.val());
             }
-        }, 500);
+        }, 800);
     }
 };
+
+
+/* -------------------------- MAKE LISTS ------------------------ */
+
+// Takes an array of objects with properties 'name', 'artist', 'image' 
+function SongList(songs, callbacks) {
+    this.songs = songs;
+    this.callbacks = callbacks;
+}
+
+SongList.prototype.render = function() {
+    var result = $('<div></div>');
+    for (var i = 0; i < this.songs.length; i++) {
+        var song = this.songs[i];
+        
+        if (!song.image) {
+            song.image = '/images/unknown.png';
+        }
+        
+        var that = this;
+        var playSongHelper = function(song) {
+            return function(event) {
+                event.preventDefault();
+                that.callbacks.playSong.apply(this, [song]);
+            };
+        };
+        
+        var addSongHelper = function(song) {
+            return function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                that.callbacks.addSong.apply(this, [song]);
+            };
+        };
+        
+        var button = $('<div class="addSong awesome small">+ Add</div>')
+            .click(addSongHelper(song));
+        
+        $('<div class="songResult clearfix"></div>')
+            .append('<img src="'+song.image+'">') // No alt text. Want to avoid alt-text flash while img loads
+            .append('<div class="songResultPlay"></div>')
+            .append('<div class="songInfo"><span class="title">'+song.name+'</span><span class="artist">'+song.artist+'</span></div>')
+            .append(button)
+            .click(playSongHelper(song))
+            .appendTo(result);
+    }
+    return result;
+};
+
+
+// Takes an array of objects with properties 'name', 'image' 
+function makeArtistList(artists) {
+    var result = $('<div></div>');
+    for (var i = 0; i < artists.length; i++) {
+        var artist = artists[i];
+        
+        if (!artist.image) {
+            artist.image = '/images/anonymous.png';
+        }
+        
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="'+artist.image+'">');
+        
+        $('<div class="artistResult"></div>')
+            .append('<div>'+artist.name+'</div>')
+            .append(img)
+            .appendTo(result);
+    }
+    return result;
+}
+
+
+// Takes an array of objects with properties 'name', 'artist', 'image'
+function makeAlbumList(albums) {
+    var result = $('<div></div>');
+    for (var i = 0; i < albums.length; i++) {
+        var album = albums[i];
+
+        if (!album.image) {
+            album.image = '/images/unknown.png';
+        }
+
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="' + album.image + '">');
+
+        $('<div class="albumResult"></div>')
+        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append(img)
+        .appendTo(result);
+    }
+    return result;
+}
 
 
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
@@ -823,7 +853,6 @@ SearchView.prototype._handleSearch = function(searchString) {
 function PlaylistView() {
     this.bestAlbumImg; // Use first non-blank album as share image
     this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
-    
 }
 
 
@@ -1156,13 +1185,12 @@ PlaylistView.prototype.showHideComments = function() {
 
 function Player() {
     this.isPlayerInit = false; // have we initialized the player?
-    this.ytplayer = null; // YouTube DOM element
+    this.ytplayer; // YouTube DOM element
     this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
     this.renderPlaylistTimeout = 100; // Time between rendering each chunk
     this.volume; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
-    
 }
 
 Player.prototype.play = function() {
@@ -1245,9 +1273,14 @@ Player.prototype.playPrevSong = function() {
 Player.prototype.moveSongIntoView = function() {
     var relativeScrollDistance = $('.playing').position().top - $('#playlistDiv').position().top;
     if (relativeScrollDistance <= 0) {
-        scrollTo('.playing', '#playlistDiv', false, true);
+        scrollTo('.playing', '#playlistDiv', {
+            noAnimation: true
+        });
     } else if (relativeScrollDistance > $('#playlistDiv').height() - $('.playing').height()) {
-        scrollTo('.playing', '#playlistDiv', true, true);
+        scrollTo('.playing', '#playlistDiv', {
+            scrollAtBottom: true,
+            noAnimation: true
+        });
     }
 }
 
@@ -1295,7 +1328,6 @@ Player.prototype.playSongById = function(id) {
 Player.prototype._playVideoById = function(id) {
     if (this.ytplayer) {
         player.ytplayer.loadVideoById(id, 0, 'hd720');
-        player.ytplayer.setVolume(player.volume);
     } else {
         if (!this.isPlayerInit) {
             this._initPlayer(id);
@@ -1372,6 +1404,9 @@ Player.prototype.moveSongDown = function(oldId) {
 
 Player.prototype.addSongToPlaylist = function(title, artist) {
     log(title + ' - ' + artist);
+    this._addPlaylistListItem(model.songs.length, {t: title, a: artist});
+    this.highlightSong('#playlist li:last');
+    model.addSong(title, artist);
 };
 
 
@@ -1398,7 +1433,7 @@ Player.prototype.loadPlaylist = function(response) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
         playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#infoDisplay').effect('pulsate');
+        $('#infoDisplay').effect('pulsate', {times: 1});
     }
 
     model.updatePlaylist(playlist);
@@ -1430,6 +1465,7 @@ Player.prototype.renderPlaylist = function(playlist, start) {
         $('.editLink').remove(); // remove all edit links
         $('#addSong').remove(); // remove the add button (if it exists)
         
+        // TODO: START ---- This shouldn't be in Player.renderPlaylist()
         $('#curPlaylistTitle')
             .text(playlist.title);
         $('#curPlaylistDesc')
@@ -1443,6 +1479,7 @@ Player.prototype.renderPlaylist = function(playlist, start) {
                 .click(function(event) { (new SearchView()).push(); event.preventDefault(); })
                 .prependTo('#curPlaylistInfo header');
         }
+        // TODO: END ---- This shouldn't be in Player.renderPlaylist()
         
     }
 
@@ -1450,20 +1487,17 @@ Player.prototype.renderPlaylist = function(playlist, start) {
         if (playlist.editable) {
             $('body').addClass('editable');
             $('#playlist')
-                .sortable({
-                    axis: 'y',
-                    scrollSensitivity: 25,
+                .sortable($.extend({}, appSettings.sortable, {
                     start: function(event, ui) {
                         $('body').toggleClass('sorting', true);
                     },
                     stop: function(event, ui) {
                         player.onPlaylistReorder(event, ui);
                         $('body').toggleClass('sorting', false);
-                    },
-                    tolerance: 'pointer'
-                })
+                    }
+                }));
         }
-            
+
         $('#playlist').disableSelection().mouseup(function(event) {
             player.reorderedSong = null; // we're done dragging now
         });
@@ -1475,19 +1509,23 @@ Player.prototype.renderPlaylist = function(playlist, start) {
     var end = Math.min(start + player.renderPlaylistChunkSize, playlist.songs.length);
 
     for (var i = start; i < end; i++) {
-        var v = playlist.songs[i];
-        $('<li id="song'+i+'"><span class="title">'+v.t+'</span><span class="artist">'+v.a+'</span><span class="handle">&nbsp;</span></li>')
-            .appendTo('#playlist')
-            .click(function(event) {
-                var songId = parseInt($(this).attr('id').substring(4));
-                player.reorderedSong || player.playSong(songId);
-            });
+        var song = playlist.songs[i];
+        this._addPlaylistListItem(i, song);
     }
 
     window.setTimeout(function() {
         player.renderPlaylist(playlist, start + player.renderPlaylistChunkSize);
     }, player.renderPlaylistTimeout);
 };
+
+Player.prototype._addPlaylistListItem = function(i, song) {
+    $('<li id="song'+i+'"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span><span class="handle">&nbsp;</span></li>')
+        .appendTo('#playlist')
+        .click(function(event) {
+            var songId = parseInt($(this).attr('id').substring(4));
+            player.reorderedSong || player.playSong(songId);
+        });
+}
 
 // Called by JQuery UI "Sortable" when a song has been reordered
 // @event - original browser event
@@ -1543,11 +1581,13 @@ Player.prototype.renderRowColoring = function() {
 };
 
 // Show currently playing song
-Player.prototype.showCurrentSong = function() {
-    scrollTo('.playing', '#playlistDiv');
-    $('.playing').effect('pulsate');
+Player.prototype.highlightSong = function(selector) {
+    scrollTo(selector, '#playlistDiv', {
+        callback: function() {
+            $(selector).effect('pulsate', {times: 1});
+        }
+    });
 };
-
 
 
 /*--------------------- BROWSER EVENTS --------------------- */
@@ -1650,9 +1690,17 @@ Model.prototype.moveSong = function(oldIndex, newIndex) {
     var songData = model.songs[oldIndex];
     this.songs.splice(oldIndex, 1);
     this.songs.splice(newIndex, 0, songData);
-    
-    this.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
+    this.saveSongs();
 };
+
+Model.prototype.addSong = function(title, artist) {
+    this.songs.push({t: title, a: artist});
+    this.saveSongs();
+}
+
+Model.prototype.saveSongs = function() {
+    this.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
+}
 
 Model.prototype.getTopArtists = function(numArtists) {
     var artists = [];
@@ -1709,20 +1757,21 @@ function showPop(url, _name, _height, _width) {
 }
 
 // Scroll element into view
-function scrollTo(selectedElem, _container, _scrollAtBottom, _noAnimation) {
+function scrollTo(selectedElem, _container, options) {
     var container = _container || 'html,body';
     
     var relativeScrollDistance = $(selectedElem).position().top - $(container).position().top;
     var absScrollTop = $(container).scrollTop() + relativeScrollDistance;
     
-    if (_scrollAtBottom) {
+    if (options.scrollAtBottom) {
         absScrollTop += ($(selectedElem).height() - $(container).height());
     }
     
-    if (_noAnimation) {
+    if (options.noAnimation) {
         $(container).scrollTop(absScrollTop);
+        options.callback && options.callback();
     } else {
-        $(container).animate({scrollTop: absScrollTop}, 500);
+        $(container).animate({scrollTop: absScrollTop}, 500, options.callback);
     }
 }
 
