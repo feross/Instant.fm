@@ -591,14 +591,14 @@ header .awesome { margin-top: 2px; }
 
 /* Search page */
 
-#searchBox {
+.searchBox {
     background: transparent url('/images/search-box.png') top left no-repeat;
     display: block;
     height: 40px;
     margin: 20px auto;
 }
 
-#searchBox input.search {
+.searchBox input.search {
     background: #fff;
     border: 0;
     color: #222;
@@ -613,7 +613,7 @@ header .awesome { margin-top: 2px; }
     -webkit-border-vertical-spacing: 0;
 }
 
-#searchBox input.submit {
+.searchBox input.submit {
     background: transparent url('/images/search-button.png') 0 -40px no-repeat;
     border: 0;
     height: 40px;
@@ -622,14 +622,14 @@ header .awesome { margin-top: 2px; }
     width: 140px;
 }
 
-#searchBox input.submit:hover {
+.searchBox input.submit:hover {
     background: transparent url('/images/search-button.png') 0 0 no-repeat;
 }
 
 
 /* Search Results */
 
-#search h3 { margin: 12px 0 8px 0; }
+.search h3 { margin: 12px 0 8px 0; }
 
 .artistResult, .albumResult {
     float: left;
@@ -662,7 +662,7 @@ header .awesome { margin-top: 2px; }
     font-weight: normal;
 }
 
-#artistResults img, #albumResults img {
+.artistResults img, .albumResults img {
     -moz-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     -webkit-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
@@ -671,8 +671,8 @@ header .awesome { margin-top: 2px; }
     width: 140px;
 }
 
-#artistResults .artistResult:hover img,
-#albumResults .albumResult:hover img {
+.artistResults .artistResult:hover img,
+.albumResults .albumResult:hover img {
     border: 5px solid #499bd1;
 }
 

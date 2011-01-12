@@ -4,6 +4,7 @@ var model;
 
 var playlistview;
 var searchview;
+var viewStack = [];
 
 // jQuery.fx.off = true;
 
@@ -330,6 +331,10 @@ function redirectToPlaylist(response) {
     window.location = '/p/'+id;
 }
 
+function getTopView() {
+  return viewStack[viewStack.length-1];
+}
+
 
 /* --------------------------- MINI BROWSER --------------------------- */
 
@@ -393,6 +398,8 @@ MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
         log(data);
         
         var slide = $(data);
+        log(slide);
+        log(getTopView()); // Associate the element with its view controller
         browser.push(slide, _title);
         
         options.beforeVisible && options.beforeVisible();
@@ -412,6 +419,10 @@ MiniBrowser.prototype.pushPartial = function(partial, _title, _options) {
 
 // Pop the top-most page off of the browser.
 MiniBrowser.prototype.pop = function() {
+    // Tell the view controller it's going to be popped, then pop it
+    getTopView().willHide();
+    viewStack.pop();
+    
     if (browser.numSlides <= 1) {
         return;
     }
@@ -459,17 +470,20 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 
 /* --------------------------- SEARCHER --------------------------- */
 
-var prevSearchString = ''; // Used to prevent repeating identical searches
-var delaySearch = false; // Used to force a delay between searches
 
-function SearchView(searchElem) {
+function SearchView() {
+    this.prevSearchString = ''; // Used to prevent repeating identical searches
+    this.delaySearch = false; // Used to force a delay between searches
+    
+    // Push onto view stack
+    viewStack.push(this);
     
     browser.pushPartial('search', "Add Songs", {
         beforeVisible: function() {
             searchview.addSearchHandlers();
         },
         afterVisible: function() {
-            $('#searchBox input.search').focus();
+            $('.searchBox input.search', getTopView().content).focus();
         }
     });
 };
@@ -482,13 +496,20 @@ SearchView.show = function(event) {
     }
 };
 
+SearchView.prototype.willHide = function() {
+  // TODO: Re-enable keyboard shortcuts here.
+  // That's probably all this stub needs to do.
+  log('SearchView is ready to be popped.');
+}
+
 // Perform a search for given search string
 SearchView.prototype.search = function(searchString) {
+    log('Searching for "' + searchString + '"');
     if (!searchString) {
         return;
     }
 
-    prevSearchString = searchString;
+    this.prevSearchString = searchString;
 
     model.lastfm.artist.search({
         artist: searchString,
@@ -562,10 +583,10 @@ SearchView.prototype.handleArtistSearchResults = function(data) {
  */
 SearchView.prototype.renderArtists = function(artists) {
     if(!artists.length) {
-        $('#artistResults').hide();
+        $('.artistResults', this.content).hide();
     } else {
-        $('.artistResult').remove();
-        $('#artistResults').show();
+        $('.artistResult', this.content).remove();
+        $('.artistResults', this.content).show();
     }
     
     for (var i = 0; i < artists.length; i++) {
@@ -581,7 +602,7 @@ SearchView.prototype.renderArtists = function(artists) {
         $('<div class="artistResult"></div>')
             .append('<div>'+artist.name+'</div>')
             .append(img)
-            .appendTo('#artistResults');
+            .appendTo($('.artistResults'));
     }
 };
 
@@ -613,10 +634,10 @@ SearchView.prototype.handleAlbumSearchResults = function(data) {
  */
 SearchView.prototype.renderAlbums = function(albums) {
     if (!albums.length) {
-        $('#albumResults').hide();
+        $('.albumResults', this.content).hide();
     } else {
-        $('.albumResult').remove();
-        $('#albumResults').show();
+        $('.albumResult', this.content).remove();
+        $('.albumResults', this.content).show();
     }
 
     for (var i = 0; i < albums.length; i++) {
@@ -632,7 +653,7 @@ SearchView.prototype.renderAlbums = function(albums) {
         $('<div class="albumResult"></div>')
         .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
         .append(img)
-        .appendTo('#albumResults');
+        .appendTo('.albumResults', this.content);
     }
 };
 
@@ -669,10 +690,10 @@ SearchView.prototype.handleSongSearchResults = function(data) {
  */
 SearchView.prototype.renderSongs = function(tracks) {
     if(!tracks.length) {
-        $('#trackResults').hide();
+        $('.trackResults', this.content).hide();
     } else {
-        $('.trackResult').remove();
-        $('#trackResults').show();
+        $('.trackResult', this.content).remove();
+        $('.trackResults', this.content).show();
     }
     
     for (var i = 0; i < tracks.length; i++) {
@@ -691,22 +712,24 @@ SearchView.prototype.renderSongs = function(tracks) {
             .click(function() {
                 player.addSongToPlaylist(track.name, track.artist);
             })
-            .appendTo('#trackResults');
+            .appendTo('.trackResults', this.content);
     }
 };
 
 // Private function that adds handlers to the search box and makes it all work
 SearchView.prototype.addSearchHandlers = function() {
-    var searchInput = $('#searchBox input.search', this.searchElem);
+    var searchInput = $('.searchBox input.search', this.content);
+    log('Adding search handlers to ' + searchInput + '.');
     
     var handleSearch = function(searchString) {        
-        if (!delaySearch && (prevSearchString != searchString)) {
-            prevSearchString = searchString;
+        if (!this.delaySearch && (this.prevSearchString != searchString)) {
+            log('Handling a search');
+            this.prevSearchString = searchString;
             searchview.search(searchString);
             
-            delaySearch = true;            
+            this.delaySearch = true;            
             window.setTimeout(function() {
-                delaySearch = false;
+                this.delaySearch = false;
                 
                 if (searchInput.val() != searchString) {
                     handleSearch(searchInput.val());
@@ -716,7 +739,7 @@ SearchView.prototype.addSearchHandlers = function() {
     };
     
     // Hits enter
-    $('#searchBox', this.searchElem).submit(function(event) {
+    $('.searchBox', this.content).submit(function(event) {
         event.preventDefault();
         handleSearch(searchInput.val());
     });
@@ -728,8 +751,8 @@ SearchView.prototype.addSearchHandlers = function() {
     addFocusHandlers(searchInput);
     
     // Clicks search button
-    $('#searchBox input.submit', this.searchElem).click(function() {
-        event.preventDefault();
+    $('.searchBox input.submit', this.content).click(function(event) {
+        event && event.preventDefault();
         handleSearch(searchInput.val());
     });
 };
@@ -1129,6 +1152,7 @@ Player.prototype.renderRowColoring = function() {
 Player.prototype.showCurrentSong = function() {
     scrollTo('.playing', '#playlistDiv');
 };
+
 
 
 /*--------------------- BROWSER EVENTS --------------------- */
