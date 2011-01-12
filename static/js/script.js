@@ -24,6 +24,17 @@ var appSettings = {
     },
 };
 
+/* ------------------------- INHERITANCE ------------------------- */
+// A bizarre function to make Javascrip's inheritance less incomprehensible
+function copyPrototype(descendant, parent) {
+    var sConstructor = parent.toString();
+    var aMatch = sConstructor.match( /\s*function (.*)\(/ );
+    if ( aMatch != null ) { descendant.prototype[aMatch[1]] = parent; }
+    for (var m in parent.prototype) {
+        descendant.prototype[m] = parent.prototype[m];
+    }
+};
+
 
 /* --------------------------- ON LOAD --------------------------- */
 
@@ -476,6 +487,44 @@ MiniBrowser.prototype._makeBackButton = function(text) {
     return button;
 };
 
+/* ---------------------------- BASE VIEW ---------------------------- */
+
+/* All views should extend this one! See SearchView for how to do that.*/
+function BaseView() {};
+BaseView.prototype.getNameOfPartial = function() {
+    log('Must override getNameOfPartial() in view controller!');
+    return '';
+};
+BaseView.prototype.getTitle = function() {
+    log('Must override getTitle() in view controller!');
+    return '';
+};
+
+/* Called before animation starts to either push a new view (hiding this 
+ * one), or pop this one.
+ */
+BaseView.prototype.willHide = function() {};
+
+/* Called after content is added to DOM but before animation. */
+BaseView.prototype.willSlide = function() {};
+
+/* Called after the content is added to the DOM */
+BaseView.prototype.didSlide = function() {};
+  
+/* Called immediately before the view is popped.
+ * I can't think of any circumstance when we'll use this, but might as 
+ * well have it. 
+ */
+BaseView.prototype.willPop = function() {};
+  
+BaseView.prototype.push = function(event) {
+    event && event.preventDefault();
+    if (model.editable) {
+      // Push onto view stack
+      viewStack.push(this);
+      browser.pushPartial(this.getNameOfPartial(), this.getTitle(), this); 
+    }
+};
 
 /* --------------------------- SEARCH VIEW --------------------------- */
 
@@ -484,6 +533,7 @@ function SearchView() {
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
 };
+copyPrototype(SearchView, BaseView);
 
 SearchView.prototype.getNameOfPartial = function() {
     return 'search';
@@ -493,35 +543,12 @@ SearchView.prototype.getTitle = function() {
     return 'Add Songs';
 }
 
-SearchView.prototype.push = function(event) {
-    event && event.preventDefault();
-    if (model.editable) {
-      // Push onto view stack
-      viewStack.push(this);
-      browser.pushPartial(this.getNameOfPartial(), this.getTitle(), this); 
-    }
-};
-
-// Called before animation starts to either push a new view (hiding this one), or pop this one.
-SearchView.prototype.willHide = function() {
-    log('SearchView will hide.');
-}
-
 SearchView.prototype.willSlide = function() {
-    // TODO Focus the search bar
-    log('SearchView will show.');
     this._addSearchHandlers();
 }
 
-// Called after the content is added to the DOM
 SearchView.prototype.didSlide = function() {
     $('.searchBox input.search', this.content).focus();
-    log('SearchView did show.');
-}
-
-// I can't think of any circumstance when we'll use this, but might as well have it.
-SearchView.prototype.willPop = function() {
-    log('SearchView will pop.');
 }
 
 // Perform a search for given search string
