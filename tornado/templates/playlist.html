@@ -38,7 +38,7 @@
     <div id="infoDisplay">
       
       <nav class="clearfix" id="headerMenu">
-        <a href="#searchLink" id="searchLink">Search</a>
+        <a href="/search" rel="partial" id="searchLink">Search</a>
         <a href="#myLists" id="myLists">My Playlists</a>
         <a href="#signUp" id="signUp">Sign up</a>
       </nav>
@@ -150,10 +150,11 @@
 {% end %}
 
 {% block scripts %}
-    <script>var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};</script>
+    {% block scripts-partial %}{% end %}
     <script>
-      $(function() {
-          onloadPlaylist();
-      });
+      var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
+        $(function() {
+            onloadPlaylist();
+        });
     </script>
 {% end %}
