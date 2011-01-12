@@ -136,7 +136,6 @@ class BaseHandler(tornado.web.RequestHandler):
            
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
-        self.set_header("Access-Control-Allow-Origin", "http://localhost") # TODO: Remove before production
         prefix = self.get_argument('term');
         artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
         self.write(json.dumps(artists))
