@@ -3,7 +3,6 @@ var browser;
 var model;
 
 var playlistview;
-var searchview;
 var viewStack = [];
 
 // jQuery.fx.off = true;
@@ -135,15 +134,11 @@ function setupPlaylistDisplay() {
 function setupKeyboardShortcuts() {
     $(window).keydown(function(event) {
         var k = event.which;
-
-        var nothingPressed1 = false;
-        var nothingPressed2 = false;
+        var pressed1 = true;
+        var pressed2 = true;
 
         // Disablable events
-        if (keyEvents) {
-            if (event.altKey || event.ctrlKey || event.metaKey) {
-                return;
-            }
+        if (keyEvents && !event.altKey && !event.ctrlKey && !event.metaKey) {
             switch(k) {
                 // Playback control
                 case 39: case 40: // down, right
@@ -203,10 +198,12 @@ function setupKeyboardShortcuts() {
                     shareOnBuzz();
                     break;
                 default:
-                    nothingPressed1 = true;
+                    pressed1 = false;
                     break;
             }
 
+        } else {
+            pressed1 = false;
         }
 
         // Non-disablable events
@@ -219,12 +216,13 @@ function setupKeyboardShortcuts() {
                 browser.pop();
                 break;
             default:
-                nothingPressed2 = true;
+                pressed2 = false;
                 break;
         }
 
         // If we executed a keyboard shortcut, prevent the browser default event from happening
-        if (!nothingPressed1 || !nothingPressed2) {
+        if (pressed1 || pressed2) {
+            log('blocked default event');
             event.preventDefault();
         }
     });
@@ -399,26 +397,29 @@ MiniBrowser.prototype.push = function(elem, _title) {
 //  beforeVisible - callback function to execute after we've received the partial from
 //                  the server and pushed it onto the browser, but before it's visible
 //  afterVisible  - callback function to execute after the partial is fully slided into view
-MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
+MiniBrowser.prototype.pushStatic = function(path, _title, context, _options) {
     var options = _options || {};
     $.get(path, options.params, function(data, textStatus, xhr) {
         var slide = $(data);
         log(getTopView()); // Associate the element with its view controller
         browser.push(slide, _title);
         
-        options.beforeVisible && options.beforeVisible();
+        // Invoke the function and set 'this' to be context.
+        options.beforeVisible && options.beforeVisible.apply(context);
         
         if (options.afterVisible) {
             window.setTimeout(function() {
-                options.afterVisible();
+                
+                // Invoke the function and set 'this' to be context.
+                options.afterVisible.apply(context);
             }, 550);
         }
     });
 };
 
 // Fetch a partial from the server, push it onto the minibrowser.
-MiniBrowser.prototype.pushPartial = function(partial, _title, _options) {
-    this.pushStatic('/partial/' + partial, _title, _options);
+MiniBrowser.prototype.pushPartial = function(path, _title, context, _options) {
+    this.pushStatic('/partial/' + path, _title, context, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -482,21 +483,19 @@ function SearchView() {
     // Push onto view stack
     viewStack.push(this);
     
-    browser.pushPartial('search', "Add Songs", {
-        beforeVisible: function() {
-            searchview.addSearchHandlers();
-        },
+    browser.pushPartial('search', "Add Songs", this, {
+        beforeVisible: this._addSearchHandlers,
         afterVisible: function() {
             $('.searchBox input.search', getTopView().content).focus();
         }
     });
 };
 
-// Factory method to make a new searchview
+// Factory method to make a new SearchView
 SearchView.show = function(event) {
     event && event.preventDefault();
     if (model.editable) {
-        searchview = new SearchView();
+        new SearchView();
     }
 };
 
@@ -515,15 +514,18 @@ SearchView.prototype.search = function(searchString) {
 
     this.prevSearchString = searchString;
 
+    var that = this;
     model.lastfm.artist.search({
         artist: searchString,
         limit: 3,
     },
     {
-        success: searchview.handleArtistSearchResults,
+        success: function(data) {
+            that.handleArtistSearchResults(data);
+        },
         error: function(code, message) {
             log(code + ' ' + message);
-            searchview.renderArtists([]);
+            that.renderArtists([]);
         }
     });
 
@@ -533,11 +535,13 @@ SearchView.prototype.search = function(searchString) {
         limit: 3,
     },
     {
-        success: searchview.handleAlbumSearchResults,
+        success: function(data) {
+            that.handleAlbumSearchResults(data);
+        },
         error: function(code, message)
         {
             log(code + ' ' + message);
-            searchview.renderAlbums([]);
+            that.renderAlbums([]);
         }
     });
 
@@ -547,11 +551,13 @@ SearchView.prototype.search = function(searchString) {
         limit: 10,
     },
     {
-        success: searchview.handleSongSearchResults,
+        success: function(data) {
+            that.handleSongSearchResults(data);
+        },
         error: function(code, message)
         {
             log(code + ' ' + message);
-            searchview.renderSongs([]);
+            that.renderSongs([]);
         }
     }
     )
@@ -561,9 +567,9 @@ SearchView.prototype.search = function(searchString) {
 SearchView.prototype.handleArtistSearchResults = function(data) {
     var artists = [];
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
-
+    
     if (!artistResults) {
-        searchview.renderArtists([]);
+        this.renderArtists([]);
         return;
     }
 
@@ -577,9 +583,9 @@ SearchView.prototype.handleArtistSearchResults = function(data) {
         artist.image = artist.image.replace('serve/126', 'serve/126s');    
 
         artists.push(artist);
-    };
+    }
 
-    searchview.renderArtists(artists);
+    this.renderArtists(artists);
 };
 
 /* Takes an array of objects with properties 'name', 'image' 
@@ -606,7 +612,7 @@ SearchView.prototype.renderArtists = function(artists) {
         $('<div class="artistResult"></div>')
             .append('<div>'+artist.name+'</div>')
             .append(img)
-            .appendTo($('.artistResults'));
+            .appendTo($('.artistResults', this.content));
     }
 };
 
@@ -615,7 +621,7 @@ SearchView.prototype.handleAlbumSearchResults = function(data) {
   var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
   
   if (!albumResults) {
-    searchview.renderAlbums([]);
+    this.renderAlbums([]);
     return;
   }
   
@@ -630,7 +636,7 @@ SearchView.prototype.handleAlbumSearchResults = function(data) {
     albums.push(album);
   };
   
-  searchview.renderAlbums(albums);
+  this.renderAlbums(albums);
 };
 
 /* Takes an array of objects with properties 'name', 'artist', 'image' 
@@ -657,7 +663,7 @@ SearchView.prototype.renderAlbums = function(albums) {
         $('<div class="albumResult"></div>')
         .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
         .append(img)
-        .appendTo('.albumResults', this.content);
+        .appendTo($('.albumResults', this.content));
     }
 };
 
@@ -666,7 +672,7 @@ SearchView.prototype.handleSongSearchResults = function(data) {
   var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
   
   if (!trackResults) {
-    searchview.renderSongs([]);
+    this.renderSongs([]);
     return;
   }
   
@@ -686,7 +692,7 @@ SearchView.prototype.handleSongSearchResults = function(data) {
     tracks.push(track);
   };
   
-  searchview.renderSongs(tracks);
+  this.renderSongs(tracks);
 };
 
 /* Takes an array of objects with properties 'name', 'artist', 'image' 
@@ -716,49 +722,53 @@ SearchView.prototype.renderSongs = function(tracks) {
             .click(function() {
                 player.addSongToPlaylist(track.name, track.artist);
             })
-            .appendTo('.trackResults', this.content);
+            .appendTo($('.trackResults', this.content));
     }
 };
 
 // Private function that adds handlers to the search box and makes it all work
-SearchView.prototype.addSearchHandlers = function() {
+SearchView.prototype._addSearchHandlers = function() {
     var searchInput = $('.searchBox input.search', this.content);
-    log(this.content);
     
-    var handleSearch = function(searchString) {        
-        log('Handling a search: "' + searchString + '"');
-        if (!this.delaySearch && (this.prevSearchString != searchString)) {
-            this.prevSearchString = searchString;
-            searchview.search(searchString);
-            
-            this.delaySearch = true;            
-            window.setTimeout(function() {
-                this.delaySearch = false;
-                
-                if (searchInput.val() != searchString) {
-                    handleSearch(searchInput.val());
-                }
-            }, 500);
-        }
-    };
-    
-    // Hits enter
+    // Hits enter to submit form
+    var that = this;
     $('.searchBox', this.content).submit(function(event) {
         event.preventDefault();
-        handleSearch(searchInput.val());
+        that._handleSearch(searchInput.val());
     });
     
     // Pushes a key
     searchInput.keyup(function() {
-        handleSearch(searchInput.val());
+        that._handleSearch.apply(that, [searchInput.val()]);
     });
     addFocusHandlers(searchInput);
     
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
         event && event.preventDefault();
-        handleSearch(searchInput.val());
+        that._handleSearch(searchInput.val());
     });
+};
+
+SearchView.prototype._handleSearch = function(searchString) {
+    log('called handlesearch');
+    if (!this.delaySearch && (this.prevSearchString != searchString)) {
+        log('Handling a search');
+        this.prevSearchString = searchString;
+        this.search(searchString);
+        
+        // Don't allow another search for 500ms.
+        this.delaySearch = true;
+        var that = this;
+        window.setTimeout(function() {
+            that.delaySearch = false;
+            
+            var searchInput = $('.searchBox input.search', that.content);
+            if (searchInput.val() != searchString) {
+                that._handleSearch(searchInput.val());
+            }
+        }, 500);
+    }
 };
 
 
