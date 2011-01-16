@@ -140,9 +140,17 @@ function setupAutogrowInputType() {
 }
 
 function setupPlayerHoverButtons() {
-    $('#showHideVideo').click(function(event) {
+    $('#toggleShuffle').click(function(event) {
         event.preventDefault();
-        player.showHideVideo();
+        player.toggleShuffle();
+    });
+    $('#toggleRepeat').click(function(event) {
+        event.preventDefault();
+        player.toggleRepeat();
+    });
+    $('#toggleVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo();
     });
 }
 
@@ -183,7 +191,7 @@ function setupKeyboardShortcuts() {
                     player.decreaseVolume();
                     break;
                 case 86:
-                    player.showHideVideo();
+                    player.toggleVideo();
                     break;
 
                 // Playlist editing
@@ -1324,6 +1332,8 @@ function Player() {
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
     this.songlist; // Playlist's SongView instance
+    this.shuffle = false;
+    this.repeat = false;
 }
 
 Player.prototype.play = function() {
@@ -1392,7 +1402,12 @@ Player.prototype.playNextSong = function() {
     if (songIndex == model.songs.length - 1) {
         return;
     }
-    player.playSong(++songIndex);
+    if (player.shuffle) {
+        var randomSong = Math.floor(Math.random()*model.songs.length);
+        player.playSong(randomSong);
+    } else {
+        player.playSong(++songIndex);
+    }
 };
 
 // Play prev song in the playlist
@@ -1487,7 +1502,7 @@ Player.prototype._initPlayer = function(firstVideoId) {
     'player', '480', '295', '8', null, null, params, atts);
 };
 
-Player.prototype.showHideVideo = function() {
+Player.prototype.toggleVideo = function() {
     var $videoDiv = $('#videoDiv');
     if ($videoDiv.hasClass('noVideo')) {
         $('#videoDiv').removeClass('noVideo');
@@ -1506,6 +1521,26 @@ Player.prototype.showHideVideo = function() {
         animateResize(0);
     } else {
         setupPlaylistDisplay();
+    }
+};
+
+Player.prototype.toggleShuffle = function(force) {
+    this.shuffle = force !== undefined ? force : !this.shuffle;
+    
+    if (this.shuffle) {
+        $('#toggleShuffle').addClass('red');
+    } else {
+        $('#toggleShuffle').removeClass('red');
+    }
+};
+
+Player.prototype.toggleRepeat = function(force) {
+    this.repeat = force !== undefined ? force : !this.repeat;
+    
+    if (this.repeat) {
+        $('#toggleRepeat').addClass('red');
+    } else {
+        $('#toggleRepeat').removeClass('red');
     }
 };
 
@@ -1772,7 +1807,11 @@ function onYouTubePlayerReady(playerId) {
 function onYouTubePlayerStateChange(newState) {
     switch(newState) {
         case 0: // just finished a video
-            player.playNextSong();
+            if (player.repeat) {
+                player.playSong(songIndex);
+            } else {
+                player.playNextSong();
+            }
             break;
         case 1: // playing
         

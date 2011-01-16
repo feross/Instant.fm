@@ -279,7 +279,7 @@ input.file {
 
 #videoTools a { display: inline-block; margin: 0 0 0 8px; }
 
-#videoTools a#showHideVideo { float: right; }
+#videoTools a#toggleVideo { float: right; }
 
 #videoDiv:hover #videoTools {
     opacity: 1;
@@ -349,7 +349,7 @@ header:hover .editLink, article:hover .editLink {
 
 #curPlaylist header .editLink { top: -3px; }
 
-#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; outline: none; }
+#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; }
 #curPlaylistTitle button { float: left; margin-left: 8px; }
 
 #curPlaylistDesc textarea { color: #444; padding: 3px; outline:none; }
