@@ -95,11 +95,18 @@ function addFocusHandlers(elem) {
     }); 
 }
 
-function addLinkHandlers(elem) {
-    $('a[rel="partial"]', elem).click(function(event) {
+function addLinkHandlers() {
+    // Link handlers for loading partials.
+    $('a[rel="partial"]').live('click', function(event) {
         event.preventDefault();
         browser.pushPartial($(this).attr('href'), $(this).attr('title'));
     });
+    
+    // Link handlers for the back button.
+    $('a.backButton').live('click', function(event) {
+        event.preventDefault();
+        browser.pop();
+    })
 }
 
 
@@ -417,7 +424,6 @@ MiniBrowser.prototype.push = function(elem, _title) {
     
     context = getTopView(); // Is there a more robust way we can do this?
     context.content = elem;
-    addLinkHandlers(elem);
         
     this.refreshContents();
     this._slideTo(this.numSlides);
@@ -485,6 +491,7 @@ MiniBrowser.prototype._makeBackButton = function(text) {
     
     var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
     button.click(function(event) {
+        alert('Back hit.');
         event.preventDefault();
         browser.pop();
     });
