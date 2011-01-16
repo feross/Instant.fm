@@ -36,7 +36,7 @@ function uploader(place, status, targetPHP, show, callback) {
 				xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + boundary);
 					
 				/* Instant.fm Start */
-				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 				
 				xhr.onreadystatechange = function() {
 				    if (xhr.readyState == 4 && xhr.status == 200) {
@@ -56,7 +56,7 @@ function uploader(place, status, targetPHP, show, callback) {
 					xhr.setRequestHeader('Up-Type', file.type);
 					
 					/* Instant.fm Start */
-    				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+    				xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     				/* Instant.fm End */
 					
 					xhr.send(window.btoa(bin));
@@ -159,7 +159,7 @@ function uploader(place, status, targetPHP, show, callback) {
 			xhr.setRequestHeader('Up-Type', file.type);
 			
 			/* Instant.fm Start */
-			xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+			xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 			/* Instant.fm End */
 			
 			xhr.send(file); 

@@ -673,13 +673,13 @@ SearchView.prototype.handleSongSearchResults = function(data) {
         var trackResult = trackResults[i];
         var track = {};
 
-        track.name = trackResult.name;
-        track.artist = trackResult.artist;
+        track.t = trackResult.name;
+        track.a = trackResult.artist;
 
         if (trackResult.image) {
-            track.image = trackResult.image[0]['#text'];
+            track.i = trackResult.image[0]['#text'];
         } else {
-            track.image = '';
+            track.i = '';
         }
 
         tracks.push(track);
@@ -687,16 +687,20 @@ SearchView.prototype.handleSongSearchResults = function(data) {
 
     $('.songResults ul', this.content).remove();
     
-    var songlist = new SongList(tracks, {
-        playSong: function(song) {
-            var q = song.name+' '+song.artist;
+    var songlist = new SongList({
+        songs: tracks,
+        click: function(event, song) {
+            var q = song.t+' '+song.a;
             player.playSongBySearch(q);
             $('.playing').toggleClass('playing');
             $(this).toggleClass('playing');
         },
-        addSong: function(song) {
-            player.addSongToPlaylist(song.name, song.artist);
-        }
+        buttons: [{
+            text: 'Add +',
+            action: function(event, song) {
+                player.addSongToPlaylist(song);
+            }
+        }],
     });
     $('.songResults', this.content)
         .append(songlist.render())
@@ -750,50 +754,82 @@ SearchView.prototype._handleSearch = function(searchString) {
 
 /* -------------------------- MAKE LISTS ------------------------ */
 
-// Takes an array of objects with properties 'name', 'artist', 'image' 
-function SongList(songs, callbacks) {
-    this.songs = songs;
-    this.callbacks = callbacks;
+// Takes an array of objects with properties 't', 'a', 'i' 
+function SongList(options) {
+    this.songs = options.songs;
+    this.click = options.click;
+    this.buttons = options.buttons;
+    this.id = options.id
+    this.listItemIdPrefix = options.listItemIdPrefix;
+    this.class = options.class;
+    
+    
+    var that = this;
+    this.clickHelper = function(song) {
+        return function(event) {
+            event.preventDefault();
+            that.click.apply(this, [event, song]);
+        };
+    };
+    
+    this.buttonHelper = function(i, song) {
+        return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            that.buttons[i].action.apply(this, [event, song]);
+        };
+    };
 }
 
 SongList.prototype.render = function() {
     var result = $('<ul></ul>');
+    if (this.id) {
+        result.attr('id', this.id);
+    }
+    if (this.class) {
+        result.addClass(this.class);
+    }
+    
     for (var i = 0; i < this.songs.length; i++) {
         var song = this.songs[i];
-        
-        if (!song.image) {
-            song.image = '/images/unknown.png';
-        }
-        
-        var that = this;
-        var playSongHelper = function(song) {
-            return function(event) {
-                event.preventDefault();
-                that.callbacks.playSong.apply(this, [song]);
-            };
-        };
-        
-        var addSongHelper = function(song) {
-            return function(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                that.callbacks.addSong.apply(this, [song]);
-            };
-        };
-        
-        var button = $('<div class="addSong awesome small">Add +</div>')
-            .click(addSongHelper(song));
-        
-        $('<li class="songResult clearfix"></li>')
-            .append('<img src="'+song.image+'">') // No alt text. Want to avoid alt-text flash while img loads
-            // .append('<div class="songResultPlay"></div>')
-            .append('<div class="songInfo"><span class="title">'+song.name+'</span><span class="artist">'+song.artist+'</span></div>')
-            .append(button)
-            .click(playSongHelper(song))
-            .appendTo(result);
+        var $newSongItem = this._makeItem(song, this.listItemIdPrefix + i);
+        result.append($newSongItem);   
     }
+    
     return result;
 };
+
+SongList.prototype._makeItem = function(song, _songId) {    
+    var $buttonActions = $('<div></div>');
+    for (var i = 0; i < this.buttons.length; i++) {
+        $('<div class="songAction awesome small"></div>')
+            .text(this.buttons[i].text)
+            .click(this.buttonHelper(i, song))
+            .appendTo($buttonActions);
+    }
+    
+    var imgSrc = song.i ? song.i : '/images/unknown.png';
+    var $songListItem = $('<li class="songListItem clearfix"></li>')
+        .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
+        .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
+        .append($buttonActions)
+        .click(this.clickHelper(song));
+        
+    if (_songId !== undefined) {
+        $songListItem.attr('id', _songId);
+    }
+            
+    return $songListItem;
+}
+
+// Add a new song to this songlist instance.
+// Song needs to have 't' and 'a' attributes.
+SongList.prototype.add = function(song, addToElem) {
+    this._makeItem(song, this.listItemIdPrefix+this.songs.length)
+        .click(this.clickHelper(song))
+        .appendTo(addToElem);
+}
+
 
 
 // Takes an array of objects with properties 'name', 'image' 
@@ -1180,6 +1216,7 @@ function Player() {
     this.volume; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
+    this.songlist; // Playlist's SongView instance
 }
 
 Player.prototype.play = function() {
@@ -1390,11 +1427,10 @@ Player.prototype.moveSongDown = function(oldId) {
     player.onPlaylistReorder(null, {item: songItem});
 };
 
-Player.prototype.addSongToPlaylist = function(title, artist) {
-    log(title + ' - ' + artist);
-    this._addPlaylistListItem(model.songs.length, {t: title, a: artist});
+Player.prototype.addSongToPlaylist = function(song) {
+    this.songlist.add(song, '#playlist');
     this.highlightSong('#playlist li:last');
-    model.addSong(title, artist);
+    model.addSong(song);
 };
 
 
@@ -1446,71 +1482,62 @@ Player.prototype.loadPlaylistById = function(id) {
 
 // Updates the playlist table
 Player.prototype.renderPlaylist = function(playlist, start) {
-    if (!start) { // only run this the first time
-        start = 0;
+    
+    $('#playlist').remove(); // clear the playlist
+    $('.editLink').remove(); // remove all edit links
+    $('#addSongs').remove(); // remove the add button (if it exists)
+    
+    // TODO: START ---- This shouldn't be in Player.renderPlaylist()
+    $('#curPlaylistTitle')
+        .text(playlist.title);
+    $('#curPlaylistDesc')
+        .text(playlist.description);
+    
+    if (playlist.editable) {
+        playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+        playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('#playlist li').remove(); // clear the playlist
-        $('.editLink').remove(); // remove all edit links
-        $('#addSong').remove(); // remove the add button (if it exists)
-        
-        // TODO: START ---- This shouldn't be in Player.renderPlaylist()
-        $('#curPlaylistTitle')
-            .text(playlist.title);
-        $('#curPlaylistDesc')
-            .text(playlist.description);
-        
-        if (playlist.editable) {
-            playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
-            playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
-            
-            $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-                .prependTo('#curPlaylistInfo header');
-        }
-        // TODO: END ---- This shouldn't be in Player.renderPlaylist()
+        $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
+            .prependTo('#curPlaylistInfo header');
+    }
+    // TODO: END ---- This shouldn't be in Player.renderPlaylist()
+    
+    // Render Playlist
+    this.songlist = new SongList({
+        songs: playlist.songs,
+        click: player._onClickSong,
+        buttons: [],
+        id: 'playlist',
+        listItemIdPrefix: 'song'
+    });
+    $('#playlistDiv')
+        .append(this.songlist.render())
+
+    if (playlist.editable) {
+        $('body').addClass('editable');
+        $('#playlist')
+            .sortable($.extend({}, appSettings.sortable, {
+                start: function(event, ui) {
+                    $('body').toggleClass('sorting', true);
+                },
+                stop: function(event, ui) {
+                    player.onPlaylistReorder(event, ui);
+                    $('body').toggleClass('sorting', false);
+                }
+            }));
     }
 
-    if (start >= playlist.songs.length) { // we're done
-        if (playlist.editable) {
-            $('body').addClass('editable');
-            $('#playlist')
-                .sortable($.extend({}, appSettings.sortable, {
-                    start: function(event, ui) {
-                        $('body').toggleClass('sorting', true);
-                    },
-                    stop: function(event, ui) {
-                        player.onPlaylistReorder(event, ui);
-                        $('body').toggleClass('sorting', false);
-                    }
-                }));
-        }
+    $('#playlist').disableSelection().mouseup(function(event) {
+        player.reorderedSong = null; // we're done dragging now
+    });
 
-        $('#playlist').disableSelection().mouseup(function(event) {
-            player.reorderedSong = null; // we're done dragging now
-        });
-
-        player.renderRowColoring();
-        return;
-    }
-
-    var end = Math.min(start + player.renderPlaylistChunkSize, playlist.songs.length);
-
-    for (var i = start; i < end; i++) {
-        var song = playlist.songs[i];
-        this._addPlaylistListItem(i, song);
-    }
-
-    window.setTimeout(function() {
-        player.renderPlaylist(playlist, start + player.renderPlaylistChunkSize);
-    }, player.renderPlaylistTimeout);
+    player.renderRowColoring();
 };
 
-Player.prototype._addPlaylistListItem = function(i, song) {
-    $('<li id="song'+i+'"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span><span class="handle">&nbsp;</span></li>')
-        .appendTo('#playlist')
-        .click(function(event) {
-            var songId = parseInt($(this).attr('id').substring(4));
-            player.reorderedSong || player.playSong(songId);
-        });
+Player.prototype._onClickSong = function(event) {
+    event.preventDefault();
+    var songId = parseInt($(this).attr('id').substring(4));
+    player.reorderedSong || player.playSong(songId);
 }
 
 // Called by JQuery UI "Sortable" when a song has been reordered
@@ -1679,8 +1706,8 @@ Model.prototype.moveSong = function(oldIndex, newIndex) {
     this.saveSongs();
 };
 
-Model.prototype.addSong = function(title, artist) {
-    this.songs.push({t: title, a: artist});
+Model.prototype.addSong = function(song) {
+    this.songs.push(song);
     this.saveSongs();
 }
 

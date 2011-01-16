@@ -287,45 +287,6 @@ input.file {
 #videoDiv.noVideo:hover #videoTools { display: none; }
 
 
-#playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
-
-#playlist {
-    color: #444;
-    font-size: 13px;
-    padding: 0;
-    margin: 0;
-}
-
-#playlist li {
-    background-color: #f3f6fa;
-    border-bottom: #E3E3E3 1px solid; 
-    cursor: pointer;
-    list-style-type: none;
-    padding: 1px 0;
-    width: 465px;
-}
-#playlist li.odd { background-color: #fff; }
-
-#playlist span { display: inline-block; padding: 3px 0; vertical-align: middle; }
-#playlist .title { margin: 1px 0 0 5px; padding: 2px 5px 3px 25px; width: 240px; }
-#playlist .artist { padding: 3px 5px 3px 0; width: 160px; }
-#playlist .handle { padding: 3px 3px 3px 3px; width: 15px; }
-
-#playlist li:hover { background-color: #c5defe; }
-
-.editable #playlist li:hover .handle {
-    background: transparent url("/images/drag.png") 4px left no-repeat;
-    cursor: url('/images/cursors/move.cur'), move;
-}
-.sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
-
-#playlist li.playing { background-color: #3990ea; color: #fff}
-#playlist .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
-#playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }
-
-#playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
-
-
 /* Info Display (right) */
 
 #infoDisplay {
@@ -355,7 +316,7 @@ input.file {
 
 #curPlaylistTitle { display: inline; }
 
-#addSongs { float: right; margin-left: 5px; }
+#addSongs { float: right; margin: 0 3px; }
 
 #curPlaylistAuthor { float: right; margin-top: -2px; }
 #curPlaylistAuthor div { float: left; margin: 4px 0 0 5px; }
@@ -531,7 +492,7 @@ a:hover .zoomIcon {
     padding: 15px 0 0 0;
 }
 
-#helpLink {
+#footer #helpLink {
     background: transparent url("/images/keyboard.png") top right no-repeat;
     display: block;
     float: right;
@@ -651,7 +612,7 @@ header .awesome { margin-top: 2px; }
     width: 133px;
 }
 
-.artistResult div, .albumResult div, .songResult {
+.artistResult div, .albumResult div, .songResults .songListItem {
     text-shadow: #000 1px -1px 1px;
 }
 
@@ -681,15 +642,17 @@ header .awesome { margin-top: 2px; }
     margin: 0;
 }
 
-.songResult {
-    border-top: #333 1px solid; 
+.songResults .songListItem { border-top: #333 1px solid; }
+
+.songListItem {
     clear: both;
+    list-style-type: none;
     padding: 6px 0;
     position: relative;
     cursor: pointer;
 }
 
-.songResult img /*, .songResultPlay*/ {
+.songListItem img /*, .songResultPlay*/ {
     float: left;
     height: 34px;
     margin: 0 10px 0 10px;
@@ -708,37 +671,76 @@ header .awesome { margin-top: 2px; }
     z-index: 2;
 }*/
 
-.songResult .songInfo {
+.songListItem .songInfo {
     float: left;
     width: 350px;
 }
 
-.songResult .songInfo .title {
+.songListItem .songInfo .title {
     font-size: 15px;
     font-weight: bold;
 }
 
-.songResult .songInfo .artist {
+.songListItem .songInfo .artist {
     display: block;
     font-size: 12px;
     font-weight: normal;
     margin-top: 1px;
 }
 
-.songResult .addSong {
+.songListItem .songAction {
     float: right;
     margin: 5px 10px 0 0;
 }
 
-.songResult.playing, .songResult.playing:hover {
+.songListItem.playing, .songListItem.playing:hover {
     background-color: #3990ea;
     color: #fff;
 }
 
-.songResult:hover { background-color: #444; }
+.songListItem:hover { background-color: #444; }
 
 
+/* Playlist */
 
+#playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
+
+#playlist {
+    color: #444;
+    margin: 0;
+    padding: 0;
+}
+
+#playlist li {
+    background-color: #f3f6fa;
+    border-bottom: #E3E3E3 1px solid; 
+    cursor: pointer;
+    width: 465px;
+}
+
+#playlist .songInfo .title {
+    font-size: 14px;
+}
+
+#playlist li.odd { background-color: #fff; }
+
+#playlist li:hover { background-color: #c5defe; }
+
+/*
+#playlist .handle { padding: 3px 3px 3px 3px; width: 15px; }
+.editable #playlist li:hover .handle {
+    background: transparent url("/images/drag.png") 4px left no-repeat;
+    cursor: url('/images/cursors/move.cur'), move;
+}
+*/
+
+.sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
+
+#playlist li.playing { background-color: #3990ea; color: #fff}
+/*#playlist .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
+#playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }*/
+
+#playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
 
 

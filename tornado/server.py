@@ -26,13 +26,13 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
-            (r"/upload", UploadHandler),
-            (r"((?:/partial)?)/p/([a-zA-Z0-9]*)$", PlaylistHandler),
-            (r"((?:/partial)?)/search$", SearchHandler),
-            (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
-            (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
-            (r"/terms$", TermsHandler),
-            (r"/suggest$", ArtistAutocompleteHandler),
+            (r"/upload/?$", UploadHandler),
+            (r"((?:/partial)?)/p/([a-zA-Z0-9]*)/?$", PlaylistHandler),
+            (r"((?:/partial)?)/search/?$", SearchHandler),
+            (r"/p/([a-zA-Z0-9]*)/json/?$", PlaylistJSONHandler),
+            (r"/p/([a-zA-Z0-9]*)/edit/?$", PlaylistEditHandler),
+            (r"/terms/?$", TermsHandler),
+            (r"/suggest/?$", ArtistAutocompleteHandler),
             (r".*", ErrorHandler),
         ]
         settings = dict(
