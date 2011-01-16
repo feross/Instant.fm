@@ -193,6 +193,12 @@ function setupKeyboardShortcuts() {
                 case 86:
                     player.toggleVideo();
                     break;
+                case 83:
+                    player.toggleShuffle();
+                    break;
+                case 82:
+                    player.toggleRepeat();
+                    break;
 
                 // Playlist editing
                 case 65: // a

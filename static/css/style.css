@@ -612,8 +612,8 @@ header .awesome { margin-top: 2px; }
     width: 133px;
 }
 
-.artistResult div, .albumResult div, .songResults .songListItem {
-    text-shadow: #000 1px -1px 1px;
+.artistResult div, .albumResult div {
+    text-shadow: #000 1px 1px 1px;
 }
 
 .albumResult span {
