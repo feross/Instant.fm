@@ -718,9 +718,10 @@ SearchView.prototype.handleSongSearchResults = function(data) {
             }
         }],
     });
-    $('.songResults', this.content)
-        .append(songlist.render())
-        .slideDown();
+    
+    var $songResults = $('.songResults', this.content);
+    songlist.render($songResults);
+    $songResults.slideDown();
 };
 
 // Private function that adds handlers to the search box
@@ -772,13 +773,15 @@ SearchView.prototype._handleSearch = function(searchString) {
 
 // Takes an array of objects with properties 't', 'a', 'i' 
 function SongList(options) {
+    this.renderChunkSize = 400; // Render playlist in chunks so we don't lock up
+    this.renderTimeout = 100; // Time between rendering each chunk
+    
     this.songs = options.songs;
     this.click = options.click;
     this.buttons = options.buttons;
     this.id = options.id
     this.listItemIdPrefix = options.listItemIdPrefix;
-    this.class = options.class;
-    
+    this.numberList = !!options.numberList;    
     
     var that = this;
     this.clickHelper = function(song) {
@@ -797,25 +800,39 @@ function SongList(options) {
     };
 }
 
-SongList.prototype.render = function() {
-    var result = $('<ul></ul>');
+SongList.prototype.render = function(addToElem) {
+    this.elem = $('<ul></ul>')
+        .appendTo(addToElem);
+        
     if (this.id) {
-        result.attr('id', this.id);
+        this.elem.attr('id', this.id);
     }
     if (this.class) {
-        result.addClass(this.class);
+        this.elem.addClass(this.class);
     }
     
-    for (var i = 0; i < this.songs.length; i++) {
-        var song = this.songs[i];
-        var $newSongItem = this._makeItem(song, this.listItemIdPrefix + i);
-        result.append($newSongItem);   
-    }
-    
-    return result;
+    this._renderHelper(0);
 };
 
-SongList.prototype._makeItem = function(song, _songId) {    
+SongList.prototype._renderHelper = function(start) {
+    if (start >= this.songs.length) { // we're done
+        return;
+    }
+    
+    var end = Math.min(start + this.renderChunkSize, this.songs.length);    	
+    for (var i = start; i < end; i++) {
+        var song = this.songs[i];
+        var $newSongItem = this._makeItem(song, i);
+        this.elem.append($newSongItem);
+    }
+    
+    var that = this;
+    window.setTimeout(function() {
+        that._renderHelper(start + that.renderChunkSize);
+    }, that.renderTimeout);
+};
+
+SongList.prototype._makeItem = function(song, _songNum) {    
     var $buttonActions = $('<div></div>');
     for (var i = 0; i < this.buttons.length; i++) {
         $('<div class="songAction awesome small"></div>')
@@ -826,25 +843,26 @@ SongList.prototype._makeItem = function(song, _songId) {
     
     var imgSrc = song.i ? song.i : '/images/unknown.png';
     var $songListItem = $('<li class="songListItem clearfix"></li>')
+        .append(this.numberList ? '<div class="num">'+(_songNum+1)+'</div>' : '')
         .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
         .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
         .append($buttonActions)
         .click(this.clickHelper(song));
         
-    if (_songId !== undefined) {
-        $songListItem.attr('id', _songId);
+    if (_songNum !== undefined) {
+        $songListItem.attr('id', this.listItemIdPrefix + _songNum);
     }
             
     return $songListItem;
-}
+};
 
 // Add a new song to this songlist instance.
 // Song needs to have 't' and 'a' attributes.
-SongList.prototype.add = function(song, addToElem) {
-    this._makeItem(song, this.listItemIdPrefix+this.songs.length)
+SongList.prototype.add = function(song) {
+    this._makeItem(song, this.songs.length)
         .click(this.clickHelper(song))
-        .appendTo(addToElem);
-}
+        .appendTo(this.elem);
+};
 
 
 
@@ -1227,8 +1245,6 @@ PlaylistView.prototype.showHideComments = function() {
 function Player() {
     this.isPlayerInit = false; // have we initialized the player?
     this.ytplayer; // YouTube DOM element
-    this.renderPlaylistChunkSize = 400; // Render playlist in chunks so we don't lock up
-    this.renderPlaylistTimeout = 100; // Time between rendering each chunk
     this.volume; // Player volume
     this.reorderedSong = false; // Used to distinguish between dragging and clicking
     this.queuedVideo; // Used when player is in loading state so we don't interrupt it.
@@ -1524,10 +1540,10 @@ Player.prototype.renderPlaylist = function(playlist, start) {
         click: player._onClickSong,
         buttons: [],
         id: 'playlist',
-        listItemIdPrefix: 'song'
+        listItemIdPrefix: 'song',
+        numberList: true,
     });
-    $('#playlistDiv')
-        .append(this.songlist.render())
+    this.songlist.render('#playlistDiv');
 
     if (playlist.editable) {
         $('body').addClass('editable');
@@ -1580,19 +1596,27 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
         songItem
             .nextUntil('#song'+(oldId+1))
             .each(function(index, element) {
-                $(element).attr('id', 'song' + (newId+index+1) );
+                var num = newId+index+1;
+                $(element)
+                    .attr('id', 'song' + num)
+                    .find('.num').text(num+1);
             });
         
     } else { // Moved down
         songItem
             .prevUntil('#song'+(oldId-1))
             .each(function(index, element) {
-                $(element).attr('id', 'song' + (newId-index-1) );
+                var num = newId-index-1;
+                $(element)
+                    .attr('id', 'song' + num)
+                    .find('.num').text(num+1);
             });
     }
 
-    songItem.attr('id', 'song'+newId); // Add back the reordered song's id
-
+    songItem
+    .attr('id', 'song'+newId) // Add back the reordered song's id
+    .find('.num').text(newId+1);
+    
     // If we move the current song, keep our position in the playlist up to date
     if (oldId == songIndex) {
         songIndex = newId;

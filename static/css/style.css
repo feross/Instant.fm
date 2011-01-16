@@ -637,6 +637,8 @@ header .awesome { margin-top: 2px; }
     border: 5px solid #499bd1;
 }
 
+.songResults { height: 290px; }
+
 .songResults ul {
     padding: 0;
     margin: 0;
@@ -650,6 +652,15 @@ header .awesome { margin-top: 2px; }
     padding: 6px 0;
     position: relative;
     cursor: pointer;
+}
+
+.songListItem .num {
+    color: #999;
+    float: left;
+    font-size: 16px;
+    margin-top: 8px;
+    text-align: center;
+    width: 38px;
 }
 
 .songListItem img /*, .songResultPlay*/ {
@@ -715,7 +726,10 @@ header .awesome { margin-top: 2px; }
     background-color: #f3f6fa;
     border-bottom: #E3E3E3 1px solid; 
     cursor: pointer;
-    width: 465px;
+}
+
+#playlist .songListItem img {
+    margin-left: 0;
 }
 
 #playlist .songInfo .title {
@@ -741,6 +755,14 @@ header .awesome { margin-top: 2px; }
 #playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }*/
 
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
+
+
+
+
+
+
+
+
 
 
 
