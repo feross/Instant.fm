@@ -354,6 +354,219 @@ function getTopView() {
 }
 
 
+/* -------------------------- MAKE LISTS ------------------------ */
+
+// Takes an array of objects with properties 't', 'a', 'i' 
+function SongList(options) {
+    this.renderChunkSize = 500; // Render playlist in chunks so we don't lock up
+    this.renderTimeout = 100; // Time between rendering each chunk
+    
+    this.songs = options.songs;
+    this.click = options.click;
+    this.buttons = options.buttons;
+    this.id = options.id
+    this.listItemIdPrefix = options.listItemIdPrefix;
+    this.numberList = !!options.numberList;
+    
+    var that = this;
+    this.buttonHelper = function(i, song) {
+        return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            that.buttons[i].action.apply(this, [event, song]);
+        };
+    };
+}
+
+SongList.prototype.render = function(addToElem, _callback) {
+    this.elem = $('<ul></ul>')
+        .appendTo(addToElem);
+        
+    if (this.id) {
+        this.elem.attr('id', this.id);
+    }
+    if (this.class) {
+        this.elem.addClass(this.class);
+    }
+    
+    this._renderHelper(0, _callback);
+};
+
+SongList.prototype._renderHelper = function(start, _callback) {
+    if (start >= this.songs.length) { // we're done
+        _callback && _callback();
+        return;
+    }
+    
+    var end = Math.min(start + this.renderChunkSize, this.songs.length);    	
+    for (var i = start; i < end; i++) {
+        var song = this.songs[i];    
+        var $newSongItem = this._makeItem(song, i);
+        this.elem.append($newSongItem);
+    }
+    
+    var that = this;
+    window.setTimeout(function() {
+        that._renderHelper(start + that.renderChunkSize, _callback);
+    }, that.renderTimeout);
+};
+
+SongList.prototype._makeItem = function(song, _songNum) {
+    var $buttonActions = $('<div></div>');
+    for (var i = 0; i < this.buttons.length; i++) {
+        $('<div class="songAction awesome small"></div>')
+            .text(this.buttons[i].text)
+            .click(this.buttonHelper(i, song))
+            .appendTo($buttonActions);
+    }
+    
+    var that = this;
+    var imgSrc = song.i ? song.i : '/images/unknown.png';
+    var $songListItem = $('<li class="songListItem clearfix"></li>')
+        .append(this.numberList ? '<div class="num">'+(_songNum+1)+'</div>' : '')
+        .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
+        .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
+        .append($buttonActions)
+        .click(function(event) {
+            event.preventDefault();
+            that.click(song, _songNum);
+        });
+        
+    if (_songNum !== undefined) {
+        $songListItem.attr('id', this.listItemIdPrefix + _songNum);
+    }
+            
+    return $songListItem;
+};
+
+// Add a new song to this songlist instance.
+// Song needs to have 't' and 'a' attributes.
+SongList.prototype.add = function(song) {
+    var that = this;
+    var songNum = this.songs.length;
+    this._makeItem(song, songNum)
+        .click(function(event) {
+            event.preventDefault();
+            that.click(song, songNum);
+        })
+        .appendTo(this.elem);
+};
+
+// Try to fetch all the album art we can.
+SongList.prototype.fetchAlbumImgs = function() {
+    this.concurrentReqs = 0;
+    for (this.albumUpdateInd = 0;
+         this.albumUpdateInd < this.songs.length && this.concurrentReqs < 2; // Max # of reqs to Last.fm
+         this.albumUpdateInd++) {
+        
+        var song = this.songs[this.albumUpdateInd];
+        if (song.i === undefined) {
+            this._fetchAlbumImgsHelper(this.albumUpdateInd, song);
+        	this.concurrentReqs++;
+        }
+    }
+    this.albumUpdateInd--;
+};
+
+SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
+    var that = this;
+    var continueFetching = function() {
+        that.albumUpdateInd++;
+        that._fetchAlbumImgsHelper(that.albumUpdateInd, that.songs[that.albumUpdateInd]);
+    };
+    
+    if (albumIndex >= this.songs.length) { // we're done
+        this.concurrentReqs--;
+    
+        if (!this.concurrentReqs) {
+            this.albumUpdateFinished = true;
+            model.saveSongs();
+            log('Finished fetching and saving all album art');
+        }
+        return;
+    }
+    
+    if (albumIndex % 25 == 0) {
+        model.saveSongs();
+        log('Saving newly fetched album art: ' + albumIndex);
+    }
+    
+    // Don't try to refetch albums that already have art
+    if (song.i !== undefined) {
+        continueFetching();
+        return;
+    }
+    
+    model.lastfm.track.search({
+	    artist: song.a || '',
+	    limit: 1,
+	    track: (song.t && cleanSongTitle(song.t)) || ''
+	}, {
+	    success: function(data) {
+	        var track = data.results && data.results.trackmatches && data.results.trackmatches.track;
+	        var albumImg = track && track.image && track.image[track.image.length - 1]['#text'];
+            
+            if (albumImg) {
+                $('#song'+albumIndex+' img').attr('src', albumImg);
+                that.songs[albumIndex].i = albumImg;
+                log('updated album image: ' + song.t + ' ' + song.a);
+            } else {
+                that.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
+                log('set album image to null: ' + song.t + ' ' + song.a);
+            }
+            continueFetching();
+	    },
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+		}
+	});  
+};
+
+
+// Takes an array of objects with properties 'name', 'image' 
+function makeArtistList(artists) {
+    var result = $('<div></div>');
+    for (var i = 0; i < artists.length; i++) {
+        var artist = artists[i];
+        
+        if (!artist.image) {
+            artist.image = '/images/anonymous.png';
+        }
+        
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="'+artist.image+'">');
+        
+        $('<div class="artistResult"></div>')
+            .append('<div>'+artist.name+'</div>')
+            .append(img)
+            .appendTo(result);
+    }
+    return result;
+}
+
+
+// Takes an array of objects with properties 'name', 'artist', 'image'
+function makeAlbumList(albums) {
+    var result = $('<div></div>');
+    for (var i = 0; i < albums.length; i++) {
+        var album = albums[i];
+
+        if (!album.image) {
+            album.image = '/images/unknown.png';
+        }
+
+        // No alt text. Want to avoid alt-text flash while img loads
+        var img = $('<img src="' + album.image + '">');
+
+        $('<div class="albumResult"></div>')
+        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append(img)
+        .appendTo(result);
+    }
+    return result;
+}
+
+
 /* --------------------------- MINI BROWSER --------------------------- */
 
 // Animated image slider code from: http://goo.gl/t3vPZ
@@ -388,6 +601,7 @@ MiniBrowser.prototype.push = function(elem, _title) {
     
     var backButton = browser._makeBackButton();
     var prevContext = getTopView();
+    prevContext && prevContext.willHide();
 
     var header = $('<header class="clearfix buttonHeader"></header>')
         .append(backButton)
@@ -530,19 +744,9 @@ BaseView.prototype.didSlide = function() {};
  * well have it. 
  */
 BaseView.prototype.willPop = function() {};
-/*  
-BaseView.prototype.push = function(event) {
-    event && event.preventDefault();
-    if (model.editable) {
-      // Push onto view stack
-      viewStack.push(this);
-      browser.pushPartial(this.getNameOfPartial(), this.getTitle(), this); 
-    }
-};
-*/
+
 
 /* --------------------------- SEARCH VIEW --------------------------- */
-
 
 function SearchView() {
     this.prevSearchString = ''; // Used to prevent repeating identical searches
@@ -562,121 +766,15 @@ SearchView.prototype.willSlide = function() {
     this._addSearchHandlers();
 };
 
+SearchView.prototype.willHide = function() {
+    keyEvents = true;
+};
+
 SearchView.prototype.didSlide = function() {
     $('.searchBox input.search', this.content).focus();
 };
 
-// Perform a search for given search string
-SearchView.prototype.search = function(searchString) {
-    log('Searching for "' + searchString + '".');
-    if (!searchString) {
-        return;
-    }
-
-    this.prevSearchString = searchString;
-
-    var that = this;
-    model.lastfm.track.search(
-    {
-        track: searchString,
-        limit: 5,
-    },
-    {
-        success: function(data) {
-            that.handleSongSearchResults(data);
-        },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderSongs([]);
-        }
-    });
-    
-    model.lastfm.artist.search({
-        artist: searchString,
-        limit: 3,
-    },
-    {
-        success: function(data) {
-            that.handleArtistSearchResults(data);
-        },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderArtists([]);
-        }
-    });
-
-    model.lastfm.album.search(
-    {
-        album: searchString,
-        limit: 3,
-    },
-    {
-        success: function(data) {
-            that.handleAlbumSearchResults(data);
-        },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderAlbums([]);
-        }
-    });
-};
-
-
-SearchView.prototype.handleArtistSearchResults = function(data) {
-    var artists = [];
-    var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
-    
-    if (!artistResults || !artistResults.length) {
-        $('.artistResults', this.content).slideUp();
-        return;
-    }
-
-    for (var i = 0; i < artistResults.length; i++) {
-        var artistResult = artistResults[i];
-        var artist = {};
-
-        artist.name = artistResult.name;
-        artist.image = '';
-        artist.image = artistResult.image[2]['#text'];
-        artist.image = artist.image.replace('serve/126', 'serve/126s');    
-
-        artists.push(artist);
-    }
-    
-    $('.artistResults div', this.content).remove();
-    $('.artistResults', this.content)
-        .append(makeArtistList(artists))
-        .slideDown();
-};
-
-
-SearchView.prototype.handleAlbumSearchResults = function(data) {
-    var albums = [];
-    var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
-
-    if (!albumResults || !albumResults.length) {
-        $('.albumResults', this.content).slideUp();
-        return;
-    }
-
-    for (var i = 0; i < albumResults.length; i++) {
-        var albumResult = albumResults[i];
-        var album = {};
-
-        album.name = albumResult.name;
-        album.artist = albumResult.artist;
-        album.image = albumResult.image[2]['#text'];
-
-        albums.push(album);
-    };
-
-    $('.albumResults div', this.content).remove();
-    $('.albumResults', this.content)
-        .append(makeAlbumList(albums))
-        .slideDown();
-};
-
-SearchView.prototype.handleSongSearchResults = function(data) {
+SearchView.prototype._handleSongSearchResults = function(data) {
     var tracks = [];
     var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
 
@@ -705,11 +803,11 @@ SearchView.prototype.handleSongSearchResults = function(data) {
     
     var songlist = new SongList({
         songs: tracks,
-        click: function(event, song) {
+        click: function(song) {
+            $('.playing').removeClass('playing');
+            $(this).addClass('playing');
             var q = song.t+' '+song.a;
             player.playSongBySearch(q);
-            $('.playing').toggleClass('playing');
-            $(this).toggleClass('playing');
         },
         buttons: [{
             text: 'Add +',
@@ -722,6 +820,114 @@ SearchView.prototype.handleSongSearchResults = function(data) {
     var $songResults = $('.songResults', this.content);
     songlist.render($songResults);
     $songResults.slideDown();
+};
+
+// Perform a search for given search string
+SearchView.prototype.search = function(searchString) {
+    log('Searching for "' + searchString + '".');
+    if (!searchString) {
+        return;
+    }
+
+    this.prevSearchString = searchString;
+
+    var that = this;
+    model.lastfm.track.search(
+    {
+        track: searchString,
+        limit: 5,
+    },
+    {
+        success: function(data) {
+            that._handleSongSearchResults(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+            that.renderSongs([]);
+        }
+    });
+    
+    model.lastfm.artist.search({
+        artist: searchString,
+        limit: 3,
+    },
+    {
+        success: function(data) {
+            that._handleArtistSearchResults(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+            that.renderArtists([]);
+        }
+    });
+
+    model.lastfm.album.search(
+    {
+        album: searchString,
+        limit: 3,
+    },
+    {
+        success: function(data) {
+            that._handleAlbumSearchResults(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+            that.renderAlbums([]);
+        }
+    });
+};
+
+SearchView.prototype._handleArtistSearchResults = function(data) {
+    var artists = [];
+    var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
+    
+    if (!artistResults || !artistResults.length) {
+        $('.artistResults', this.content).slideUp();
+        return;
+    }
+
+    for (var i = 0; i < artistResults.length; i++) {
+        var artistResult = artistResults[i];
+        var artist = {};
+
+        artist.name = artistResult.name;
+        artist.image = '';
+        artist.image = artistResult.image[2]['#text'];
+        artist.image = artist.image.replace('serve/126', 'serve/126s');    
+
+        artists.push(artist);
+    }
+    
+    $('.artistResults div', this.content).remove();
+    $('.artistResults', this.content)
+        .append(makeArtistList(artists))
+        .slideDown();
+};
+
+SearchView.prototype._handleAlbumSearchResults = function(data) {
+    var albums = [];
+    var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
+
+    if (!albumResults || !albumResults.length) {
+        $('.albumResults', this.content).slideUp();
+        return;
+    }
+
+    for (var i = 0; i < albumResults.length; i++) {
+        var albumResult = albumResults[i];
+        var album = {};
+
+        album.name = albumResult.name;
+        album.artist = albumResult.artist;
+        album.image = albumResult.image[2]['#text'];
+
+        albums.push(album);
+    };
+
+    $('.albumResults div', this.content).remove();
+    $('.albumResults', this.content)
+        .append(makeAlbumList(albums))
+        .slideDown();
 };
 
 // Private function that adds handlers to the search box
@@ -769,148 +975,6 @@ SearchView.prototype._handleSearch = function(searchString) {
 };
 
 
-/* -------------------------- MAKE LISTS ------------------------ */
-
-// Takes an array of objects with properties 't', 'a', 'i' 
-function SongList(options) {
-    this.renderChunkSize = 400; // Render playlist in chunks so we don't lock up
-    this.renderTimeout = 100; // Time between rendering each chunk
-    
-    this.songs = options.songs;
-    this.click = options.click;
-    this.buttons = options.buttons;
-    this.id = options.id
-    this.listItemIdPrefix = options.listItemIdPrefix;
-    this.numberList = !!options.numberList;
-    
-    var that = this;
-    this.buttonHelper = function(i, song) {
-        return function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            that.buttons[i].action.apply(this, [event, song]);
-        };
-    };
-}
-
-SongList.prototype.render = function(addToElem) {
-    this.elem = $('<ul></ul>')
-        .appendTo(addToElem);
-        
-    if (this.id) {
-        this.elem.attr('id', this.id);
-    }
-    if (this.class) {
-        this.elem.addClass(this.class);
-    }
-    
-    this._renderHelper(0);
-};
-
-SongList.prototype._renderHelper = function(start) {
-    if (start >= this.songs.length) { // we're done
-        return;
-    }
-    
-    var end = Math.min(start + this.renderChunkSize, this.songs.length);    	
-    for (var i = start; i < end; i++) {
-        var song = this.songs[i];    
-        var $newSongItem = this._makeItem(song, i);
-        this.elem.append($newSongItem);
-    }
-    
-    var that = this;
-    window.setTimeout(function() {
-        that._renderHelper(start + that.renderChunkSize);
-    }, that.renderTimeout);
-};
-
-SongList.prototype._makeItem = function(song, _songNum) {
-    var $buttonActions = $('<div></div>');
-    for (var i = 0; i < this.buttons.length; i++) {
-        $('<div class="songAction awesome small"></div>')
-            .text(this.buttons[i].text)
-            .click(this.buttonHelper(i, song))
-            .appendTo($buttonActions);
-    }
-    
-    var that = this;
-    var imgSrc = song.i ? song.i : '/images/unknown.png';
-    var $songListItem = $('<li class="songListItem clearfix"></li>')
-        .append(this.numberList ? '<div class="num">'+(_songNum+1)+'</div>' : '')
-        .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
-        .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
-        .append($buttonActions)
-        .click(function() {
-            event.preventDefault();
-            that.click.apply(this, [event, song]);
-        });
-        
-    if (_songNum !== undefined) {
-        $songListItem.attr('id', this.listItemIdPrefix + _songNum);
-    }
-            
-    return $songListItem;
-};
-
-// Add a new song to this songlist instance.
-// Song needs to have 't' and 'a' attributes.
-SongList.prototype.add = function(song) {
-    var that = this;
-    this._makeItem(song, this.songs.length)
-        .click(function(event) {
-            event.preventDefault();
-            that.click.apply(this, [event, song]);
-        })
-        .appendTo(this.elem);
-};
-
-
-
-// Takes an array of objects with properties 'name', 'image' 
-function makeArtistList(artists) {
-    var result = $('<div></div>');
-    for (var i = 0; i < artists.length; i++) {
-        var artist = artists[i];
-        
-        if (!artist.image) {
-            artist.image = '/images/anonymous.png';
-        }
-        
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="'+artist.image+'">');
-        
-        $('<div class="artistResult"></div>')
-            .append('<div>'+artist.name+'</div>')
-            .append(img)
-            .appendTo(result);
-    }
-    return result;
-}
-
-
-// Takes an array of objects with properties 'name', 'artist', 'image'
-function makeAlbumList(albums) {
-    var result = $('<div></div>');
-    for (var i = 0; i < albums.length; i++) {
-        var album = albums[i];
-
-        if (!album.image) {
-            album.image = '/images/unknown.png';
-        }
-
-        // No alt text. Want to avoid alt-text flash while img loads
-        var img = $('<img src="' + album.image + '">');
-
-        $('<div class="albumResult"></div>')
-        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
-        .append(img)
-        .appendTo(result);
-    }
-    return result;
-}
-
-
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
 
 function PlaylistView() {
@@ -925,12 +989,10 @@ function PlaylistView() {
 // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
 //              hasn't changed before we update the DOM.
 PlaylistView.prototype.updateCurPlaying = function(t, a, srcIndex) {
-
-    // 1. Search for track.
 	model.lastfm.track.search({
-	    artist: a,
+	    artist: a || '',
 	    limit: 1,
-	    track: t
+	    track: t || ''
 	}, {
 	    success: function(data) {
 	      playlistview._handleSongResults(t, a, srcIndex, data);
@@ -984,15 +1046,19 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     playlistview.bestAlbumImg = playlistview.bestAlbumImg || albumImg;
     
     if (model.songs[srcIndex].i === undefined && albumImg) {
-        $('#song'+srcIndex+' img').attr('src', albumImg)
+        var $playlistImg = $('#song'+srcIndex+' img');
+        if ($playlistImg.attr('src') == '/images/unknown.png') {
+            log('updated image in playlist');
+            $playlistImg.attr('src', albumImg)
+        }
         model.updateAlbumImg(srcIndex, albumImg);
     }
 
-    // 2. Get detailed track info
+    // Get detailed track info
     trackName && artistName && model.lastfm.track.getInfo({
-	    artist: artistName,
+	    artist: artistName || '',
 	    autocorrect: 1,
-	    track: trackName
+	    track: trackName || ''
 	}, {
     
 	    success: function(data){
@@ -1004,9 +1070,9 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
 		}
 	});
 
-	// 3. Get detailed artist info (proceeds simultaneously with 2)
+	// Get detailed artist info (proceeds simultaneously with previous req)
 	artistName && model.lastfm.artist.getInfo({
-	    artist: artistName,
+	    artist: artistName || '',
 	    autocorrect: 1
 	}, {
     
@@ -1135,7 +1201,7 @@ PlaylistView.prototype.tryLoadComments = function(playlist_id, title) {
     } else {
         window.setTimeout(function() {
             playlistview.tryLoadComments(playlist_id, title);
-        }, 1000);
+        }, 2000);
     }
 };
 
@@ -1310,8 +1376,8 @@ Player.prototype.playSong = function(i) {
     var q = title + ' ' + artist;
     player.playSongBySearch(q);
 
-    $('.playing').toggleClass('playing');
-    $('#song' + i).toggleClass('playing');
+    $('.playing', $('#playlist')).removeClass('playing');
+    $('#song' + i).addClass('playing');
 
     playlistview.updateCurPlaying(title, artist, songIndex);
     player.moveSongIntoView();
@@ -1518,26 +1584,11 @@ Player.prototype.loadPlaylistById = function(id) {
 };
 
 // Updates the playlist table
-Player.prototype.renderPlaylist = function(playlist, start) {
+Player.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist').remove(); // clear the playlist
     $('.editLink').remove(); // remove all edit links
     $('#addSongs').remove(); // remove the add button (if it exists)
-    
-    // TODO: START ---- This shouldn't be in Player.renderPlaylist()
-    $('#curPlaylistTitle')
-        .text(playlist.title);
-    $('#curPlaylistDesc')
-        .text(playlist.description);
-    
-    if (playlist.editable) {
-        playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
-        playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
-        
-        $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-            .prependTo('#curPlaylistInfo header');
-    }
-    // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
     // Render Playlist
     this.songlist = new SongList({
@@ -1548,22 +1599,41 @@ Player.prototype.renderPlaylist = function(playlist, start) {
         listItemIdPrefix: 'song',
         numberList: true,
     });
-    this.songlist.render('#playlistDiv');
-
-    if (playlist.editable) {
-        $('body').addClass('editable');
-        $('#playlist')
-            .sortable($.extend({}, appSettings.sortable, {
-                start: function(event, ui) {
-                    $('body').toggleClass('sorting', true);
-                },
-                stop: function(event, ui) {
-                    player.onPlaylistReorder(event, ui);
-                    $('body').toggleClass('sorting', false);
-                }
-            }));
+    
+    this.songlist.render('#playlistDiv', function() {
+        if (model.editable) {
+            $('body').addClass('editable');
+            $('#playlist')
+                .sortable($.extend({}, appSettings.sortable, {
+                    start: function(event, ui) {
+                        $('body').toggleClass('sorting', true);
+                    },
+                    stop: function(event, ui) {
+                        player.onPlaylistReorder(event, ui);
+                        $('body').toggleClass('sorting', false);
+                    }
+                }));
+            window.setTimeout(function() {
+                player.songlist.fetchAlbumImgs.apply(player.songlist);
+            }, 10000);
+        }
+    });
+    
+    // TODO: START ---- This shouldn't be in Player.renderPlaylist()
+    $('#curPlaylistTitle')
+        .text(playlist.title);
+    $('#curPlaylistDesc')
+        .text(playlist.description);
+    
+    if (model.editable) {
+        playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+        playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
+        
+        $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
+            .appendTo('#curPlaylistInfo header');
     }
-
+    // TODO: END ---- This shouldn't be in Player.renderPlaylist()
+    
     $('#playlist').disableSelection().mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
     });
@@ -1571,10 +1641,8 @@ Player.prototype.renderPlaylist = function(playlist, start) {
     player.renderRowColoring();
 };
 
-Player.prototype._onClickSong = function(event) {
-    event.preventDefault();
-    var songId = parseInt($(this).attr('id').substring(4));
-    player.reorderedSong || player.playSong(songId);
+Player.prototype._onClickSong = function(song, songNum) {
+    player.reorderedSong || player.playSong(songNum);
 }
 
 // Called by JQuery UI "Sortable" when a song has been reordered

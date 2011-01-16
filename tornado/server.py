@@ -250,7 +250,7 @@ class PlaylistEditHandler(BaseHandler):
                     songs = json.loads(col_value)
                     
                     images = ((song.get('i', None)) for song in songs)
-                    url_re = re.compile('^http://userserve-ak\.last\.fm/')
+                    url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
                     fail = False
                     for image in images:
                         if image is not None and url_re.match(image) == None:
