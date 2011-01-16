@@ -105,7 +105,6 @@ class BaseHandler(tornado.web.RequestHandler):
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
         user_cookie = self.get_secure_cookie('user_id')
-        print(playlist_entry)
         if user_cookie is None:
             editable = False
         else:    

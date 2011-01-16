@@ -979,7 +979,14 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
 
     // Update album art
     // We'll set alt text once we know album name
-    playlistview._updateAlbumImg(albumImg, ''); 
+    playlistview._updateAlbumImg(albumImg, '');
+    playlistview.bestAlbumImg = playlistview.bestAlbumImg || albumImg;
+    
+    if (model.songs[srcIndex].i === undefined && albumImg) {
+        log('got album art');
+        $('#song'+srcIndex+' img').attr('src', albumImg)
+        model.updateAlbumImg(srcIndex, albumImg);
+    }
 
     // 2. Get detailed track info
     trackName && artistName && model.lastfm.track.getInfo({
@@ -1100,8 +1107,6 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
 // @src - Image src url. Pass null to show the Unknown Album image.
 // @alt - Image alt text. (required, when src != null)
 PlaylistView.prototype._updateAlbumImg = function(src, alt) {
-    playlistview.bestAlbumImg = playlistview.bestAlbumImg || src;
-    
     if (!src) {
         src = '/images/unknown.png';
         alt = 'Unknown album';
@@ -1752,7 +1757,7 @@ Model.prototype.addSong = function(song) {
 }
 
 Model.prototype.saveSongs = function() {
-    this.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
+    model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
 }
 
 Model.prototype.getTopArtists = function(numArtists) {
@@ -1780,6 +1785,11 @@ Model.prototype.updateDesc = function(newDesc) {
     
     model.savePlaylist('&description='+model.description);
 }
+
+Model.prototype.updateAlbumImg = function(index, albumImg) {
+    model.songs[index].i = albumImg;
+    model.saveSongs();
+};
 
 Model.prototype.savePlaylist = function(data) {
     var the_url = '/p/'+model.playlistId+'/edit';
