@@ -300,12 +300,21 @@ function setupDragDropUploader(dropId, callback) {
 /* --------------------------- SOCIAL FEATURES ----------------------------- */
 
 function shareOnFacebook() {
+    // Use first non-blank album as share image
+    var bestAlbumImg;
+    for (var i = 0; i < model.songs.length; i++) {
+        var image = model.songs[i].i;
+        if (image) {
+            bestAlbumImg = image.replace('serve/34s', 'serve/126s');
+            break;
+        }
+    }
     FB.ui(
       {
         method: 'feed',
         name: model.title,
         link: 'http://instant.fm/p/'+model.playlistId,
-        picture: playlistview.bestAlbumImg || 'http://instant.fm/images/unknown.png',
+        picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
         caption: 'Instant.fm Playlist',
         description: model.description + '\n',
         properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
@@ -519,7 +528,7 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
 	    error: function(code, message) {
 	        log(code + ' ' + message);
 		}
-	});  
+	});
 };
 
 
@@ -978,7 +987,6 @@ SearchView.prototype._handleSearch = function(searchString) {
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
 
 function PlaylistView() {
-    this.bestAlbumImg; // Use first non-blank album as share image
     this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 }
 
@@ -1043,7 +1051,6 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     // Update album art
     // We'll set alt text once we know album name
     playlistview._updateAlbumImg(albumImg, '');
-    playlistview.bestAlbumImg = playlistview.bestAlbumImg || albumImg;
     
     if (model.songs[srcIndex].i === undefined && albumImg) {
         var $playlistImg = $('#song'+srcIndex+' img');
