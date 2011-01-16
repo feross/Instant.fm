@@ -3,7 +3,7 @@ var browser;
 var model;
 
 var playlistview;
-    viewStack = []; 
+var viewStack = []; 
 
 // jQuery.fx.off = true;
 
@@ -29,29 +29,16 @@ var appSettings = {
     }
 };
 
-/* ------------------------- INHERITANCE ------------------------- */
-// A bizarre function to make Javascrip's inheritance less incomprehensible
-function copyPrototype(descendant, parent) {
-    var sConstructor = parent.toString();
-    var aMatch = sConstructor.match( /\s*function (.*)\(/ );
-    if ( aMatch != null ) { descendant.prototype[aMatch[1]] = parent; }
-    for (var m in parent.prototype) {
-        descendant.prototype[m] = parent.prototype[m];
-    }
-};
-
 
 /* --------------------------- ON LOAD --------------------------- */
 
 function onloadHome() {
-
     $('.file').change(function(event) {
         var val = $(this).val();
         if (val.length) {
             $('#uploadForm').submit();
         }
     });
-    
     setupDragDropUploader('home', redirectToPlaylist);
 }
 
@@ -70,7 +57,6 @@ function onloadPlaylist() {
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
-    setupNavigationLinks();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
     
@@ -306,13 +292,6 @@ function setupPlaylistActionButtons() {
     });
 }
 
-function setupNavigationLinks() {
-    $('#signUp').click(function(event) {
-        event.preventDefault();
-        browser.pushStatic('signup.html', 'Sign Up', {});
-    });
-}
-
 function setupDragDropUploader(dropId, callback) {
     new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
 }
@@ -406,6 +385,7 @@ MiniBrowser.prototype.refreshContents = function() {
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title) {
     var title = _title || '';
+    
     var backButton = browser._makeBackButton();
     var prevContext = getTopView();
 
@@ -519,6 +499,8 @@ MiniBrowser.prototype._makeBackButton = function(text) {
     return button;
 };
 
+
+
 /* ---------------------------- BASE VIEW ---------------------------- */
 
 /* All views should extend this one! See SearchView for how to do that.*/
@@ -565,24 +547,24 @@ BaseView.prototype.push = function(event) {
 function SearchView() {
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
-};
+}
 copyPrototype(SearchView, BaseView);
 
 SearchView.prototype.getNameOfPartial = function() {
     return 'search';
-}
+};
 
 SearchView.prototype.getTitle = function() {
     return 'Add Songs';
-}
+};
 
 SearchView.prototype.willSlide = function() {
     this._addSearchHandlers();
-}
+};
 
 SearchView.prototype.didSlide = function() {
     $('.searchBox input.search', this.content).focus();
-}
+};
 
 // Perform a search for given search string
 SearchView.prototype.search = function(searchString) {
@@ -594,6 +576,21 @@ SearchView.prototype.search = function(searchString) {
     this.prevSearchString = searchString;
 
     var that = this;
+    model.lastfm.track.search(
+    {
+        track: searchString,
+        limit: 5,
+    },
+    {
+        success: function(data) {
+            that.handleSongSearchResults(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+            that.renderSongs([]);
+        }
+    });
+    
     model.lastfm.artist.search({
         artist: searchString,
         limit: 3,
@@ -617,29 +614,11 @@ SearchView.prototype.search = function(searchString) {
         success: function(data) {
             that.handleAlbumSearchResults(data);
         },
-        error: function(code, message)
-        {
+        error: function(code, message) {
             log(code + ' ' + message);
             that.renderAlbums([]);
         }
     });
-
-    model.lastfm.track.search(
-    {
-        track: searchString,
-        limit: 10,
-    },
-    {
-        success: function(data) {
-            that.handleSongSearchResults(data);
-        },
-        error: function(code, message)
-        {
-            log(code + ' ' + message);
-            that.renderSongs([]);
-        }
-    }
-    )
 };
 
 
@@ -722,7 +701,7 @@ SearchView.prototype.handleSongSearchResults = function(data) {
         tracks.push(track);
     };
 
-    $('.songResults div', this.content).remove();
+    $('.songResults ul', this.content).remove();
     
     var songlist = new SongList(tracks, {
         playSong: function(song) {
@@ -794,7 +773,7 @@ function SongList(songs, callbacks) {
 }
 
 SongList.prototype.render = function() {
-    var result = $('<div></div>');
+    var result = $('<ul></ul>');
     for (var i = 0; i < this.songs.length; i++) {
         var song = this.songs[i];
         
@@ -818,12 +797,12 @@ SongList.prototype.render = function() {
             };
         };
         
-        var button = $('<div class="addSong awesome small">+ Add</div>')
+        var button = $('<div class="addSong awesome small">Add +</div>')
             .click(addSongHelper(song));
         
-        $('<div class="songResult clearfix"></div>')
+        $('<li class="songResult clearfix"></li>')
             .append('<img src="'+song.image+'">') // No alt text. Want to avoid alt-text flash while img loads
-            .append('<div class="songResultPlay"></div>')
+            // .append('<div class="songResultPlay"></div>')
             .append('<div class="songInfo"><span class="title">'+song.name+'</span><span class="artist">'+song.artist+'</span></div>')
             .append(button)
             .click(playSongHelper(song))
@@ -930,7 +909,6 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
-        this.error('track.search', 'Empty set.');
         return;
     }
 
@@ -986,7 +964,6 @@ PlaylistView.prototype._handleSongInfo = function(trackName, artistName, srcInde
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.track) {
-        this.error('track.getInfo', 'Empty set.');
         return;
     }
                     
@@ -1032,7 +1009,6 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.artist) {
-        this.error('track.getInfo', 'Empty set.');
         return;
     }
                     
@@ -1113,7 +1089,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     
     // Load Facebook comment box
     $('#comments')
-        .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="485" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
+        .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
         playlistview.commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
@@ -1392,7 +1368,6 @@ Player.prototype.showHideVideo = function() {
     }
     if (Modernizr.csstransitions) {
         var animateResize = function(numCalls) {
-            log('animate');
             if (numCalls < 80) {
                 setupPlaylistDisplay();
                 window.setTimeout(function() {
@@ -1462,7 +1437,7 @@ Player.prototype.loadPlaylist = function(response) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
         playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#infoDisplay').effect('pulsate', {times: 1});
+        $('#infoDisplay').effect('pulsate', {times: 2});
     }
 
     model.updatePlaylist(playlist);
@@ -1611,7 +1586,7 @@ Player.prototype.renderRowColoring = function() {
 Player.prototype.highlightSong = function(selector) {
     scrollTo(selector, '#playlistDiv', {
         callback: function() {
-            $(selector).effect('pulsate', {times: 1});
+            $(selector).effect('pulsate', {times: 2});
         }
     });
 };
@@ -1861,3 +1836,13 @@ function htmlEncode(value){
 function htmlDecode(value){ 
   return $('<div/>').html(value).text(); 
 }
+
+// A bizarre function to make Javascrip's inheritance less incomprehensible
+function copyPrototype(descendant, parent) {
+    var sConstructor = parent.toString();
+    var aMatch = sConstructor.match( /\s*function (.*)\(/ );
+    if ( aMatch != null ) { descendant.prototype[aMatch[1]] = parent; }
+    for (var m in parent.prototype) {
+        descendant.prototype[m] = parent.prototype[m];
+    }
+};

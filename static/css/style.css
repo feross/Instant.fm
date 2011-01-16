@@ -531,7 +531,7 @@ a:hover .zoomIcon {
     padding: 15px 0 0 0;
 }
 
-#footer #helpLink {
+#helpLink {
     background: transparent url("/images/keyboard.png") top right no-repeat;
     display: block;
     float: right;
@@ -595,7 +595,7 @@ header .awesome { margin-top: 2px; }
     background: transparent url('/images/search-box.png') top left no-repeat;
     display: block;
     height: 40px;
-    margin: 20px auto;
+    margin: 20px auto 5px auto;
 }
 
 .searchBox input.search {
@@ -629,7 +629,7 @@ header .awesome { margin-top: 2px; }
 
 /* Search Results */
 
-.searchSection h3 { margin: 0 0 5px 0; }
+.searchSection h3 { padding: 10px 0 5px 0; }
 
 .artistResult, .albumResult {
     float: left;
@@ -676,6 +676,11 @@ header .awesome { margin-top: 2px; }
     border: 5px solid #499bd1;
 }
 
+.songResults ul {
+    padding: 0;
+    margin: 0;
+}
+
 .songResult {
     border-top: #333 1px solid; 
     clear: both;
@@ -684,15 +689,15 @@ header .awesome { margin-top: 2px; }
     cursor: pointer;
 }
 
-.songResult img, .songResultPlay {
+.songResult img /*, .songResultPlay*/ {
     float: left;
     height: 34px;
-    margin-right: 10px;
+    margin: 0 10px 0 10px;
     width: 34px;
 }
 
-.songResultPlay {
-    background: transparent url('/images/play.png') 9px 7px no-repeat;
+/*.songResultPlay {
+    background: transparent url('/images/play.png') 9px 7px no-repeat; 
     display: none;
     height: 34px;
     left: 0;
@@ -701,11 +706,11 @@ header .awesome { margin-top: 2px; }
     top: 0;
     width: 34px;
     z-index: 2;
-}
+}*/
 
 .songResult .songInfo {
     float: left;
-    width: 380px;
+    width: 350px;
 }
 
 .songResult .songInfo .title {
@@ -717,20 +722,20 @@ header .awesome { margin-top: 2px; }
     display: block;
     font-size: 12px;
     font-weight: normal;
-    margin-top: 3px;
+    margin-top: 1px;
 }
-
-.songResult:hover .songResultPlay { display: block; background-color: rgba(0, 0, 0, 0.4); }
-.songResult:hover .songInfo .title { color: #499bd1; }
 
 .songResult .addSong {
     float: right;
-    margin-top: 5px;
+    margin: 5px 10px 0 0;
 }
 
-.songResult.playing .title, .songResult.playing .artist {
-    text-shadow: 0 0 5px rgb(73, 155, 209), -1px -1px 10px rgb(73, 155, 209);
+.songResult.playing, .songResult.playing:hover {
+    background-color: #3990ea;
+    color: #fff;
 }
+
+.songResult:hover { background-color: #444; }
 
 
 
