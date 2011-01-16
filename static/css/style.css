@@ -663,6 +663,10 @@ header .awesome { margin-top: 2px; }
     width: 38px;
 }
 
+.songListItem.playing .num {
+    color: #fff;
+}
+
 .songListItem img /*, .songResultPlay*/ {
     float: left;
     height: 34px;

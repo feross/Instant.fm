@@ -781,16 +781,9 @@ function SongList(options) {
     this.buttons = options.buttons;
     this.id = options.id
     this.listItemIdPrefix = options.listItemIdPrefix;
-    this.numberList = !!options.numberList;    
+    this.numberList = !!options.numberList;
     
     var that = this;
-    this.clickHelper = function(song) {
-        return function(event) {
-            event.preventDefault();
-            that.click.apply(this, [event, song]);
-        };
-    };
-    
     this.buttonHelper = function(i, song) {
         return function(event) {
             event.preventDefault();
@@ -821,7 +814,7 @@ SongList.prototype._renderHelper = function(start) {
     
     var end = Math.min(start + this.renderChunkSize, this.songs.length);    	
     for (var i = start; i < end; i++) {
-        var song = this.songs[i];
+        var song = this.songs[i];    
         var $newSongItem = this._makeItem(song, i);
         this.elem.append($newSongItem);
     }
@@ -832,7 +825,7 @@ SongList.prototype._renderHelper = function(start) {
     }, that.renderTimeout);
 };
 
-SongList.prototype._makeItem = function(song, _songNum) {    
+SongList.prototype._makeItem = function(song, _songNum) {
     var $buttonActions = $('<div></div>');
     for (var i = 0; i < this.buttons.length; i++) {
         $('<div class="songAction awesome small"></div>')
@@ -841,13 +834,17 @@ SongList.prototype._makeItem = function(song, _songNum) {
             .appendTo($buttonActions);
     }
     
+    var that = this;
     var imgSrc = song.i ? song.i : '/images/unknown.png';
     var $songListItem = $('<li class="songListItem clearfix"></li>')
         .append(this.numberList ? '<div class="num">'+(_songNum+1)+'</div>' : '')
         .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
         .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
         .append($buttonActions)
-        .click(this.clickHelper(song));
+        .click(function() {
+            event.preventDefault();
+            that.click.apply(this, [event, song]);
+        });
         
     if (_songNum !== undefined) {
         $songListItem.attr('id', this.listItemIdPrefix + _songNum);
@@ -859,8 +856,12 @@ SongList.prototype._makeItem = function(song, _songNum) {
 // Add a new song to this songlist instance.
 // Song needs to have 't' and 'a' attributes.
 SongList.prototype.add = function(song) {
+    var that = this;
     this._makeItem(song, this.songs.length)
-        .click(this.clickHelper(song))
+        .click(function(event) {
+            event.preventDefault();
+            that.click.apply(this, [event, song]);
+        })
         .appendTo(this.elem);
 };
 
@@ -983,7 +984,6 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     playlistview.bestAlbumImg = playlistview.bestAlbumImg || albumImg;
     
     if (model.songs[srcIndex].i === undefined && albumImg) {
-        log('got album art');
         $('#song'+srcIndex+' img').attr('src', albumImg)
         model.updateAlbumImg(srcIndex, albumImg);
     }
@@ -1792,6 +1792,11 @@ Model.prototype.updateAlbumImg = function(index, albumImg) {
 };
 
 Model.prototype.savePlaylist = function(data) {
+    if (!model.editable) {
+        log('Playlist not saved. Playlist is uneditable.');
+        return;
+    }
+    
     var the_url = '/p/'+model.playlistId+'/edit';
     $.ajax({
         data: data,

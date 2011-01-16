@@ -254,9 +254,12 @@ class PlaylistEditHandler(BaseHandler):
                     fail = False
                     for image in images:
                         if image is not None and url_re.match(image) == None:
+                            print 'Invalid image art save attempted: ' + image
                             fail = True
                     
                     if fail:
+                        print 'Playlist update failed.'
+                        self.write(json.dumps({'status': 'Malformed edit request'}))
                         return
                                     
                 if self._update_playlist(playlist_id, col_name, col_value, user_id):
