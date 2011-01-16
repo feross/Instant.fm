@@ -21,18 +21,23 @@ define("mysql_database", default="instantfm", help="database name")
 define("mysql_user", default="instantfm", help="database user")
 define("mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
 
+# Regex to sanitize urls
+url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
-            (r"/upload", UploadHandler),
-            (r"((?:/partial)?)/p/([a-zA-Z0-9]*)$", PlaylistHandler),
-            (r"((?:/partial)?)/search$", SearchHandler),
+            (r"/upload$", UploadHandler),
+            (r"/p/([a-zA-Z0-9]*)$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]*)/json$", PlaylistJSONHandler),
             (r"/p/([a-zA-Z0-9]*)/edit$", PlaylistEditHandler),
             (r"/terms$", TermsHandler),
             (r"/suggest$", ArtistAutocompleteHandler),
+            (r"/search$", SearchHandler),
+            (r"/([^/]+)/([^/]+)", AlbumHandler),
+            (r"/([^/]+)", ArtistHandler),
             (r".*", ErrorHandler),
         ]
         settings = dict(
@@ -100,6 +105,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
         user_cookie = self.get_secure_cookie('user_id')
+        print(playlist_entry)
         if user_cookie is None:
             editable = False
         else:    
@@ -133,7 +139,7 @@ class BaseHandler(tornado.web.RequestHandler):
             create_date = datetime.utcnow().isoformat(' ')
             new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('user_id', str(new_id))
-           
+          
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
         prefix = self.get_argument('term');
@@ -164,39 +170,57 @@ class PlaylistBaseHandler(BaseHandler):
         playlist = self.makePlaylistJSON(playlist_entry)
         return playlist
         
-    def _render_playlist_view(self, template_name, is_partial, playlist):
+    def _render_playlist_view(self, template_name, is_partial, playlist=None, **kwargs):
         template = ('partial/' if is_partial else '') + template_name;
-        self.render(template, playlist=playlist)
+        self.render(template, playlist=playlist, **kwargs)
        
 class PlaylistHandler(PlaylistBaseHandler):
-    """Landing page for a playlist"""
-    def get(self, is_partial, playlist_alpha_id):
-        self.set_user_cookie()
-        playlist_id = self.base36_10(playlist_alpha_id)
-        playlist = self._get_playlist_by_id(playlist_id)
-        self._render_playlist_view('now_playing.html', is_partial, playlist);
-        
-class SearchHandler(PlaylistBaseHandler):
-    """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
-    def get(self, is_partial):
-        self.set_user_cookie()
-        playlist = None # Default to an empty playlist
-        self._render_playlist_view('search.html', is_partial, playlist)
- 
-class PlaylistJSONHandler(PlaylistHandler):
-    """Handles requests to get playlists from the database"""
-    
-    def _render_playlist(self, playlist_id):
+    def _render_playlist_json(self, playlist_id):
         """Renders the specified playlist's JSON representation"""
-        playlist_entry = self._get_playlist(playlist_id)
-        
-        if not playlist_entry:
+        try:
+            playlist_entry = self._get_playlist_by_id(playlist_id)
+            self.write(playlist_entry)
+        except:
             print "Couldn't find playlist"
             self.write(json.dumps({'status': 'Not found'}))
             return
+
+    """Landing page for a playlist"""
+    def get(self, playlist_alpha_id):
+        self.set_user_cookie()
+        playlist_id = self.base36_10(playlist_alpha_id)
+        if self.get_argument('json', default=False):
+            self._render_playlist_json(playlist_id);
+        else:
+            is_partial = self.get_argument('partial', default=False)
+            playlist = self._get_playlist_by_id(playlist_id)
+            self._render_playlist_view('now_playing.html', is_partial, playlist);
         
-        playlist = self.makePlaylistJSON(playlist_entry)
-        self.write(playlist)
+class SearchHandler(PlaylistBaseHandler):
+    """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
+    def get(self):
+        self.set_user_cookie()
+        is_partial = self.get_argument('partial', default=False)
+        playlist = None # Default to an empty playlist
+        self._render_playlist_view('search.html', is_partial, playlist)
+
+class ArtistHandler(PlaylistBaseHandler):
+    def get(self, artist):
+        self.set_user_cookie()
+        is_partial = self.get_argument('partial', default=False)
+        # TODO: Make default playlist be artist's top songs
+        self._render_playlist_view('artist.html', is_partial, artist=artist)
+ 
+class AlbumHandler(PlaylistBaseHandler):
+    def get(self, artist, album):
+        self.set_user_cookie()
+        is_partial = self.get_argument('partial', default=False)
+        # TODO: Make default playlist be artist's top songs
+        self._render_playlist_view('album.html', is_partial, artist=artist, album=album)
+       
+class PlaylistJSONHandler(PlaylistHandler):
+    """Handles requests to get playlists from the database"""
+    pass
 
 
 class PlaylistEditHandler(BaseHandler):

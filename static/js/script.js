@@ -407,6 +407,7 @@ MiniBrowser.prototype.refreshContents = function() {
 MiniBrowser.prototype.push = function(elem, _title) {
     var title = _title || '';
     var backButton = browser._makeBackButton();
+    var prevContext = getTopView();
 
     var header = $('<header class="clearfix buttonHeader"></header>')
         .append(backButton)
@@ -426,7 +427,14 @@ MiniBrowser.prototype.push = function(elem, _title) {
       context.didSlide();
     }, 500);
     
-    context = getTopView(); // Is there a more robust way we can do this?
+    // Is there a more robust way we can do this?
+    // We handle the case where the loaded partial didn't push a new view
+    // controller by adding a BaseView controller.
+    context = getTopView();
+    if (context == prevContext) {
+      context = new BaseView();
+      viewStack.push(context);
+    }
     context.content = elem;
         
     this.refreshContents();
@@ -448,7 +456,15 @@ MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
 
 // Fetch a partial from the server, push it onto the minibrowser.
 MiniBrowser.prototype.pushPartial = function(path, _title, _options) {
-    this.pushStatic('/partial' + path, _title, _options);
+  // Very crude way to add a parameter
+  var newPath;
+  if (path.indexOf('?')) {
+    newPath = path + '?partial=true';
+  } else {
+    newpath = path + '&partial=true';
+  }
+  
+  this.pushStatic(newPath, _title, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -1458,7 +1474,7 @@ Player.prototype.loadPlaylist = function(response) {
 
 // Load a playlist with the given id
 Player.prototype.loadPlaylistById = function(id) {
-    var the_url = '/p/'+id+'/json';
+    var the_url = '/p/'+id+'?json=true';
     $.ajax({
         dataType: 'json',
         type: 'GET',
