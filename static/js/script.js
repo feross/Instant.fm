@@ -371,7 +371,7 @@ function SongList(options) {
     this.renderTimeout = 100; // Time between rendering each chunk
     
     this.songs = options.songs;
-    this.click = options.click;
+    this.onClick = options.onClick;
     this.buttons = options.buttons;
     this.id = options.id
     this.listItemIdPrefix = options.listItemIdPrefix;
@@ -393,9 +393,6 @@ SongList.prototype.render = function(addToElem, _callback) {
         
     if (this.id) {
         this.elem.attr('id', this.id);
-    }
-    if (this.class) {
-        this.elem.addClass(this.class);
     }
     
     this._renderHelper(0, _callback);
@@ -438,10 +435,10 @@ SongList.prototype._makeItem = function(song, _songNum) {
         .append($buttonActions)
         .click(function(event) {
             event.preventDefault();
-            that.click(song, _songNum);
+            that.onClick.apply(this, [song, _songNum]);
         });
         
-    if (_songNum !== undefined) {
+    if (_songNum !== undefined && this.listItemIdPrefix) {
         $songListItem.attr('id', this.listItemIdPrefix + _songNum);
     }
             
@@ -451,12 +448,12 @@ SongList.prototype._makeItem = function(song, _songNum) {
 // Add a new song to this songlist instance.
 // Song needs to have 't' and 'a' attributes.
 SongList.prototype.add = function(song) {
-    var that = this;
     var songNum = this.songs.length;
+    var that = this;
     this._makeItem(song, songNum)
         .click(function(event) {
             event.preventDefault();
-            that.click(song, songNum);
+            that.onClick.apply(this, [song, songNum]);
         })
         .appendTo(this.elem);
 };
@@ -521,7 +518,7 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
                 log('updated album image: ' + song.t + ' ' + song.a);
             } else {
                 that.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
-                log('set album image to null: ' + song.t + ' ' + song.a);
+                log('update album image to null: ' + song.t + ' ' + song.a);
             }
             continueFetching();
 	    },
@@ -812,7 +809,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     
     var songlist = new SongList({
         songs: tracks,
-        click: function(song) {
+        onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
             var q = song.t+' '+song.a;
@@ -1383,7 +1380,7 @@ Player.prototype.playSong = function(i) {
     var q = title + ' ' + artist;
     player.playSongBySearch(q);
 
-    $('.playing', $('#playlist')).removeClass('playing');
+    $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
 
     playlistview.updateCurPlaying(title, artist, songIndex);
@@ -1600,7 +1597,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     // Render Playlist
     this.songlist = new SongList({
         songs: playlist.songs,
-        click: player._onClickSong,
+        onClick: player._onClickSong,
         buttons: [],
         id: 'playlist',
         listItemIdPrefix: 'song',
