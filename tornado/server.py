@@ -245,6 +245,20 @@ class PlaylistEditHandler(BaseHandler):
             col_value = self.get_argument(col_name, None)
             if col_value is not None:
                 # update playlist
+                
+                if col_name == 'songs':
+                    songs = json.loads(col_value)
+                    
+                    images = ((song.get('i', None)) for song in songs)
+                    url_re = re.compile('^http://userserve-ak\.last\.fm/')
+                    fail = False
+                    for image in images:
+                        if image is not None and url_re.match(image) == None:
+                            fail = True
+                    
+                    if fail:
+                        return
+                                    
                 if self._update_playlist(playlist_id, col_name, col_value, user_id):
                     self.write(json.dumps({'status': 'Updated'}))
                 else:
