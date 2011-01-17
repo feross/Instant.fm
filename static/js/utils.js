@@ -69,7 +69,7 @@ function showThrobber(show) {
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
 function cleanSongTitle(title) {
-    return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|version|edit|mix).*?[\)\]]/gi, '');
+    return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix).*?[\)\]]/gi, '');
 }
 
 // Prepare Remove all html tags

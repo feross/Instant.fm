@@ -264,7 +264,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
 
 // Perform a search for given search string
 SearchView.prototype.search = function(searchString) {
-    log('Searching for "' + searchString + '".');
+    // log('Searching for "' + searchString + '".');
     if (!searchString) {
         return;
     }
@@ -486,7 +486,7 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     if (model.songs[srcIndex].i === undefined && albumImg) {
         var $playlistImg = $('#song'+srcIndex+' img');
         if ($playlistImg.attr('src') == '/images/unknown.png') {
-            log('updated image in playlist');
+            // log('updated image in playlist');
             $playlistImg.attr('src', albumImg)
         }
         model.updateAlbumImg(srcIndex, albumImg);
@@ -874,14 +874,14 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
         if (!this.concurrentReqs) {
             this.albumUpdateFinished = true;
             model.saveSongs();
-            log('Finished fetching and saving all album art');
+            // log('Finished fetching and saving all album art');
         }
         return;
     }
     
     if (albumIndex % 25 == 0) {
         model.saveSongs();
-        log('Saving newly fetched album art: ' + albumIndex);
+        // log('Saving newly fetched album art: ' + albumIndex);
     }
     
     // Don't try to refetch albums that already have art
@@ -902,10 +902,10 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
             if (albumImg) {
                 $('#song'+albumIndex+' img').attr('src', albumImg);
                 that.songs[albumIndex].i = albumImg;
-                log('updated album image: ' + song.t + ' ' + song.a);
+                // log('updated album image: ' + song.t + ' ' + song.a);
             } else {
                 that.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
-                log('update album image to null: ' + song.t + ' ' + song.a);
+                // log('update album image to null: ' + song.t + ' ' + song.a);
             }
             continueFetching();
 	    },

@@ -740,6 +740,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         .text(playlist.title);
     $('#curPlaylistDesc')
         .text(playlist.description);
+    document.title = playlist.title + ' - Instant.fm - Share Music Playlists Instantly';
     
     if (model.editable) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
