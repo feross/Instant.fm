@@ -489,10 +489,13 @@ Player.prototype.playSongBySearch = function(q) {
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
+                    $('#song'+srcIndex)
+                        .removeClass('paused')
+                        .addClass('missing');
                     if (songIndex == srcIndex) {
                         player.playNextSong();
                     }
-                }, 4000);
+                }, 2000);
                 log('No songs found for: ' + q);
             }
         }
@@ -693,7 +696,7 @@ Player.prototype.renderPlaylist = function(playlist) {
                 }));
             window.setTimeout(function() {
                 player.songlist.fetchAlbumImgs.apply(player.songlist);
-            }, 10000);
+            }, 4000);
         }
     });
     
@@ -863,14 +866,14 @@ function onYouTubePlayerStateChange(newState) {
             // Bugfix: Force first video play to be HD
             player.ytplayer.setPlaybackQuality('hd720');
             
-            $('.playing').toggleClass('paused', false);
+            $('.playing').removeClass('paused');
             if (player.queuedVideo) {
                 player.playSongById(player.queuedVideo);
                 player.queuedVideo = null;
             }
             break;
         case 2: // paused
-            $('.playing').toggleClass('paused', true);
+            $('.playing').addClass('paused');
             break;
     }
 }

@@ -674,6 +674,15 @@ header .awesome { margin-top: 2px; }
     width: 34px;
 }
 
+.songListItem.missing {
+    background-image: url('/images/notfound.png');
+    background-position: 5px center;
+    background-repeat: no-repeat;
+    color: #aaa;
+}
+.songListItem.missing .num { visibility: hidden; }
+.songListItem.missing img { opacity: 0.3; }
+
 /*.songResultPlay {
     background: transparent url('/images/play.png') 9px 7px no-repeat; 
     display: none;
