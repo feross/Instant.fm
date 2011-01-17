@@ -146,9 +146,13 @@ function setupPlayerHoverButtons() {
         event.preventDefault();
         player.toggleRepeat();
     });
-    $('#showVideo, #hideVideo').click(function(event) {
+    $('#showVideo').click(function(event) {
         event.preventDefault();
-        player.toggleVideo();
+        player.toggleVideo(true);
+    });
+    $('#hideVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo(false);
     });
 }
 
@@ -544,12 +548,18 @@ Player.prototype._initPlayer = function(firstVideoId) {
     'player', '480', '295', '8', null, null, params, atts);
 };
 
-Player.prototype.toggleVideo = function() {
+Player.prototype.toggleVideo = function(force) {
     var $videoDiv = $('#videoDiv');
-    if ($videoDiv.hasClass('noVideo')) {
-        $('#videoDiv').removeClass('noVideo');
+    var videoOn = !$videoDiv.hasClass('noVideo');
+
+    if (force !== undefined && force == videoOn) {
+        return; // we're already in the desired state
+    }
+
+    if (videoOn) {
+        $videoDiv.addClass('noVideo');
     } else {
-        $('#videoDiv').addClass('noVideo');
+        $videoDiv.removeClass('noVideo');
     }
     if (Modernizr.csstransitions) {
         var animateResize = function(numCalls) {
@@ -570,9 +580,9 @@ Player.prototype.toggleShuffle = function(force) {
     this.shuffle = force !== undefined ? force : !this.shuffle;
     
     if (this.shuffle) {
-        $('#toggleShuffle').addClass('red');
+        $('#toggleShuffle').addClass('on');
     } else {
-        $('#toggleShuffle').removeClass('red');
+        $('#toggleShuffle').removeClass('on');
     }
 };
 
@@ -580,9 +590,9 @@ Player.prototype.toggleRepeat = function(force) {
     this.repeat = force !== undefined ? force : !this.repeat;
     
     if (this.repeat) {
-        $('#toggleRepeat').addClass('red');
+        $('#toggleRepeat').addClass('on');
     } else {
-        $('#toggleRepeat').removeClass('red');
+        $('#toggleRepeat').removeClass('on');
     }
 };
 

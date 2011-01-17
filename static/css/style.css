@@ -140,6 +140,13 @@ a.awesome:hover { text-decoration: none; }
 .white.awesome:hover {
     color: #bf1e1e;
 }
+.white.awesome.on {
+    background-color: #b80000;
+    color: #fff;
+}
+.white.awesome.on:hover {
+    background-color: #8e0000;
+}
 
 
 
@@ -285,10 +292,10 @@ input.file {
 #hiddenVideoTools {
     left: 195px;
     top: 5px;
-    -webkit-transition: all 0.2s ease-in-out;
-	-moz-transition: all 0.2s ease-in-out;
-	-o-transition: all 0.2s ease-in-out;
-	transition: all 0.2s ease-in-out;
+    -webkit-transition: all 0.1s ease-in-out;
+	-moz-transition: all 0.1s ease-in-out;
+	-o-transition: all 0.1s ease-in-out;
+	transition: all 0.1s ease-in-out;
 }
 
 #videoTools, #hiddenVideoTools {
@@ -317,10 +324,13 @@ input.file {
 
 #hiddenVideoTools a {
     border-bottom: 0;
+    cursor: default;
     -moz-box-shadow: none;
     -webkit-box-shadow: none;
     box-shadow: none;
 }
+
+.noVideo #hiddenVideoTools a { cursor: pointer; }
 
 a#hideVideo { float: right; }
 
