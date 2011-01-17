@@ -186,14 +186,17 @@ function setupKeyboardShortcuts() {
                 case 109: // - on Fx
                     player.decreaseVolume();
                     break;
-                case 86:
+                case 86: // v
                     player.toggleVideo();
                     break;
-                case 83:
+                case 83: // s
                     player.toggleShuffle();
+                    player.flashVideoTools();
+                    
                     break;
-                case 82:
+                case 82: // r
                     player.toggleRepeat();
+                    player.flashVideoTools();
                     break;
 
                 // Playlist editing
@@ -596,6 +599,17 @@ Player.prototype.toggleRepeat = function(force) {
     }
 };
 
+Player.prototype.flashVideoTools = function() {
+    var videoOn = !$('#videoDiv').hasClass('noVideo');
+    
+    if (videoOn) {
+        $('#videoTools').addClass('flash');
+        window.setTimeout(function() {
+            $('#videoTools').removeClass('flash');
+        }, 400);
+    }
+}
+
 
 /* Playlist editing */
 
@@ -751,7 +765,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
-    $('#playlist').disableSelection().mouseup(function(event) {
+    $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
     });
 

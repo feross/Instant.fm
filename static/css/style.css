@@ -131,11 +131,12 @@ a.awesome:hover { text-decoration: none; }
 .orange.awesome:hover                           { background-color: #d45500; }
 .yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
 .yellow.awesome:hover                           { background-color: #fc9200; }
+
+/* YouTube player style buttons */
 .white.awesome, .white.awesome:visited {
     color: #333;
     background-color: #ddd;
     text-shadow: none;
-
 }
 .white.awesome:hover {
     color: #bf1e1e;
@@ -334,7 +335,8 @@ input.file {
 
 a#hideVideo { float: right; }
 
-#videoDiv:hover #videoTools {
+/* We use the .flash class when we make these buttons pulsate */
+#videoDiv:hover #videoTools, #videoTools.flash {
     -moz-opacity: 1;
     filter: alpha(opacity: 100);
     opacity: 1;

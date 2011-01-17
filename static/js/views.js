@@ -775,6 +775,7 @@ function SongList(options) {
 
 SongList.prototype.render = function(addToElem, _callback) {
     this.elem = $('<ul></ul>')
+        .disableSelection()
         .appendTo(addToElem);
         
     if (this.id) {
