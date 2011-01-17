@@ -715,7 +715,6 @@ header .awesome { margin-top: 2px; }
 .songListItem .songInfo .artist {
     display: block;
     font-size: 12px;
-    font-weight: normal;
     margin-top: 1px;
 }
 
@@ -736,7 +735,6 @@ header .awesome { margin-top: 2px; }
 
 .songListItem:hover { background-color: #444; }
 
-
 /* Playlist */
 
 #playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
@@ -749,7 +747,7 @@ header .awesome { margin-top: 2px; }
     cursor: pointer;
 }
 
-#playlist .songActions { margin: 10px 3px 0 0; }
+#playlist .songActions { height: 15px; margin: 10px 5px 0 0; }
 
 #playlist .songListItem img { margin-left: 0; }
 
@@ -766,9 +764,7 @@ header .awesome { margin-top: 2px; }
     background: transparent url("/images/top.png") left top no-repeat;
     cursor: pointer;
 }
-.editable #playlist li.songListItem:first-child .moveToTop {
-    background: none;
-}
+.editable #playlist li.songListItem:first-child .moveToTop { background: none; }
 
 .editable #playlist li .drag { height: 15px; width: 15px; }
 .editable #playlist li:hover .drag {

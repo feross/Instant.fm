@@ -616,6 +616,7 @@ Player.prototype.moveSongDown = function(oldId) {
 Player.prototype.moveSong = function(oldId, newId) {
     var songItem = $('#song'+oldId);
     $('#song'+newId).before(songItem);
+    
     player.onPlaylistReorder(null, {item: songItem});
 };
 
@@ -759,6 +760,7 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
     var oldId = parseInt(ui.item.attr('id').substring(4));
     var songItem = $('#song'+oldId);
     var newId = songItem.prevAll().length;
+    var playingItem = $('.playing');
 
     if (newId == oldId) {
         return; // song didn't move
@@ -792,13 +794,11 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
     }
 
     songItem
-    .attr('id', 'song'+newId) // Add back the reordered song's id
-    .find('.num').text(newId+1);
+        .attr('id', 'song'+newId) // Add back the reordered song's id
+        .find('.num').text(newId+1);
     
-    // If we move the current song, keep our position in the playlist up to date
-    if (oldId == songIndex) {
-        songIndex = newId;
-    }
+    // Keep our position in the playlist up to date in case we moved the current song
+    songIndex = parseInt(playingItem.attr('id').substring(4));
 
     this.renderRowColoring();
 };

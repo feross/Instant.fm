@@ -150,7 +150,7 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 
 /* ---------------------------- BASE VIEW ---------------------------- */
 
-/* All views should extend this one! See SearchView for how to do that.*/
+/* All views should extend this one! */
 function BaseView() {};
 
 BaseView.prototype.getNameOfPartial = function() {
