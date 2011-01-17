@@ -266,6 +266,8 @@ input.file {
 #videoTools {
     background-color: transparent;
     color: #fff;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
     opacity: 0;
     position: absolute;
     top: 10px;
@@ -282,6 +284,8 @@ input.file {
 #videoTools a#toggleVideo { float: right; }
 
 #videoDiv:hover #videoTools {
+    -moz-opacity: 1;
+    filter: alpha(opacity: 100);
     opacity: 1;
 }
 #videoDiv.noVideo:hover #videoTools { display: none; }
@@ -674,6 +678,18 @@ header .awesome { margin-top: 2px; }
     width: 34px;
 }
 
+.songListItem.missing {
+    background-image: url('/images/notfound.png');
+    background-position: 5px center;
+    background-repeat: no-repeat;
+    color: #aaa;
+}
+.songListItem.missing .num { visibility: hidden; }
+.songListItem.missing img {
+    -moz-opacity: 0.4;
+    filter: alpha(opacity: 40);
+    opacity: 0.4;}
+
 /*.songResultPlay {
     background: transparent url('/images/play.png') 9px 7px no-repeat; 
     display: none;
@@ -688,7 +704,7 @@ header .awesome { margin-top: 2px; }
 
 .songListItem .songInfo {
     float: left;
-    width: 350px;
+    width: 340px;
 }
 
 .songListItem .songInfo .title {
@@ -703,9 +719,14 @@ header .awesome { margin-top: 2px; }
     margin-top: 1px;
 }
 
-.songListItem .songAction {
+.songListItem .songActions {
     float: right;
-    margin: 5px 10px 0 0;
+    margin: 5px 5px 0 0;
+}
+
+.songActions div {
+    display: inline-block;
+    margin: 0 5px;
 }
 
 .songListItem.playing, .songListItem.playing:hover {
@@ -720,11 +741,7 @@ header .awesome { margin-top: 2px; }
 
 #playlistDiv {overflow: auto; overflow-x: hidden; overflow-y: scroll; /* use css3 when available */ }
 
-#playlist {
-    color: #444;
-    margin: 0;
-    padding: 0;
-}
+#playlist { color: #444; margin: 0; padding: 0; }
 
 #playlist li {
     background-color: #f3f6fa;
@@ -732,25 +749,33 @@ header .awesome { margin-top: 2px; }
     cursor: pointer;
 }
 
-#playlist .songListItem img {
-    margin-left: 0;
-}
+#playlist .songActions { margin: 10px 3px 0 0; }
 
-#playlist .songInfo .title {
-    font-size: 14px;
-}
+#playlist .songListItem img { margin-left: 0; }
+
+#playlist .songInfo { width: 325px; }
+
+#playlist .songInfo .title { font-size: 14px; }
 
 #playlist li.odd { background-color: #fff; }
 
 #playlist li:hover { background-color: #c5defe; }
 
-/*
-#playlist .handle { padding: 3px 3px 3px 3px; width: 15px; }
-.editable #playlist li:hover .handle {
-    background: transparent url("/images/drag.png") 4px left no-repeat;
-    cursor: url('/images/cursors/move.cur'), move;
+.editable #playlist li .moveToTop { height: 15px; width: 11px; }
+.editable #playlist li:hover .moveToTop {
+    background: transparent url("/images/top.png") left top no-repeat;
+    cursor: pointer;
 }
-*/
+.editable #playlist li.songListItem:first-child .moveToTop {
+    background: none;
+}
+
+.editable #playlist li .drag { height: 15px; width: 15px; }
+.editable #playlist li:hover .drag {
+    background: transparent url("/images/drag.png") left top no-repeat;
+    cursor: url('/images/cursors/move.cur'), move !important;
+}
+
 
 .sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
 

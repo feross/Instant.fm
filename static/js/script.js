@@ -489,10 +489,13 @@ Player.prototype.playSongBySearch = function(q) {
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
+                    $('#song'+srcIndex)
+                        .removeClass('paused')
+                        .addClass('missing');
                     if (songIndex == srcIndex) {
                         player.playNextSong();
                     }
-                }, 4000);
+                }, 2000);
                 log('No songs found for: ' + q);
             }
         }
@@ -608,6 +611,14 @@ Player.prototype.moveSongDown = function(oldId) {
     player.onPlaylistReorder(null, {item: songItem});
 };
 
+// Manually move a song
+// NOTE: This method doesn't do any sanity checks! - make sure you pass it sane values!
+Player.prototype.moveSong = function(oldId, newId) {
+    var songItem = $('#song'+oldId);
+    $('#song'+newId).before(songItem);
+    player.onPlaylistReorder(null, {item: songItem});
+};
+
 Player.prototype.addSongToPlaylist = function(song) {
     this.songlist.add(song, '#playlist');
     this.highlightSong('#playlist li:last');
@@ -672,7 +683,23 @@ Player.prototype.renderPlaylist = function(playlist) {
     this.songlist = new SongList({
         songs: playlist.songs,
         onClick: player._onClickSong,
-        buttons: [],
+        buttons: [{
+            action: function(event, song) {
+                var songItem = $(this).closest('.songListItem');
+                var songId = parseInt(songItem.attr('id').substring(4));
+                if (songId == 0) {
+                    return; // don't move the first song to the top, it breaks things
+                }
+                player.moveSong(songId, 0);
+            },
+            class: 'moveToTop ir',
+            text: 'Move to top'
+        },
+        {
+            action: $.noop,
+            class: 'drag ir',
+            text: 'Drag this song to reorder it'
+        }],
         id: 'playlist',
         listItemIdPrefix: 'song',
         numberList: true,
@@ -693,7 +720,7 @@ Player.prototype.renderPlaylist = function(playlist) {
                 }));
             window.setTimeout(function() {
                 player.songlist.fetchAlbumImgs.apply(player.songlist);
-            }, 10000);
+            }, 4000);
         }
     });
     
@@ -719,8 +746,9 @@ Player.prototype.renderPlaylist = function(playlist) {
     player.renderRowColoring();
 };
 
-Player.prototype._onClickSong = function(song, songNum) {
-    player.reorderedSong || player.playSong(songNum);
+Player.prototype._onClickSong = function() {
+    var songId = parseInt($(this).attr('id').substring(4));
+    player.reorderedSong || player.playSong(songId);
 };
 
 // Called by JQuery UI "Sortable" when a song has been reordered
@@ -728,7 +756,6 @@ Player.prototype._onClickSong = function(song, songNum) {
 // @ui - prepared ui object (see: http://jqueryui.com/demos/sortable/)
 Player.prototype.onPlaylistReorder = function(event, ui) {
     this.reorderedSong = true; // mark the song as reordered so we don't think it was clicked
-
     var oldId = parseInt(ui.item.attr('id').substring(4));
     var songItem = $('#song'+oldId);
     var newId = songItem.prevAll().length;
@@ -863,14 +890,14 @@ function onYouTubePlayerStateChange(newState) {
             // Bugfix: Force first video play to be HD
             player.ytplayer.setPlaybackQuality('hd720');
             
-            $('.playing').toggleClass('paused', false);
+            $('.playing').removeClass('paused');
             if (player.queuedVideo) {
                 player.playSongById(player.queuedVideo);
                 player.queuedVideo = null;
             }
             break;
         case 2: // paused
-            $('.playing').toggleClass('paused', true);
+            $('.playing').addClass('paused');
             break;
     }
 }
