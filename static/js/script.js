@@ -146,7 +146,7 @@ function setupPlayerHoverButtons() {
         event.preventDefault();
         player.toggleRepeat();
     });
-    $('#toggleVideo').click(function(event) {
+    $('#showVideo, #hideVideo').click(function(event) {
         event.preventDefault();
         player.toggleVideo();
     });
