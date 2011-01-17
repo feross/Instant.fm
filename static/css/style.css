@@ -132,7 +132,7 @@ a.awesome:hover { text-decoration: none; }
 .yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
 .yellow.awesome:hover                           { background-color: #fc9200; }
 .white.awesome, .white.awesome:visited {
-    color: #222;
+    color: #333;
     background-color: #ddd;
     text-shadow: none;
 
@@ -816,7 +816,7 @@ header .awesome { margin-top: 2px; }
 
 #playlist .songListItem img { margin-left: 0; }
 
-#playlist .songInfo { width: 325px; }
+#playlist .songListItem .songInfo { width: 320px; }
 
 #playlist .songInfo .title { font-size: 14px; }
 
@@ -824,14 +824,14 @@ header .awesome { margin-top: 2px; }
 
 #playlist li:hover { background-color: #c5defe; }
 
-.editable #playlist li .moveToTop { height: 15px; width: 11px; }
+#playlist li .moveToTop { height: 15px; width: 11px; }
 .editable #playlist li:hover .moveToTop {
     background: transparent url("/images/top.png") left top no-repeat;
     cursor: pointer;
 }
 .editable #playlist li.songListItem:first-child .moveToTop { background: none; }
 
-.editable #playlist li .drag { height: 15px; width: 15px; }
+#playlist li .drag { height: 15px; width: 15px; }
 .editable #playlist li:hover .drag {
     background: transparent url("/images/drag.png") left top no-repeat;
     cursor: url('/images/cursors/move.cur'), move !important;
