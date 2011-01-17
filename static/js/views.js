@@ -249,10 +249,11 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             player.playSongBySearch(q);
         },
         buttons: [{
-            text: 'Add +',
             action: function(event, song) {
                 player.addSongToPlaylist(song);
-            }
+            },
+            class: 'awesome small',
+            text: 'Add +'
         }],
     });
     
@@ -763,7 +764,7 @@ function SongList(options) {
     this.numberList = !!options.numberList;
     
     var that = this;
-    this.buttonHelper = function(i, song) {
+    this.buttonHelper = function(i, song, _songNum) {
         return function(event) {
             event.preventDefault();
             event.stopPropagation();
@@ -803,10 +804,11 @@ SongList.prototype._renderHelper = function(start, _callback) {
 };
 
 SongList.prototype._makeItem = function(song, _songNum) {
-    var $buttonActions = $('<div></div>');
+    var $buttonActions = $('<div class="songActions"></div>');
     for (var i = 0; i < this.buttons.length; i++) {
-        $('<div class="songAction awesome small"></div>')
-            .text(this.buttons[i].text)
+        $('<div></div>')
+            .addClass(this.buttons[i].class)
+            .text(this.buttons[i].text || '')
             .click(this.buttonHelper(i, song))
             .appendTo($buttonActions);
     }
