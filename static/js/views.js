@@ -94,6 +94,9 @@ MiniBrowser.prototype.pushPartial = function(path, _title, _options) {
 
 // Pop the top-most page off of the browser.
 MiniBrowser.prototype.pop = function() {
+    if (!getTopView()) {
+        return;
+    }
     // Tell the view controller it's going to be popped, then pop it
     getTopView().willHide();
     getTopView().willPop();
