@@ -19,7 +19,10 @@ function scrollTo(selectedElem, _container, options) {
     var absScrollTop = $(container).scrollTop() + relativeScrollDistance;
     
     if (options.scrollAtBottom) {
-        absScrollTop += ($(selectedElem).height() - $(container).height());
+        var selectedElemHeight = $(selectedElem).height() + $(selectedElem).margin().top + $(selectedElem).margin().bottom + $(selectedElem).padding().top + $(selectedElem).padding().bottom;
+        var containerHeight = $(container).height() + $(container).margin().top + $(container).margin().bottom + $(container).padding().top + $(container).padding().bottom;
+        
+        absScrollTop += (selectedElemHeight - containerHeight);
     }
     
     if (options.noAnimation) {

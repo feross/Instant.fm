@@ -648,10 +648,10 @@ header .awesome { margin-top: 2px; }
 
 .songListItem {
     clear: both;
+    cursor: pointer;
     list-style-type: none;
     padding: 6px 0;
     position: relative;
-    cursor: pointer;
 }
 
 .songListItem .num {

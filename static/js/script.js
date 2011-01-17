@@ -441,13 +441,10 @@ Player.prototype.playSong = function(i) {
 
 // Play next song in the playlist
 Player.prototype.playNextSong = function() {
-    if (songIndex == model.songs.length - 1) {
-        return;
-    }
     if (player.shuffle) {
         var randomSong = Math.floor(Math.random()*model.songs.length);
         player.playSong(randomSong);
-    } else {
+    } else if (songIndex < model.songs.length - 1) {
         player.playSong(++songIndex);
     }
 };
