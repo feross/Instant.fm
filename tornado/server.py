@@ -10,29 +10,31 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.database
+import lastfm
+import lastfm_cache
+import threading
 
 from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
+from tornado.web import HTTPError
 
-define("port", default=8000, help="run on the given port", type=int)
-define("mysql_host", default="instant.fm:3306", help="database host")
-define("mysql_database", default="instantfm", help="database name")
-define("mysql_user", default="instantfm", help="database user")
-define("mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
-
-# Regex to sanitize urls
-url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+def canonicalize(str):
+    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+    return url_special_chars.sub('-', str).lower()
 
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
+    
+    # Last.fm API key
+    API_KEY = '386402dfcfeedad35dd7debb343a05d5'
+    
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
             (r"/upload/?$", UploadHandler),
-            (r"/p/([a-zA-Z0-9]*)/?$", PlaylistHandler),
-            (r"/p/([a-zA-Z0-9]*)/json/?$", PlaylistJSONHandler),
-            (r"/p/([a-zA-Z0-9]*)/edit/?$", PlaylistEditHandler),
+            (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
+            (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
             (r"/terms/?$", TermsHandler),
             (r"/suggest/?$", ArtistAutocompleteHandler),
             (r"/search/?$", SearchHandler),
@@ -52,7 +54,10 @@ class Application(tornado.web.Application):
         self.db = DBConnection(
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
-            
+
+        self.lastfm_api = lastfm.Api(self.API_KEY)
+        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))                
+        
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
     Why is this functionality not built-in???"""
@@ -154,7 +159,6 @@ class TermsHandler(BaseHandler):
     def get(self):
         self.set_user_cookie()
         self.render("terms.html")
-        
     
 class PlaylistBaseHandler(BaseHandler):
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
@@ -172,6 +176,10 @@ class PlaylistBaseHandler(BaseHandler):
     def _render_playlist_view(self, template_name, is_partial, playlist=None, **kwargs):
         template = ('partial/' if is_partial else '') + template_name;
         self.render(template, playlist=playlist, **kwargs)
+        
+    def _is_partial(self):
+        return self.get_argument('partial', default=False)
+        
        
 class PlaylistHandler(PlaylistBaseHandler):
     def _render_playlist_json(self, playlist_id):
@@ -191,37 +199,44 @@ class PlaylistHandler(PlaylistBaseHandler):
         if self.get_argument('json', default=False):
             self._render_playlist_json(playlist_id);
         else:
-            is_partial = self.get_argument('partial', default=False)
             playlist = self._get_playlist_by_id(playlist_id)
-            self._render_playlist_view('now_playing.html', is_partial, playlist);
+            self._render_playlist_view('now_playing.html', self._is_partial(), playlist);
         
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
         self.set_user_cookie()
-        is_partial = self.get_argument('partial', default=False)
         playlist = None # Default to an empty playlist
-        self._render_playlist_view('search.html', is_partial, playlist)
+        self._render_playlist_view('search.html', self._is_partial(), playlist)
 
 class ArtistHandler(PlaylistBaseHandler):
-    def get(self, artist):
+    @tornado.web.asynchronous
+    def get(self, requested_artist_name):
         self.set_user_cookie()
-        is_partial = self.get_argument('partial', default=False)
-        # TODO: Make default playlist be artist's top songs
-        self._render_playlist_view('artist.html', is_partial, artist=artist)
- 
+        
+        if self._is_partial():
+            self._render_playlist_view('artist.html', is_partial=True)
+        else:
+            threading.Thread(target=self.retrieveArtist, kwargs={'requested_artist_name':requested_artist_name}).start()
+            
+    def retrieveArtist(self, requested_artist_name):
+        try:
+            search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
+            artist = search_results[0]
+            if canonicalize(artist.name) == requested_artist_name:
+                self._render_playlist_view('artist.html', is_partial=False, artist=artist)
+            else:
+                self.redirect('/' + canonicalize(artist.name), permanent=True)
+        except:
+            # This is perhaps overly broad.
+            self.send_error(404)
+
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, artist, album):
         self.set_user_cookie()
-        is_partial = self.get_argument('partial', default=False)
-        # TODO: Make default playlist be artist's top songs
-        self._render_playlist_view('album.html', is_partial, artist=artist, album=album)
+        # TODO: Make default playlist be album's songs
+        self._render_playlist_view('album.html', self._is_partial(), artist=artist, album=album)
        
-class PlaylistJSONHandler(PlaylistHandler):
-    """Handles requests to get playlists from the database"""
-    pass
-
-
 class PlaylistEditHandler(BaseHandler):
     """Handles updates to playlists in the database"""
     
@@ -450,6 +465,14 @@ class ErrorHandler(BaseHandler):
     
         
 def main():
+    # Command line options
+    # TODO: These don't actually work...
+    define("port", default=8000, help="run on the given port", type=int)
+    define("mysql_host", default="instant.fm:3306", help="database host")
+    define("mysql_database", default="instantfm", help="database name")
+    define("mysql_user", default="instantfm", help="database user")
+    define("mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
+    
     # Check for the -d (debug) argument
     optparser = OptionParser()
     optparser.add_option("-d", action="store_false", dest="daemonize", help="don't dameonize (debug mode)", default=True)
