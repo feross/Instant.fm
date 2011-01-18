@@ -10,17 +10,20 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado.database
+import lastfm
 import lastfm_cache
 
 from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
-
-# Regex to sanitize urls
-url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+from tornado.web import HTTPError
 
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
+    
+    # Last.fm API key
+    API_KEY = '386402dfcfeedad35dd7debb343a05d5'
+    
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
@@ -46,10 +49,10 @@ class Application(tornado.web.Application):
         self.db = DBConnection(
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
+
+        self.lastfm_api = lastfm.Api(self.API_KEY)
+        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))                
         
-        # Set up last.fm cache
-        self.lastfm_cache = lastfm_cache.LastfmCache(self.db)
-            
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
     Why is this functionality not built-in???"""
@@ -62,6 +65,9 @@ class DBConnection(tornado.database.Connection):
             cursor.close()
             
 class BaseHandler(tornado.web.RequestHandler):
+    # Regex to canonicalize urls
+    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+
     @property
     def db(self):
         """Provides access to the database connection"""
@@ -98,6 +104,9 @@ class BaseHandler(tornado.web.RequestHandler):
             alpha_id = char + alpha_id
             
         return alpha_id
+    
+    def canonicalize(self, str):
+        return self.url_special_chars.sub('-', str).lower()
     
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
@@ -202,22 +211,33 @@ class SearchHandler(PlaylistBaseHandler):
         self._render_playlist_view('search.html', self._is_partial(), playlist)
 
 class ArtistHandler(PlaylistBaseHandler):
+    class LastfmArtistRequest(object):
+        def __init__(self, handler, requested_artist):
+            self.handler = handler
+            self.requested_artist = requested_artist
+            
+        def receivedResponse(self, response):
+            if isinstance(response, lastfm.error.InvalidParametersError):
+                return self.send_error(404)
+            elif isinstance(response, Exception):
+                raise response
+                self.finish()
+                return
+            
+            artist = response
+            print artist
+            self.handler._render_playlist_view('artist.html', is_partial=False, artist=artist)
+            
     @tornado.web.asynchronous
     def get(self, artist_name):
         self.set_user_cookie()
-        if self._is_partial():
-            self._render_playlist_view('artist.html', is_partial=False, artist_name=artist_name)
-            self.finish();
-        else:
-            # TODO: Make default playlist be artist's top songs
-            #self._render_playlist_view('artist.html', self._is_partial(), artist=artist)
-            self.application.lastfm_cache.get_artist(artist_name, self.retrieved_artist)
         
-    def retrieved_artist(self, artist, should_cache=True):
-        # Cache
-        self._render_playlist_view('artist.html', is_partial=False)
-        self.finish()
- 
+        if self._is_partial():
+            self._render_playlist_view('artist.html', is_partial=True)
+        else:
+            callback = ArtistHandler.LastfmArtistRequest(self, artist_name).receivedResponse
+            self.application.lastfm_api.get_artist(self.canonicalize(artist_name), callback)
+
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, artist, album):
         self.set_user_cookie()
