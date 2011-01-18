@@ -220,16 +220,26 @@ class ArtistHandler(PlaylistBaseHandler):
             threading.Thread(target=self.retrieveArtist, kwargs={'requested_artist_name':requested_artist_name}).start()
             
     def retrieveArtist(self, requested_artist_name):
-        try:
+        #try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
             artist = search_results[0]
             if canonicalize(artist.name) == requested_artist_name:
-                self._render_playlist_view('artist.html', is_partial=False, artist=artist)
+                songs = []
+                for track in artist.top_tracks:
+                    songs.append({
+                         "a": artist.name, 
+                         "t":track.name, 
+                         "i":track.image['small'] if 'small' in track.image else ''}
+                    )
+                    
+                playlist = Playlist(songs)
+                print(playlist)
+                self._render_playlist_view('artist.html', is_partial=False, playlist=self.makePlaylistJSON(playlist), artist=artist)
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
-        except:
+        #except:
             # This is perhaps overly broad.
-            self.send_error(404)
+            #self.send_error(404)
 
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, artist, album):
@@ -462,7 +472,6 @@ class UploadHandler(BaseHandler):
 class ErrorHandler(BaseHandler):
     def prepare(self):
         self.send_error(404)    
-    
         
 def main():
     # Command line options
@@ -492,6 +501,14 @@ def main():
 
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
+    
+class Playlist:
+    def __init__(self, songs, user_id=-1, title='', description='', playlist_id=-1):
+        self.songs = json.dumps(songs)
+        self.user_id=user_id
+        self.title=title
+        self.description=description
+        self.playlist_id=playlist_id
 
 if __name__ == "__main__":    
     main()
