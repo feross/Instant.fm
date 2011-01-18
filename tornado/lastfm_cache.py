@@ -26,6 +26,7 @@ class LastfmCache(object):
         self.db = db
         
     def Get(self, key):
+        print('Checking cache for key: ' + key)
         hashed_key = md5hash(key)
         result = self.db.get('SELECT xml FROM lastfm_cache WHERE hash = %s', hashed_key)
         if result:
@@ -39,7 +40,7 @@ class LastfmCache(object):
         hashed_key = md5hash(key)
         print 'Key: ' + key
         print 'Data: ' + data
-        self.db.query('INSERT INTO lastfm_cache VALUES (%s, %s, NOW()) ON DUPLICATE KEY UPDATE xml=VALUES(xml), cachedTime=NOW()', hashed_key, data)
+        self.db.execute('INSERT INTO lastfm_cache VALUES (%s, %s, NOW()) ON DUPLICATE KEY UPDATE xml=VALUES(xml), cachedTime=NOW()', hashed_key, data)
         
     def GetCachedTime(self,key):
         hashed_key = md5hash(key)
@@ -50,7 +51,7 @@ class LastfmCache(object):
             print seconds
             return seconds
         else:
-            return None 
+            return 0 
 
     def Remove(self, key):
         hashed_key = md5hash(key)

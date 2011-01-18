@@ -12,11 +12,16 @@ import tornado.web
 import tornado.database
 import lastfm
 import lastfm_cache
+import threading
 
 from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
 from tornado.web import HTTPError
+
+def canonicalize(str):
+    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+    return url_special_chars.sub('-', str).lower()
 
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
@@ -65,9 +70,6 @@ class DBConnection(tornado.database.Connection):
             cursor.close()
             
 class BaseHandler(tornado.web.RequestHandler):
-    # Regex to canonicalize urls
-    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
-
     @property
     def db(self):
         """Provides access to the database connection"""
@@ -104,9 +106,6 @@ class BaseHandler(tornado.web.RequestHandler):
             alpha_id = char + alpha_id
             
         return alpha_id
-    
-    def canonicalize(self, str):
-        return self.url_special_chars.sub('-', str).lower()
     
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
@@ -211,32 +210,26 @@ class SearchHandler(PlaylistBaseHandler):
         self._render_playlist_view('search.html', self._is_partial(), playlist)
 
 class ArtistHandler(PlaylistBaseHandler):
-    class LastfmArtistRequest(object):
-        def __init__(self, handler, requested_artist):
-            self.handler = handler
-            self.requested_artist = requested_artist
-            
-        def receivedResponse(self, response):
-            if isinstance(response, lastfm.error.InvalidParametersError):
-                return self.send_error(404)
-            elif isinstance(response, Exception):
-                raise response
-                self.finish()
-                return
-            
-            artist = response
-            print artist
-            self.handler._render_playlist_view('artist.html', is_partial=False, artist=artist)
-            
     @tornado.web.asynchronous
-    def get(self, artist_name):
+    def get(self, requested_artist_name):
         self.set_user_cookie()
         
         if self._is_partial():
             self._render_playlist_view('artist.html', is_partial=True)
         else:
-            callback = ArtistHandler.LastfmArtistRequest(self, artist_name).receivedResponse
-            self.application.lastfm_api.get_artist(self.canonicalize(artist_name), callback)
+            threading.Thread(target=self.retrieveArtist, kwargs={'requested_artist_name':requested_artist_name}).start()
+            
+    def retrieveArtist(self, requested_artist_name):
+        try:
+            search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
+            artist = search_results[0]
+            if canonicalize(artist.name) == requested_artist_name:
+                self._render_playlist_view('artist.html', is_partial=False, artist=artist)
+            else:
+                self.redirect('/' + canonicalize(artist.name), permanent=True)
+        except:
+            # This is perhaps overly broad.
+            self.send_error(404)
 
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, artist, album):
