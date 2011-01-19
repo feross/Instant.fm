@@ -220,7 +220,7 @@ class ArtistHandler(PlaylistBaseHandler):
             threading.Thread(target=self.retrieveArtist, kwargs={'requested_artist_name':requested_artist_name}).start()
             
     def retrieveArtist(self, requested_artist_name):
-        #try:
+        try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
             artist = search_results[0]
             if canonicalize(artist.name) == requested_artist_name:
@@ -237,9 +237,9 @@ class ArtistHandler(PlaylistBaseHandler):
                 self._render_playlist_view('artist.html', is_partial=False, playlist=self.makePlaylistJSON(playlist), artist=artist)
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
-        #except:
+        except:
             # This is perhaps overly broad.
-            #self.send_error(404)
+            self.send_error(404)
 
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, artist, album):
