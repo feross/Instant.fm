@@ -20,7 +20,7 @@ from tornado.options import define, options
 from tornado.web import HTTPError
 
 def canonicalize(str):
-    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'\|\,)+');
+    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'|\,)+')
     return url_special_chars.sub('-', str).lower()
 
 class Application(tornado.web.Application):
@@ -233,7 +233,7 @@ class ArtistHandler(PlaylistBaseHandler):
                     )
                     
                 playlist = Playlist(songs)
-                print(playlist)
+                print artist
                 self._render_playlist_view('artist.html', is_partial=False, playlist=self.makePlaylistJSON(playlist), artist=artist)
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)

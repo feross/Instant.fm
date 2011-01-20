@@ -102,3 +102,11 @@ function htmlEncode(value){
 function htmlDecode(value){ 
   return $('<div/>').html(value).text(); 
 }
+
+function canonicalize(name) {
+    // Copied and modified from the canonicalize() function on the server-side.
+    var r = new RegExp('[^a-z0-9]', 'gi');
+    return name
+        .replace(r, '-')
+        .toLowerCase();
+}

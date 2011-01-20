@@ -310,7 +310,7 @@ input.file {
 
 #hiddenVideoTools {
     left: 200px;
-    top: 4px;
+    top: 5px;
     -webkit-transition: all 0.1s ease-in-out;
 	-moz-transition: all 0.1s ease-in-out;
 	-o-transition: all 0.1s ease-in-out;
@@ -529,7 +529,7 @@ a:hover .zoomIcon {
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
 
-#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; margin-bottom: 4px; font-size: 15px; }
+#curSong h4, #curArtist h4, #curAlbum h4 { display: inline-block; margin-bottom: 4px; font-size: 15px; width: 285px; }
 
 #curSong h4 { font-size: 20px; }
 

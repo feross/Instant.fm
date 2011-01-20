@@ -477,8 +477,7 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
 
     // Update song title, artist name
     $('#curSong h4').text(trackName);
-    $('#curArtist h4').text(artistName);
-
+    playlistview._updateArtist(artistName);
     // Update album art
     // We'll set alt text once we know album name
     playlistview._updateAlbumImg(albumImg, '');
@@ -539,7 +538,10 @@ PlaylistView.prototype._handleSongInfo = function(trackName, artistName, srcInde
     var trackLongDesc = track.wiki && track.wiki.content;
                     
     // Update album name
-    albumName && $('#curAlbum h4').text(albumName) && $('#curAlbum').fadeIn('fast');
+    if (albumName) {
+        playlistview._updateAlbum(albumName, artistName);
+        $('#curAlbum').fadeIn('fast');
+    }
 
     // Update album image alt text
     var albumAlt = albumName;
@@ -605,6 +607,23 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
         var link = makeSeeMoreLink(onShowMoreText);
         $('#curArtistDesc article').append(' ').append(link);
     }
+};
+
+PlaylistView.prototype._updateArtist = function(artist) {
+    var link = $('<a rel="partial"></a>')
+        .html(artist)
+        .attr('title', artist)
+        .attr('href', '/'+canonicalize(artist));
+    $('#curArtist h4').html(link);
+};
+
+PlaylistView.prototype._updateAlbum = function(album, artist) {
+    log('hi');
+    var link = $('<a rel="partial"></a>')
+        .html(album)
+        .attr('title', album)
+        .attr('href', '/'+canonicalize(artist)+'/'+canonicalize(album));
+    $('#curAlbum h4').html(link);
 };
 
 // Private method to update album art to point to given src url

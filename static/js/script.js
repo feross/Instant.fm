@@ -848,6 +848,9 @@ Player.prototype.highlightSong = function(selector) {
 Player.prototype.updateDisplay = function() {
     var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height()); /* header, player */
     var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
+    if (newHeight < 50) {
+        newHeight = 50;
+    }
     $('#playlistDiv').height(newHeight);
 };
 
