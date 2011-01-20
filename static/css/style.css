@@ -134,19 +134,37 @@ a.awesome:hover { text-decoration: none; }
 
 /* YouTube player style buttons */
 .white.awesome, .white.awesome:visited {
-    color: #333;
     background-color: #ddd;
+    border: 1px solid #ddd;
+    color: #333;
     text-shadow: none;
 }
 .white.awesome:hover {
     color: #bf1e1e;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.50, rgb(237,237,237)),
+        color-stop(0.55, rgb(255,255,255))
+    );
+    border: 1px solid #cdcdcd;
 }
 .white.awesome.on {
-    background-color: #b80000;
+    background-color: #b03434;
+    background-image: none;
+    border: 1px solid #b03434;
     color: #fff;
 }
 .white.awesome.on:hover {
-    background-color: #8e0000;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.50, rgb(182,15,15)),
+        color-stop(0.55, rgb(200,24,24))
+    );
+    border: 1px solid #c82424;
 }
 
 
@@ -292,11 +310,35 @@ input.file {
 
 #hiddenVideoTools {
     left: 200px;
-    top: 5px;
+    top: 4px;
     -webkit-transition: all 0.1s ease-in-out;
 	-moz-transition: all 0.1s ease-in-out;
 	-o-transition: all 0.1s ease-in-out;
 	transition: all 0.1s ease-in-out;
+}
+
+a#showVideo {
+    color: #888;
+}
+
+#videoDiv a#showVideo:hover { color: #bf1e1e; }
+
+.noVideo a#showVideo {
+    -webkit-transition: all 0.1s ease-in-out;
+	-moz-transition: all 0.1s ease-in-out;
+	-o-transition: all 0.1s ease-in-out;
+	transition: all 0.1s ease-in-out;
+    -webkit-transition-delay: 2.3s;
+	-moz-transition-delay: 2.3s;
+	-o-transition-delay: 2.3s;
+	transition-delay: 2.3s;
+}
+.noVideo:hover a#showVideo {
+    color: #444;
+    -webkit-transition-delay: 0s;
+	-moz-transition-delay: 0s;
+	-o-transition-delay: 0s;
+	transition-delay: 0s;
 }
 
 #videoTools, #hiddenVideoTools {
@@ -698,6 +740,9 @@ header .awesome { margin-top: 2px; }
     -webkit-box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     box-shadow: 10px 2px 3px rgba(0, 0, 0, 0.0898438);
     border: 5px solid #fafafa;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
     height: 140px;
     width: 140px;
 }
@@ -847,26 +892,6 @@ header .awesome { margin-top: 2px; }
 #playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }*/
 
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
-
-a#showVideo {
-  color: #bfbfbf;
-  background: transparent;
-  padding: 5px 6px 6px;
-  border-radius: 4px;
-}
-
-a#showVideo:hover {
-  color: #808080;
-  border: 1px solid #cdcdcd;
-  padding: 4px 5px 5px;
-  background-image: -webkit-gradient(
-    linear,
-    left bottom,
-    left top,
-    color-stop(0.50, rgb(237,237,237)),
-    color-stop(0.55, rgb(255,255,255))
-  );
-}
 
 
 
