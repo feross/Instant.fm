@@ -1,6 +1,8 @@
 {% block mini-browser %}
 <section  class="searchSection slide">
-  {{ album }} by {{ artist }}
+  {% if not is_partial %}
+    {{ album.name }} by {{ album.artist.name }}
+  {% end %}
 </section>
 {% end %}
 

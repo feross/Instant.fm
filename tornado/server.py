@@ -17,10 +17,9 @@ import threading
 from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
-from tornado.web import HTTPError
 
 def canonicalize(str):
-    url_special_chars = re.compile('(\ |\$|\&|\`|\:|\<|\>|\[|\]|\{|\}|\"|\+|\#|\%|\@|\/|\;|\=|\?|\\|\^|\||\~|\'|\,)+')
+    url_special_chars = re.compile('[^a-zA-Z0-9-]+');
     return url_special_chars.sub('-', str).lower()
 
 class Application(tornado.web.Application):
@@ -175,7 +174,7 @@ class PlaylistBaseHandler(BaseHandler):
         
     def _render_playlist_view(self, template_name, is_partial, playlist=None, **kwargs):
         template = ('partial/' if is_partial else '') + template_name;
-        self.render(template, playlist=playlist, **kwargs)
+        self.render(template, is_partial=is_partial, playlist=playlist, **kwargs)
         
     def _is_partial(self):
         return self.get_argument('partial', default=False)
@@ -223,9 +222,12 @@ class ArtistHandler(PlaylistBaseHandler):
         try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
             artist = search_results[0]
+            if len(artist.top_tracks) == 0:
+                raise Exception('Has no tracks')
+            
             if canonicalize(artist.name) == requested_artist_name:
                 songs = []
-                for track in artist.top_tracks[0:50]:
+                for track in artist.top_tracks:
                     songs.append({
                          "a": artist.name, 
                          "t":track.name, 
@@ -237,15 +239,40 @@ class ArtistHandler(PlaylistBaseHandler):
                 self._render_playlist_view('artist.html', is_partial=False, playlist=self.makePlaylistJSON(playlist), artist=artist)
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
-        except:
+        except Exception, e:
             # This is perhaps overly broad.
+            print('Error retrieving artist:')
+            print(e)
             self.send_error(404)
 
 class AlbumHandler(PlaylistBaseHandler):
-    def get(self, artist, album):
+    @tornado.web.asynchronous
+    def get(self, requested_artist_name, requested_album_name):
         self.set_user_cookie()
-        # TODO: Make default playlist be album's songs
-        self._render_playlist_view('album.html', self._is_partial(), artist=artist, album=album)
+        
+        if self._is_partial():
+            self._render_playlist_view('album.html', self._is_partial())
+        else:
+            kwargs={'requested_album_name': requested_album_name, 'requested_artist_name':requested_artist_name}
+            threading.Thread(target=self.retrieveAlbum, kwargs=kwargs).start()
+            
+    def retrieveAlbum(self, requested_album_name, requested_artist_name):
+        """ Instead of using album.get_info, we search for the album concatenated with the artist name and take the first result. Otherwise, we have to know the album's exact name and we can't use the artist's name to help find it. """
+        #try:
+        search_str = canonicalize(requested_album_name) + ' ' + canonicalize(requested_artist_name)
+        search_results = self.application.lastfm_api.search_album(search_str)
+        album = search_results[0]
+        songs = album.tracks
+        print songs
+        if canonicalize(album.name) != requested_album_name or canonicalize(album.artist.name) != requested_artist_name:
+            self.redirect('/' + canonicalize(album.artist.name) + '/' + canonicalize(album.name))
+        else:
+            self._render_playlist_view('album.html', is_partial=False, album=album)
+        #except Exception, e:
+            # This is perhaps overly broad.
+            #print('Exception while retrieving album:')
+            #print(e)
+            #self.send_error(404)
        
 class PlaylistEditHandler(BaseHandler):
     """Handles updates to playlists in the database"""
