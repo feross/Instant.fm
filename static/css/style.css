@@ -848,7 +848,25 @@ header .awesome { margin-top: 2px; }
 
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
+a#showVideo {
+  color: #bfbfbf;
+  background: transparent;
+  padding: 5px 6px 6px;
+  border-radius: 4px;
+}
 
+a#showVideo:hover {
+  color: #808080;
+  border: 1px solid #cdcdcd;
+  padding: 4px 5px 5px;
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0.50, rgb(237,237,237)),
+    color-stop(0.55, rgb(255,255,255))
+  );
+}
 
 
 

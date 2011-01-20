@@ -225,7 +225,7 @@ class ArtistHandler(PlaylistBaseHandler):
             artist = search_results[0]
             if canonicalize(artist.name) == requested_artist_name:
                 songs = []
-                for track in artist.top_tracks:
+                for track in artist.top_tracks[0:50]:
                     songs.append({
                          "a": artist.name, 
                          "t":track.name, 
