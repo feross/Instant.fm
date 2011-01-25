@@ -12,7 +12,6 @@ import tornado.web
 import tornado.database
 import lastfm
 import lastfm_cache
-import threading
 
 from datetime import datetime
 from optparse import OptionParser
@@ -205,8 +204,7 @@ class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
         self.set_user_cookie()
-        playlist = None # Default to an empty playlist
-        self._render_playlist_view('search.html', self._is_partial(), playlist)
+        self._render_playlist_view('search.html')
 
 class ArtistHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name):
