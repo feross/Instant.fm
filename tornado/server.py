@@ -172,9 +172,9 @@ class PlaylistBaseHandler(BaseHandler):
         playlist = self.makePlaylistJSON(playlist_entry)
         return playlist
         
-    def _render_playlist_view(self, template_name, is_partial, playlist=None, **kwargs):
-        template = ('partial/' if is_partial else '') + template_name;
-        self.render(template, is_partial=is_partial, playlist=playlist, **kwargs)
+    def _render_playlist_view(self, template_name, playlist=None, **kwargs):
+        template = ('partial/' if self._is_partial() else '') + template_name;
+        self.render(template, is_partial=self._is_partial(), playlist=playlist, **kwargs)
         
     def _is_partial(self):
         return self.get_argument('partial', default=False)
@@ -209,16 +209,9 @@ class SearchHandler(PlaylistBaseHandler):
         self._render_playlist_view('search.html', self._is_partial(), playlist)
 
 class ArtistHandler(PlaylistBaseHandler):
-    @tornado.web.asynchronous
     def get(self, requested_artist_name):
         self.set_user_cookie()
         
-        if self._is_partial():
-            self._render_playlist_view('artist.html', is_partial=True)
-        else:
-            threading.Thread(target=self.retrieveArtist, kwargs={'requested_artist_name':requested_artist_name}).start()
-            
-    def retrieveArtist(self, requested_artist_name):
         try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
             artist = search_results[0]
@@ -236,14 +229,16 @@ class ArtistHandler(PlaylistBaseHandler):
                     
                 playlist = Playlist(songs)
                 print(playlist)
-                self._render_playlist_view('artist.html', is_partial=False, playlist=self.makePlaylistJSON(playlist), artist=artist)
+                self._render_playlist_view('artist.html', playlist=self.makePlaylistJSON(playlist), artist=artist)
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
+        except lastfm_cache.ResultNotCachedException:
+            """ Render the template with no artist """
+            self._render_playlist_view('artist.html', artist=None)
         except Exception, e:
-            # This is perhaps overly broad.
             print('Error retrieving artist:')
             print(e)
-            self.send_error(404)
+            self._render_playlist_view('artist.html', artist=None)
 
 class AlbumHandler(PlaylistBaseHandler):
     @tornado.web.asynchronous

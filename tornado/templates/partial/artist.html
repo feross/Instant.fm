@@ -1,6 +1,8 @@
 {% block mini-browser %}
 <section  class="searchSection slide">
-  {{ artist.name }}
+  {% if artist is not None %}
+    {{ artist.name }}
+  {% end %}
 </section>
 {% end %}
 
