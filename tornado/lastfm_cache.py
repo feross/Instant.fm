@@ -17,6 +17,9 @@ else:
     from hashlib import md5
     def md5hash(string):
         return md5(string).hexdigest()
+    
+class ResultNotCachedException(Exception):
+    pass
 
 class LastfmCache(object):
     '''
@@ -26,20 +29,18 @@ class LastfmCache(object):
         self.db = db
         
     def Get(self, key):
-        print('Checking cache for key: ' + key)
         hashed_key = md5hash(key)
         result = self.db.get('SELECT xml FROM lastfm_cache WHERE hash = %s', hashed_key)
         if result:
-            print 'Cache hit!'
             return result.xml
         else:
-            print 'Cache miss!'
-            return None 
+            """ Note the changed functionality here. Instead of returning None, we raise an exception.
+                This is because we don't want to ever do a last.fm fetch and set in the IO loop. """
+            self.db.execute('INSERT INTO lastfm_request_queue (request_url) VALUES (%s)', key)
+            raise ResultNotCachedException
         
     def Set(self, key, data):
         hashed_key = md5hash(key)
-        print 'Key: ' + key
-        print 'Data: ' + data
         self.db.execute('INSERT INTO lastfm_cache VALUES (%s, %s, NOW()) ON DUPLICATE KEY UPDATE xml=VALUES(xml), cachedTime=NOW()', hashed_key, data)
         
     def GetCachedTime(self,key):
@@ -51,7 +52,8 @@ class LastfmCache(object):
             print seconds
             return seconds
         else:
-            return 0 
+            self.db.execute('INSERT INTO lastfm_request_queue (request_url) VALUES (%s)', key)
+            raise ResultNotCachedException
 
     def Remove(self, key):
         hashed_key = md5hash(key)
