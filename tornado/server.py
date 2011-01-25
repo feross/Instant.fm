@@ -241,33 +241,26 @@ class ArtistHandler(PlaylistBaseHandler):
             self._render_playlist_view('artist.html', artist=None)
 
 class AlbumHandler(PlaylistBaseHandler):
-    @tornado.web.asynchronous
     def get(self, requested_artist_name, requested_album_name):
         self.set_user_cookie()
         
-        if self._is_partial():
-            self._render_playlist_view('album.html', self._is_partial())
-        else:
-            kwargs={'requested_album_name': requested_album_name, 'requested_artist_name':requested_artist_name}
-            threading.Thread(target=self.retrieveAlbum, kwargs=kwargs).start()
-            
-    def retrieveAlbum(self, requested_album_name, requested_artist_name):
         """ Instead of using album.get_info, we search for the album concatenated with the artist name and take the first result. Otherwise, we have to know the album's exact name and we can't use the artist's name to help find it. """
-        #try:
-        search_str = canonicalize(requested_album_name) + ' ' + canonicalize(requested_artist_name)
-        search_results = self.application.lastfm_api.search_album(search_str)
-        album = search_results[0]
-        songs = album.tracks
-        print songs
-        if canonicalize(album.name) != requested_album_name or canonicalize(album.artist.name) != requested_artist_name:
-            self.redirect('/' + canonicalize(album.artist.name) + '/' + canonicalize(album.name))
-        else:
-            self._render_playlist_view('album.html', is_partial=False, album=album)
-        #except Exception, e:
-            # This is perhaps overly broad.
-            #print('Exception while retrieving album:')
-            #print(e)
-            #self.send_error(404)
+        try:
+            search_str = canonicalize(requested_album_name) + ' ' + canonicalize(requested_artist_name)
+            search_results = self.application.lastfm_api.search_album(search_str)
+            album = search_results[0]
+            songs = album.tracks
+            print songs
+            if canonicalize(album.name) != requested_album_name or canonicalize(album.artist.name) != requested_artist_name:
+                self.redirect('/' + canonicalize(album.artist.name) + '/' + canonicalize(album.name))
+            else:
+                self._render_playlist_view('album.html', album=album)
+        except lastfm_cache.ResultNotCachedException:
+            self._render_playlist_view('album.html', album=None)
+        except Exception, e:
+            print('Exception while retrieving album:')
+            print(e)
+            self._render_playlist_view('album.html', album=None)
        
 class PlaylistEditHandler(BaseHandler):
     """Handles updates to playlists in the database"""

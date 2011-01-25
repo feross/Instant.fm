@@ -36,7 +36,7 @@ class LastfmCache(object):
         else:
             """ Note the changed functionality here. Instead of returning None, we raise an exception.
                 This is because we don't want to ever do a last.fm fetch and set in the IO loop. """
-            self.db.execute('INSERT INTO lastfm_request_queue VALUES {request_url=%s', key)
+            self.db.execute('INSERT INTO lastfm_request_queue (request_url) VALUES (%s)', key)
             raise ResultNotCachedException
         
     def Set(self, key, data):
@@ -52,7 +52,7 @@ class LastfmCache(object):
             print seconds
             return seconds
         else:
-            self.db.execute('INSERT INTO lastfm_request_queue VALUES {request_url=%s', key)
+            self.db.execute('INSERT INTO lastfm_request_queue (request_url) VALUES (%s)', key)
             raise ResultNotCachedException
 
     def Remove(self, key):
