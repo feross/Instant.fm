@@ -87,9 +87,9 @@ function addFocusHandlers(elem) {
 
 function addLinkHandlers() {
     // Link handlers for loading partials.
-    $('a[rel="search"], a[rel="artist"], a[rel="album"]').live('click', function(event) {
+    $('a[rel="search"], a[rel="artist"], a[rel="album"], a[rel="lyric"]').live('click', function(event) {
         event.preventDefault();
-        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'));
+        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
 
     });
     

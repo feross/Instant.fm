@@ -26,9 +26,10 @@ MiniBrowser.prototype.refreshContents = function() {
 
 // Fetch a partial from the server, push it onto the minibrowser.
 MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
-	// Fetch partial from server
+    	
 	var delimeter = (path.indexOf('?') == -1) ? '?' : '&';
 	var newPath = path + delimeter + 'partial=true';
+	
 	this.pushStatic(newPath, title, $.extend(_options, {createView: function() {
 		// Push matching "view" onto minibrowser
 		var view;
@@ -42,6 +43,10 @@ MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
 			case 'album':
 				log('push album ' + title);
 				break;
+			case 'lyric':
+			    var $link = $(_options.link);
+			    view = new LyricView($link.attr('data-title'), $link.attr('data-artist'));
+			    break;
 		}
 		return view;
 	}}));
@@ -50,7 +55,7 @@ MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
 // Push a static HTML file onto the browser.
 MiniBrowser.prototype.pushStatic = function(path, title, _options) {
     var options = _options || {};
-    $.get(path, options.params, function(data, textStatus, xhr) {
+    $.get(path, null, function(data, textStatus, xhr) {
         var slide = $(data);
         browser.push(slide, title, options.createView);
     });
@@ -614,7 +619,44 @@ ArtistView.prototype._updateArtistImg = function(src, alt) {
     } else {
         $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
     }
+};
+
+
+/* ------------------- LYRIC VIEW -------------------- */
+
+function LyricView(title, artist) {
+	this.title = title;
+	this.artist = artist;
 }
+copyPrototype(LyricView, BaseView);
+
+LyricView.prototype.getNameOfPartial = function() {
+    return 'lyric';
+};
+
+LyricView.prototype.willSlide = function() {
+    this._fetchData();
+};
+
+LyricView.prototype.didSlide = function() {
+};
+
+LyricView.prototype.willHide = function() {
+};
+
+LyricView.prototype._fetchData = function() {
+    var url = '/lyric/?a='+encodeURIComponent(this.artist)+'&t='+encodeURIComponent(this.title);
+    log(url);
+    $.ajax({
+       type: 'GET',
+       url: url,
+       dataType: 'xml',
+       success: function(data, textStatus, xhr) {
+           alert(data);
+       }
+     });
+};
+
 
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
 
@@ -769,6 +811,9 @@ PlaylistView.prototype._handleSongInfo = function(trackName, artistName, srcInde
         var link = makeSeeMoreLink(onShowMoreText);
         $('#curSongDesc article').append(' ').append(link);
     }
+    
+    // Add link to lyric
+    playlistview._updateLyricsLink(trackName, artistName);
 };
 
 // Private method to handle artist information from Last.fm
@@ -811,19 +856,36 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
 };
 
 PlaylistView.prototype._updateArtist = function(artist) {
-    var link = $('<a rel="artist"></a>')
-        .html(artist)
-        .attr('title', artist)
-        .attr('href', '/'+canonicalize(artist));
+    var link = $('<a></a>', {
+            href: '/'+canonicalize(artist),
+            rel: 'artist',
+            title: artist,
+        })
+        .html(artist);
     $('#curArtist h4').html(link);
 };
 
 PlaylistView.prototype._updateAlbum = function(album, artist) {
-    var link = $('<a rel="album"></a>')
-        .html(album)
-        .attr('title', album)
-        .attr('href', '/'+canonicalize(artist)+'/'+canonicalize(album));
+    var link = $('<a></a>', {
+            href: '/'+canonicalize(artist)+'/'+canonicalize(album),
+            rel: 'album',
+            title: album
+        })
+        .html(album);
     $('#curAlbum h4').html(link);
+};
+
+PlaylistView.prototype._updateLyricsLink = function(title, artist) {
+    var link = $('<a></a>', {
+         'data-artist': artist,
+         'data-title': title,
+         href: '/lyric/', // TODO: This is a hack.
+         rel: 'lyric',
+         title: title+' by '+artist,
+        })
+        .html('Get Lyrics');
+
+    $('#curLyric h4').html(link);
 };
 
 // Private method to update album art to point to given src url
