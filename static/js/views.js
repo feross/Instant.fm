@@ -27,12 +27,12 @@ MiniBrowser.prototype.refreshContents = function() {
 
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
-MiniBrowser.prototype.push = function(elem, _title) {
+MiniBrowser.prototype.push = function(elem, _title, _createView) {
     var title = _title || '';
     
     var backButton = browser._makeBackButton();
-    var prevContext = getTopView();
-    prevContext && prevContext.willHide();
+    var prevView = getTopView();
+    prevView && prevView.willHide();
 
     var header = $('<header class="clearfix buttonHeader"></header>')
         .append(backButton)
@@ -41,55 +41,66 @@ MiniBrowser.prototype.push = function(elem, _title) {
     
     $(elem).appendTo('#FS_holder');
 
+	var view;
+	if (_createView) {
+		view = _createView();
+		view && viewStack.push(view);
+	}
+
     window.setTimeout(function() {
         $('.buttonHeader h2', elem)
             .css('left', -1 * $('.backButton', elem).width());
-        context.willSlide();
+        view && view.willSlide();  // Tell the view to do anything it has to now that content is in DOM
     }, 0);
     
     window.setTimeout(function() {
-      // Tell context to do anything it has to now that content is in DOM
-      context.didSlide();
+      view && view.didSlide();
     }, 500);
     
-    // Is there a more robust way we can do this?
+    // TODO: Is there a more robust way we can do this?
     // We handle the case where the loaded partial didn't push a new view
     // controller by adding a BaseView controller.
-    context = getTopView();
-    if (context == prevContext) {
-      context = new BaseView();
-      viewStack.push(context);
+    if (view == prevView) {
+      view = new BaseView();
+      viewStack.push(view);
     }
-    context.content = elem;
+
+    view.content = elem;
         
     this.refreshContents();
     this._slideTo(this.numSlides);
 };
 
+// Fetch a partial from the server, push it onto the minibrowser.
+MiniBrowser.prototype.pushPartial = function(path, title, _options) {
+	// Fetch partial from server
+	var delimeter = (path.indexOf('?') == -1) ? '?' : '&';
+	var newPath = path + delimeter + 'partial=true';
+	this.pushStatic(newPath, title, {createView: function() {
+		// Push matching "view" onto minibrowser
+		var view;
+		var r = new RegExp('\/(\.+)\/?', 'g'); // Expects relative paths
+		var partial = r.exec(path)[1]; // e.g. "search" or "artist"
+		log(partial);
+		switch(partial) {
+			case 'search':
+				view = new SearchView();
+				break;
+			default: // no namespace, assume it's an artist
+				view = new ArtistView(title);
+				break;
+		}
+		return view;
+	}});
+};
+
 // Push a static HTML file onto the browser.
-// Options:
-//  beforeVisible - callback function to execute after we've received the partial from
-//                  the server and pushed it onto the browser, but before it's visible
-//  afterVisible  - callback function to execute after the partial is fully slided into view
-MiniBrowser.prototype.pushStatic = function(path, _title, _options) {
+MiniBrowser.prototype.pushStatic = function(path, title, _options) {
     var options = _options || {};
     $.get(path, options.params, function(data, textStatus, xhr) {
         var slide = $(data);
-        browser.push(slide, _title);
+        browser.push(slide, title, options.createView);
     });
-};
-
-// Fetch a partial from the server, push it onto the minibrowser.
-MiniBrowser.prototype.pushPartial = function(path, _title, _options) {
-  // Very crude way to add a parameter
-  var newPath;
-  if (path.indexOf('?')) {
-    newPath = path + '?partial=true';
-  } else {
-    newpath = path + '&partial=true';
-  }
-  
-  this.pushStatic(newPath, _title, _options);
 };
 
 // Pop the top-most page off of the browser.
@@ -98,8 +109,9 @@ MiniBrowser.prototype.pop = function() {
         return;
     }
     // Tell the view controller it's going to be popped, then pop it
-    getTopView().willHide();
-    getTopView().willPop();
+	var view = getTopView();
+    view.willHide();
+    view.willPop();
     viewStack.pop();
     
     if (browser.numSlides <= 1) {
@@ -107,9 +119,9 @@ MiniBrowser.prototype.pop = function() {
     }
     browser._slideTo(browser.numSlides - 1);
     window.setTimeout(function() {
-        $('#FS_holder .slide').last().remove();
+        $(view.content).remove();
         browser.refreshContents();
-    }, 800);
+    }, 500);
 };
 
 // Private function used to animate the transition between pages in the browser.
@@ -139,7 +151,6 @@ MiniBrowser.prototype._makeBackButton = function(text) {
     
     var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
     button.click(function(event) {
-        alert('Back hit.');
         event.preventDefault();
         browser.pop();
     });
@@ -158,21 +169,16 @@ BaseView.prototype.getNameOfPartial = function() {
     return '';
 };
 
-BaseView.prototype.getTitle = function() {
-    log('Must override getTitle() in view controller!');
-    return '';
-};
-
-/* Called before animation starts to either push a new view (hiding this 
- * one), or pop this one.
- */
-BaseView.prototype.willHide = function() {};
-
 /* Called after content is added to DOM but before animation. */
 BaseView.prototype.willSlide = function() {};
 
 /* Called after the content is added to the DOM */
 BaseView.prototype.didSlide = function() {};
+
+/* Called before animation starts to either push a new view (hiding this 
+ * one), or pop this one.
+ */
+BaseView.prototype.willHide = function() {};
   
 /* Called immediately before the view is popped.
  * I can't think of any circumstance when we'll use this, but might as 
@@ -197,69 +203,60 @@ SearchView.prototype.getNameOfPartial = function() {
     return 'search';
 };
 
-SearchView.prototype.getTitle = function() {
-    return 'Add Songs';
-};
-
 SearchView.prototype.willSlide = function() {
     this._addSearchHandlers();
-};
-
-SearchView.prototype.willHide = function() {
-    keyEvents = true;
 };
 
 SearchView.prototype.didSlide = function() {
     $('.searchBox input.search', this.content).focus();
 };
 
-SearchView.prototype._handleSongSearchResults = function(data) {
-    var tracks = [];
-    var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
+SearchView.prototype.willHide = function() {
+    keyEvents = true;
+};
 
-    if (!trackResults || !trackResults) {
-        $('.songResults', this.content).slideUp();
-        return;
-    }
-
-    for (var i = 0; i < trackResults.length; i++) {
-        var trackResult = trackResults[i];
-        var track = {};
-
-        track.t = trackResult.name;
-        track.a = trackResult.artist;
-
-        if (trackResult.image) {
-            track.i = trackResult.image[0]['#text'];
-        } else {
-            track.i = '';
-        }
-
-        tracks.push(track);
-    };
-
-    $('.songResults ul', this.content).remove();
+// Private function that adds handlers to the search box
+SearchView.prototype._addSearchHandlers = function() {
+    var searchInput = $('.searchBox input.search', this.content);
     
-    var songlist = new SongList({
-        songs: tracks,
-        onClick: function(song) {
-            $('.playing').removeClass('playing');
-            $(this).addClass('playing');
-            var q = song.t+' '+song.a;
-            player.playSongBySearch(q);
-        },
-        buttons: [{
-            action: function(event, song) {
-                player.addSongToPlaylist(song);
-            },
-            class: 'awesome small',
-            text: 'Add +'
-        }],
+    // Hits enter to submit form
+    var that = this;
+    $('.searchBox', this.content).submit(function(event) {
+        event.preventDefault();
+        that._handleSearch(searchInput.val());
     });
     
-    var $songResults = $('.songResults', this.content);
-    songlist.render($songResults);
-    $songResults.slideDown();
+    // Pushes a key
+    searchInput.keyup(function() {
+        that._handleSearch.apply(that, [searchInput.val()]);
+    });
+    addFocusHandlers(searchInput);
+    
+    // Clicks search button
+    $('.searchBox input.submit', this.content).click(function(event) {
+        event && event.preventDefault();
+        that._handleSearch(searchInput.val());
+    });
+};
+
+// Private function that handles search
+SearchView.prototype._handleSearch = function(searchString) {
+    if (!this.delaySearch && (this.prevSearchString != searchString)) {
+        this.prevSearchString = searchString;
+        this.search(searchString);
+        
+        // Don't allow another search for a while.
+        this.delaySearch = true;
+        var that = this;
+        window.setTimeout(function() {
+            that.delaySearch = false;
+            
+            var searchInput = $('.searchBox input.search', that.content);
+            if (searchInput.val() != searchString) {
+                that._handleSearch(searchInput.val());
+            }
+        }, 800);
+    }
 };
 
 // Perform a search for given search string
@@ -317,6 +314,55 @@ SearchView.prototype.search = function(searchString) {
     });
 };
 
+SearchView.prototype._handleSongSearchResults = function(data) {
+    var tracks = [];
+    var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
+
+    if (!trackResults || !trackResults) {
+        $('.songResults', this.content).slideUp();
+        return;
+    }
+
+    for (var i = 0; i < trackResults.length; i++) {
+        var trackResult = trackResults[i];
+        var track = {};
+
+        track.t = trackResult.name;
+        track.a = trackResult.artist;
+
+        if (trackResult.image) {
+            track.i = trackResult.image[0]['#text'];
+        } else {
+            track.i = '';
+        }
+
+        tracks.push(track);
+    };
+
+    $('.songResults ul', this.content).remove();
+    
+    var songlist = new SongList({
+        songs: tracks,
+        onClick: function(song) {
+            $('.playing').removeClass('playing');
+            $(this).addClass('playing');
+            var q = song.t+' '+song.a;
+            player.playSongBySearch(q);
+        },
+        buttons: [{
+            action: function(event, song) {
+                player.addSongToPlaylist(song);
+            },
+            class: 'awesome small',
+            text: 'Add +'
+        }],
+    });
+    
+    var $songResults = $('.songResults', this.content);
+    songlist.render($songResults);
+    $songResults.slideDown();
+};
+
 SearchView.prototype._handleArtistSearchResults = function(data) {
     var artists = [];
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
@@ -370,48 +416,30 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
         .slideDown();
 };
 
-// Private function that adds handlers to the search box
-SearchView.prototype._addSearchHandlers = function() {
-    var searchInput = $('.searchBox input.search', this.content);
-    
-    // Hits enter to submit form
-    var that = this;
-    $('.searchBox', this.content).submit(function(event) {
-        event.preventDefault();
-        that._handleSearch(searchInput.val());
-    });
-    
-    // Pushes a key
-    searchInput.keyup(function() {
-        that._handleSearch.apply(that, [searchInput.val()]);
-    });
-    addFocusHandlers(searchInput);
-    
-    // Clicks search button
-    $('.searchBox input.submit', this.content).click(function(event) {
-        event && event.preventDefault();
-        that._handleSearch(searchInput.val());
-    });
+
+/* --------------------------- ARTIST VIEW --------------------------- */
+
+function ArtistView(name) {
+	this.name = name;
+}
+copyPrototype(ArtistView, BaseView);
+
+ArtistView.prototype.getNameOfPartial = function() {
+    return 'artist';
 };
 
-// Private function that hand
-SearchView.prototype._handleSearch = function(searchString) {
-    if (!this.delaySearch && (this.prevSearchString != searchString)) {
-        this.prevSearchString = searchString;
-        this.search(searchString);
-        
-        // Don't allow another search for a while.
-        this.delaySearch = true;
-        var that = this;
-        window.setTimeout(function() {
-            that.delaySearch = false;
-            
-            var searchInput = $('.searchBox input.search', that.content);
-            if (searchInput.val() != searchString) {
-                that._handleSearch(searchInput.val());
-            }
-        }, 800);
-    }
+ArtistView.prototype.willSlide = function() {
+	this._fetchArtistData();
+};
+
+ArtistView.prototype.didSlide = function() {
+};
+
+ArtistView.prototype.willHide = function() {
+};
+
+ArtistView.prototype._fetchArtistData = function() {
+	$(this.content).append('<div>hi there' + this.name + '</div>');
 };
 
 
@@ -618,7 +646,6 @@ PlaylistView.prototype._updateArtist = function(artist) {
 };
 
 PlaylistView.prototype._updateAlbum = function(album, artist) {
-    log('hi');
     var link = $('<a rel="partial"></a>')
         .html(album)
         .attr('title', album)

@@ -661,8 +661,10 @@ header .awesome { margin-top: 2px; }
 	margin-right: 50px;
 }
 
+.slide h3 { padding: 10px 0 5px 0; }
 
-/* Search page */
+
+/* Search partial */
 
 .searchBox {
     background: transparent url('/images/search-box.png') top left no-repeat;
@@ -699,10 +701,12 @@ header .awesome { margin-top: 2px; }
     background: transparent url('/images/search-button.png') 0 0 no-repeat;
 }
 
+/* Arist Partial */
+
+
+
 
 /* Search Results */
-
-.searchSection h3 { padding: 10px 0 5px 0; }
 
 .artistResult, .albumResult {
     float: left;

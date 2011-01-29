@@ -1,13 +1,10 @@
 {% block mini-browser %}
-<section  class="searchSection slide">
-  {% if artist is not None %}
-    {{ artist.name }}
-  {% end %}
+<section  class="artistPartial slide">
+  <div class="name">
+    Name
+  </div>
 </section>
 {% end %}
 
 {% block scripts-partial %}
-  <script> 
-    <!-- viewStack.push(new ArtistView()); -->
-  </script>
 {% end %}

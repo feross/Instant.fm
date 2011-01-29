@@ -89,6 +89,7 @@ function addLinkHandlers() {
     $('a[rel="partial"]').live('click', function(event) {
         event.preventDefault();
         browser.pushPartial($(this).attr('href'), $(this).attr('title'));
+
     });
     
     // Link handlers for the back button.

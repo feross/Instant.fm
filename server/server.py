@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import os
@@ -221,8 +222,8 @@ class ArtistHandler(PlaylistBaseHandler):
                 for track in artist.top_tracks:
                     songs.append({
                          "a": artist.name, 
-                         "t":track.name, 
-                         "i":track.image['small'] if 'small' in track.image else ''}
+                         "t": track.name, 
+                         "i": track.image['small'] if 'small' in track.image else ''}
                     )
                     
                 playlist = Playlist(songs)
@@ -231,11 +232,11 @@ class ArtistHandler(PlaylistBaseHandler):
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
         except lastfm_cache.ResultNotCachedException:
             """ Render the template with no artist """
-            self._render_playlist_view('artist.html', artist=None)
+            self._render_playlist_view('artist.html', artist='')
         except Exception, e:
             print('Error retrieving artist:')
             print(e)
-            self._render_playlist_view('artist.html', artist=None)
+            self._render_playlist_view('artist.html', artist='')
 
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name, requested_album_name):

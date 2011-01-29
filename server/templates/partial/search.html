@@ -1,5 +1,5 @@
 {% block mini-browser %}
-<section  class="searchSection slide">
+<section  class="searchPartial slide">
   <form class="searchBox">
     <input type="text" class="search" name="search" spellcheck="false">
     <input type="submit" class="submit" name="submit" value="Search">
@@ -17,7 +17,4 @@
 {% end %}
 
 {% block scripts-partial %}
-  <script> 
-    viewStack.push(new SearchView()); 
-  </script>
 {% end %}
