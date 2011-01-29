@@ -64,9 +64,10 @@ function onloadPlaylist() {
     setupDragDropUploader('p', player.loadPlaylist);
     addLinkHandlers();
     
+	viewStack.push(new BaseView());
     // If the page starts with a view controller on the stack (which it should),
     // we need to call methods on it
-    if (viewStack.length > 0) {
+	if (viewStack.length > 0) {
       getTopView().willSlide();
       getTopView().didSlide();
     }
@@ -86,9 +87,9 @@ function addFocusHandlers(elem) {
 
 function addLinkHandlers() {
     // Link handlers for loading partials.
-    $('a[rel="partial"]').live('click', function(event) {
+    $('a[rel="search"], a[rel="artist"], a[rel="album"]').live('click', function(event) {
         event.preventDefault();
-        browser.pushPartial($(this).attr('href'), $(this).attr('title'));
+        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'));
 
     });
     
@@ -202,7 +203,7 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 65: // a
-                    browser.pushPartial('/search', 'Add Songs');
+                    browser.pushPartial('/search', 'search', 'Add Songs');
                     break;
                 case 74: // j
                     player.moveSongDown(songIndex);
@@ -761,7 +762,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" rel="partial" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
+        $('<a href="/search" rel="search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
             .appendTo('#curPlaylistInfo header');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()

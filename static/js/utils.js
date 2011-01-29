@@ -33,11 +33,12 @@ function scrollTo(selectedElem, _container, options) {
     }
 }
 
+// TODO: This shouldn't use IDs.
+// TODO: This shouldn't expect an empty div in the page with the id thumbId+'Zoom'
 // Make an image that opens a fancyzoom lightbox when clicked on
 // @thumbId - id of the thumbnail image
 // @src - src of the image (is same for thumbnail and large)
 // @alt - image alt text
-// Note: This function expects an empty div in the page with the id thumbId+'Zoom'
 function makeFancyZoomImg(thumbId, src, alt) {
     var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
     $('#'+thumbId+'Zoom').empty().append(imgZoom);

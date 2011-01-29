@@ -2,7 +2,6 @@
 
 // Animated image slider code from: http://goo.gl/t3vPZ
 var MiniBrowser = function() {
-    
     // Setup vendor prefix
     this.vP = '';
     if ($.browser.webkit) {
@@ -25,6 +24,38 @@ MiniBrowser.prototype.refreshContents = function() {
     this.numSlides = $('#FS_holder .slide').length;
 };
 
+// Fetch a partial from the server, push it onto the minibrowser.
+MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
+	// Fetch partial from server
+	var delimeter = (path.indexOf('?') == -1) ? '?' : '&';
+	var newPath = path + delimeter + 'partial=true';
+	this.pushStatic(newPath, title, $.extend(_options, {createView: function() {
+		// Push matching "view" onto minibrowser
+		var view;
+		switch(type) {
+			case 'search':
+				view = new SearchView();
+				break;
+			case 'artist':
+				view = new ArtistView(title);
+				break;
+			case 'album':
+				log('push album ' + title);
+				break;
+		}
+		return view;
+	}}));
+};
+
+// Push a static HTML file onto the browser.
+MiniBrowser.prototype.pushStatic = function(path, title, _options) {
+    var options = _options || {};
+    $.get(path, options.params, function(data, textStatus, xhr) {
+        var slide = $(data);
+        browser.push(slide, title, options.createView);
+    });
+};
+
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title, _createView) {
@@ -44,8 +75,16 @@ MiniBrowser.prototype.push = function(elem, _title, _createView) {
 	var view;
 	if (_createView) {
 		view = _createView();
-		view && viewStack.push(view);
+		if (view) {
+			viewStack.push(view);
+			view.content = elem;
+		} else {
+			log('Warning: All partials must create a view and push it onto the viewStack. ('+title+')')
+		}
+	} else {
+		log('Warning: All partials must define a createView function. ('+title+')')
 	}
+
 
     window.setTimeout(function() {
         $('.buttonHeader h2', elem)
@@ -55,57 +94,23 @@ MiniBrowser.prototype.push = function(elem, _title, _createView) {
     
     window.setTimeout(function() {
       view && view.didSlide();
-    }, 500);
+    }, 400);
     
     // TODO: Is there a more robust way we can do this?
     // We handle the case where the loaded partial didn't push a new view
     // controller by adding a BaseView controller.
-    if (view == prevView) {
-      view = new BaseView();
-      viewStack.push(view);
-    }
-
-    view.content = elem;
+    // if (view == prevView) {
+    //   view = new BaseView();
+    //   viewStack.push(view);
+    // }
         
-    this.refreshContents();
+    this.numSlides++;
     this._slideTo(this.numSlides);
-};
-
-// Fetch a partial from the server, push it onto the minibrowser.
-MiniBrowser.prototype.pushPartial = function(path, title, _options) {
-	// Fetch partial from server
-	var delimeter = (path.indexOf('?') == -1) ? '?' : '&';
-	var newPath = path + delimeter + 'partial=true';
-	this.pushStatic(newPath, title, {createView: function() {
-		// Push matching "view" onto minibrowser
-		var view;
-		var r = new RegExp('\/(\.+)\/?', 'g'); // Expects relative paths
-		var partial = r.exec(path)[1]; // e.g. "search" or "artist"
-		log(partial);
-		switch(partial) {
-			case 'search':
-				view = new SearchView();
-				break;
-			default: // no namespace, assume it's an artist
-				view = new ArtistView(title);
-				break;
-		}
-		return view;
-	}});
-};
-
-// Push a static HTML file onto the browser.
-MiniBrowser.prototype.pushStatic = function(path, title, _options) {
-    var options = _options || {};
-    $.get(path, options.params, function(data, textStatus, xhr) {
-        var slide = $(data);
-        browser.push(slide, title, options.createView);
-    });
 };
 
 // Pop the top-most page off of the browser.
 MiniBrowser.prototype.pop = function() {
-    if (!getTopView()) {
+    if (!getTopView() || browser.numSlides <= 1) {
         return;
     }
     // Tell the view controller it's going to be popped, then pop it
@@ -114,14 +119,11 @@ MiniBrowser.prototype.pop = function() {
     view.willPop();
     viewStack.pop();
     
-    if (browser.numSlides <= 1) {
-        return;
-    }
-    browser._slideTo(browser.numSlides - 1);
-    window.setTimeout(function() {
-        $(view.content).remove();
-        browser.refreshContents();
-    }, 500);
+	browser.numSlides--;
+    browser._slideTo(browser.numSlides);
+	window.setTimeout(function() {
+		$(view.content).remove();
+	}, 400);
 };
 
 // Private function used to animate the transition between pages in the browser.
@@ -134,14 +136,14 @@ MiniBrowser.prototype._slideTo = function(slide) {
 
 	} else if (Modernizr.csstransforms && Modernizr.csstransitions) {
 		$("#FS_holder").css(this.vP+"transform","translate(-"+pixels+"px, 0px)");
-		$("#FS_holder").css("transform","translate(-"+pixels+"px, 0px)");		
+		$("#FS_holder").css("transform","translate(-"+pixels+"px, 0px)");
 
 	} else if (Modernizr.csstransitions) {
 		$("#FS_holder").css("margin-left","-"+pixels+"px");
 
 	} else {
 	    // If you animate left, IE breaks.
-		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"},600);
+		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"}, 400);
 	}		
 };
 
@@ -149,13 +151,12 @@ MiniBrowser.prototype._slideTo = function(slide) {
 MiniBrowser.prototype._makeBackButton = function(text) {
     text = text || 'Back';
     
-    var button = $('<a href="#back" class="backButton awesome">'+text+'</a>');
-    button.click(function(event) {
-        event.preventDefault();
-        browser.pop();
-    });
-    
-    return button;
+    return $('<a href="#back" class="backButton awesome">'+text+'</a>')
+		.click(function(event) {
+	        event.preventDefault();
+			event.stopPropagation(); // Not sure why, but without this, clicking back causes two pops.
+	        browser.pop();
+	    });
 };
 
 
@@ -187,7 +188,7 @@ BaseView.prototype.willHide = function() {};
 BaseView.prototype.willPop = function() {};
 
 function getTopView() {
-  return viewStack[viewStack.length-1];
+  return viewStack[viewStack.length - 1];
 }
 
 
@@ -213,6 +214,7 @@ SearchView.prototype.didSlide = function() {
 
 SearchView.prototype.willHide = function() {
     keyEvents = true;
+    $('.searchBox input.search', this.content).blur();
 };
 
 // Private function that adds handlers to the search box
@@ -354,7 +356,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
                 player.addSongToPlaylist(song);
             },
             class: 'awesome small',
-            text: 'Add +'
+            text: 'Add to playlist +'
         }],
     });
     
@@ -377,7 +379,6 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
         var artist = {};
 
         artist.name = artistResult.name;
-        artist.image = '';
         artist.image = artistResult.image[2]['#text'];
         artist.image = artist.image.replace('serve/126', 'serve/126s');    
 
@@ -429,7 +430,8 @@ ArtistView.prototype.getNameOfPartial = function() {
 };
 
 ArtistView.prototype.willSlide = function() {
-	this._fetchArtistData();
+	this._fetchData();
+	$('.name', this.content).text(this.name);
 };
 
 ArtistView.prototype.didSlide = function() {
@@ -438,10 +440,81 @@ ArtistView.prototype.didSlide = function() {
 ArtistView.prototype.willHide = function() {
 };
 
-ArtistView.prototype._fetchArtistData = function() {
-	$(this.content).append('<div>hi there' + this.name + '</div>');
+ArtistView.prototype._fetchData = function() {
+	that = this;
+    model.lastfm.artist.getInfo({
+        artist: this.name,
+        limit: 1,
+    },
+    {
+        success: function(data) {
+            that._handleData(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+            that.renderArtists([]);
+        }
+    });
 };
 
+ArtistView.prototype._handleData = function(data) {
+    var artist = data && data.artist;
+	
+	log(artist);
+	// TODO: show similar artists
+	// TODO: show tags
+    
+	if (!artist) {
+        $(this.content).append('<p>No artist named "' + this.name + '" were found.</p>');
+        return;
+    }
+    
+	var name = artist.name;
+	$('.name', this.content).text(name);
+	
+    var artistSummary = artist.bio && artist.bio.summary;
+    var artistLongDesc = artist.bio && artist.bio.content;
+	
+	// Update artist summary
+    var shortContent;
+    if (artistSummary) {                  
+        shortContent = cleanHTML(artistSummary);
+        $('.artistDesc article', this.content).html(shortContent);
+    }
+
+    // Add link to longer description
+    if (artistSummary && artistLongDesc) {
+        var longContent = cleanHTML(artistLongDesc); 
+        
+        $('.artistDesc article', this.content)
+            .data('longContent', longContent)
+            .data('shortContent', shortContent);
+                                                       
+        var link = makeSeeMoreLink(onShowMoreText);
+        $('.artistDesc article', this.content).append(' ').append(link);
+    }
+	
+    var image = artist.image[artist.image.length - 1]['#text'];
+ 	this._updateArtistImg(image, name);
+
+	// TODO: Show top albums
+	// TODO: Show top tracks
+	
+    // $('.songs', this.content)
+    //     .append(makeSongList(songs))
+    //     .slideDown();
+
+};
+
+ArtistView.prototype._updateArtistImg = function(src, alt) {
+	if (src) {
+        var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
+        $('.artistImg', this.content).empty().append(imgBlock);
+    
+    } else {
+        $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
+    }
+}
 
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
 
@@ -482,8 +555,8 @@ PlaylistView.prototype._hideCurPlayling = function() {
     if ($('#curSongDesc').css('display') != '0') {
         $('#curSongDesc').fadeOut('fast');
     }
-    if ($('#curArtistDesc').css('display') != '0') {
-        $('#curArtistDesc').fadeOut('fast');
+    if ($('.artistDesc', '#curPlaying').css('display') != '0') {
+        $('.artistDesc', '#curPlaying').fadeOut('fast');
     }
 };
 
@@ -619,26 +692,26 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
     var shortContent;
     if (artistSummary) {                  
         shortContent = cleanHTML(artistSummary);
-        $('#curArtistDesc article').html(shortContent);
-        $('#curArtistDesc h4').text(artistName);
-        $('#curArtistDesc').fadeIn('fast');
+        $('.artistDesc article', '#curPlaying').html(shortContent);
+        $('.artistDesc h4', '#curPlaying').text(artistName);
+        $('.artistDesc', '#curPlaying').fadeIn('fast');
     }
 
     // Add link to longer description
     if (artistSummary && artistLongDesc) {
         var longContent = cleanHTML(artistLongDesc); 
         
-        $('#curArtistDesc article')
+        $('.artistDesc article', '#curPlaying')
             .data('longContent', longContent)
             .data('shortContent', shortContent);
                                                        
         var link = makeSeeMoreLink(onShowMoreText);
-        $('#curArtistDesc article').append(' ').append(link);
+        $('.artistDesc article', '#curPlaying').append(' ').append(link);
     }
 };
 
 PlaylistView.prototype._updateArtist = function(artist) {
-    var link = $('<a rel="partial"></a>')
+    var link = $('<a rel="artist"></a>')
         .html(artist)
         .attr('title', artist)
         .attr('href', '/'+canonicalize(artist));
@@ -646,7 +719,7 @@ PlaylistView.prototype._updateArtist = function(artist) {
 };
 
 PlaylistView.prototype._updateAlbum = function(album, artist) {
-    var link = $('<a rel="partial"></a>')
+    var link = $('<a rel="album"></a>')
         .html(album)
         .attr('title', album)
         .attr('href', '/'+canonicalize(artist)+'/'+canonicalize(album));
@@ -976,7 +1049,12 @@ function makeArtistList(artists) {
         // No alt text. Want to avoid alt-text flash while img loads
         var img = $('<img src="'+artist.image+'">');
         
-        $('<div class="artistResult"></div>')
+        $('<a></a>', {
+			class: 'artistResult',
+			href: '/'+canonicalize(artist.name),
+			rel: 'artist',
+			title: artist.name
+		})
             .append('<div>'+artist.name+'</div>')
             .append(img)
             .appendTo(result);
@@ -998,7 +1076,12 @@ function makeAlbumList(albums) {
         // No alt text. Want to avoid alt-text flash while img loads
         var img = $('<img src="' + album.image + '">');
 
-        $('<div class="albumResult"></div>')
+        $('<a></a>', {
+			class: 'albumResult',
+			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
+			rel: 'album',
+			title: album.name
+		})
         .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
         .append(img)
         .appendTo(result);
