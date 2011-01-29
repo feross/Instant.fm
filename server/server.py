@@ -460,7 +460,7 @@ class UploadHandler(BaseHandler):
         if parsed is None:
             return {'status': 'Corrupted playlist file'}
             
-        playlist_id = self._store_playlist(name, "Imported playlist", json.dumps(parsed), user_id)
+        playlist_id = self._store_playlist(name, "Uploaded playlist", json.dumps(parsed), user_id)
         playlist = {
             'status': 'ok',
             'title': name,

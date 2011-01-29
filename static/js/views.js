@@ -349,6 +349,16 @@ SearchView.prototype._handleSongSearchResults = function(data) {
 
     $('.songResults ul', this.content).remove();
     
+    var buttons;
+    if (model.editable) {
+        buttons = [{
+            action: function(event, song) {
+                player.addSongToPlaylist(song);
+            },
+            class: 'awesome small',
+            text: 'Add to playlist +'
+        }];
+    }
     var songlist = new SongList({
         songs: tracks,
         onClick: function(song) {
@@ -357,13 +367,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             var q = song.t+' '+song.a;
             player.playSongBySearch(q);
         },
-        buttons: [{
-            action: function(event, song) {
-                player.addSongToPlaylist(song);
-            },
-            class: 'awesome small',
-            text: 'Add to playlist +'
-        }],
+        buttons: buttons || [],
     });
     
     var $songResults = $('.songResults', this.content);
@@ -565,7 +569,6 @@ ArtistView.prototype._handleTopSongs = function(data) {
         buttons: [{
             action: function(event, song) {
                 player.addSongToPlaylist(song);
-                player.updateDisplay();
             },
             class: 'awesome small',
             text: 'Add to playlist +'
