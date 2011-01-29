@@ -650,6 +650,7 @@ Player.prototype.addSongToPlaylist = function(song) {
     this.songlist.add(song, '#playlist');
     this.highlightSong('#playlist li:last');
     model.addSong(song);
+    player.updateDisplay(); // resizes short playlists
 };
 
 

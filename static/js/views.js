@@ -94,7 +94,7 @@ MiniBrowser.prototype.push = function(elem, _title, _createView) {
     
     window.setTimeout(function() {
       view && view.didSlide();
-    }, 400);
+    }, 300);
     
     // TODO: Is there a more robust way we can do this?
     // We handle the case where the loaded partial didn't push a new view
@@ -123,7 +123,7 @@ MiniBrowser.prototype.pop = function() {
     browser._slideTo(browser.numSlides);
 	window.setTimeout(function() {
 		$(view.content).remove();
-	}, 400);
+	}, 300);
 };
 
 // Private function used to animate the transition between pages in the browser.
@@ -143,7 +143,7 @@ MiniBrowser.prototype._slideTo = function(slide) {
 
 	} else {
 	    // If you animate left, IE breaks.
-		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"}, 400);
+		$("#FS_holder").animate({"margin-left":"-"+pixels+"px"}, 300);
 	}		
 };
 
@@ -450,28 +450,54 @@ ArtistView.prototype._fetchData = function() {
 	that = this;
     model.lastfm.artist.getInfo({
         artist: this.name,
+        autocorrect: 1,
         limit: 1,
     },
     {
         success: function(data) {
-            that._handleData(data);
+            that._handleInfo(data);
         },
         error: function(code, message) {
             log(code + ' ' + message);
-            that.renderArtists([]);
+        }
+    });
+    model.lastfm.artist.getTopTracks({
+        artist: this.name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+            that._handleTopSongs(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+    model.lastfm.artist.getTopAlbums({
+        artist: this.name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+            that._handleTopAlbums(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
         }
     });
 };
 
-ArtistView.prototype._handleData = function(data) {
+ArtistView.prototype._handleInfo = function(data) {
     var artist = data && data.artist;
 	
-	log(artist);
+    // log(artist);
 	// TODO: show similar artists
 	// TODO: show tags
     
 	if (!artist) {
-        $(this.content).append('<p>No artist named "' + this.name + '" were found.</p>');
+        $('.artistDesc article', this.content)
+            .html('<p>No artist named "' + this.name + '" were found.</p>')
+            .slideDown('fast');
         return;
     }
     
@@ -485,7 +511,8 @@ ArtistView.prototype._handleData = function(data) {
     var shortContent;
     if (artistSummary) {                  
         shortContent = cleanHTML(artistSummary);
-        $('.artistDesc article', this.content).html(shortContent);
+        $('.artistDesc article', this.content)
+            .html(shortContent);
     }
 
     // Add link to longer description
@@ -502,14 +529,78 @@ ArtistView.prototype._handleData = function(data) {
 	
     var image = artist.image[artist.image.length - 1]['#text'];
  	this._updateArtistImg(image, name);
+ 	
+ 	$('.artistDesc', this.content).slideDown('fast');
+};
 
-	// TODO: Show top albums
-	// TODO: Show top tracks
-	
-    // $('.songs', this.content)
-    //     .append(makeSongList(songs))
-    //     .slideDown();
+ArtistView.prototype._handleTopSongs = function(data) {
+    var songResults = data && data.toptracks && data.toptracks.track;
+    log(songResults);
+    if (!songResults || !songResults.length) {
+        $('.songResults', this.content).slideUp('fast');
+        return;
+    }
+    
+    var songs = [];
+    for (var i = 0; i < songResults.length; i++) {
+        var songResult = songResults[i];
+        var song = {};
 
+        song.t = songResult.name;
+        song.a = songResult.artist.name;
+        song.i = songResult.image && songResult.image[2]['#text'];
+
+        songs.push(song);
+    };
+    log(songs);
+    
+    var songlist = new SongList({
+        songs: songs,
+        onClick: function(song) {
+            $('.playing').removeClass('playing');
+            $(this).addClass('playing');
+            var q = song.t+' '+song.a;
+            player.playSongBySearch(q);
+        },
+        buttons: [{
+            action: function(event, song) {
+                player.addSongToPlaylist(song);
+                player.updateDisplay();
+            },
+            class: 'awesome small',
+            text: 'Add to playlist +'
+        }],
+    });
+    
+    var $songResults = $('.songResults', this.content)
+    $songResults.find('div').remove();
+    songlist.render($songResults);
+    
+    $songResults.slideDown('fast');
+};
+
+ArtistView.prototype._handleTopAlbums = function(data) {
+    var albumResults = data && data.topalbums && data.topalbums.album;
+    if (!albumResults || !albumResults.length) {
+        $('.albumResults', this.content).slideUp('fast');
+        return;
+    }
+    
+    var albums = [];
+    for (var i = 0; i < albumResults.length; i++) {
+        var albumResult = albumResults[i];
+        var album = {};
+
+        album.name = albumResult.name;
+        album.artist = albumResult.artist.name;
+        album.image = albumResult.image[2]['#text'];
+
+        albums.push(album);
+    };
+    $('.albumResults div', this.content).remove();
+    $('.albumResults', this.content)
+        .append(makeAlbumList(albums))
+        .slideDown('fast'); 
 };
 
 ArtistView.prototype._updateArtistImg = function(src, alt) {
