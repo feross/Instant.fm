@@ -229,8 +229,8 @@ SearchView.prototype._addSearchHandlers = function() {
     });
     
     // Pushes a key
-    searchInput.keyup(function() {
-        that._handleSearch.apply(that, [searchInput.val()]);
+    searchInput.keyup(function(event) {
+		that._handleSearch.apply(that, [searchInput.val()]);
     });
     addFocusHandlers(searchInput);
     
@@ -245,7 +245,13 @@ SearchView.prototype._addSearchHandlers = function() {
 SearchView.prototype._handleSearch = function(searchString) {
     if (!this.delaySearch && (this.prevSearchString != searchString)) {
         this.prevSearchString = searchString;
-        this.search(searchString);
+        if (searchString.length) {
+            this.search(searchString);
+        } else {
+            $('.songResults', this.content).slideUp('fast');
+	        $('.artistResults', this.content).slideUp('fast');
+			$('.albumResults', this.content).slideUp('fast');
+        }
         
         // Don't allow another search for a while.
         this.delaySearch = true;
@@ -320,8 +326,8 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     var tracks = [];
     var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
 
-    if (!trackResults || !trackResults) {
-        $('.songResults', this.content).slideUp();
+    if (!trackResults || !trackResults.length) {
+        $('.songResults', this.content).slideUp('fast');
         return;
     }
 
@@ -362,7 +368,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     
     var $songResults = $('.songResults', this.content);
     songlist.render($songResults);
-    $songResults.slideDown();
+    $songResults.slideDown('fast');
 };
 
 SearchView.prototype._handleArtistSearchResults = function(data) {
@@ -370,7 +376,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
     
     if (!artistResults || !artistResults.length) {
-        $('.artistResults', this.content).slideUp();
+        $('.artistResults', this.content).slideUp('fast');
         return;
     }
 
@@ -388,7 +394,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     $('.artistResults div', this.content).remove();
     $('.artistResults', this.content)
         .append(makeArtistList(artists))
-        .slideDown();
+        .slideDown('fast');
 };
 
 SearchView.prototype._handleAlbumSearchResults = function(data) {
@@ -396,7 +402,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
 
     if (!albumResults || !albumResults.length) {
-        $('.albumResults', this.content).slideUp();
+        $('.albumResults', this.content).slideUp('fast');
         return;
     }
 
@@ -414,7 +420,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     $('.albumResults div', this.content).remove();
     $('.albumResults', this.content)
         .append(makeAlbumList(albums))
-        .slideDown();
+        .slideDown('fast');
 };
 
 
