@@ -57,7 +57,7 @@ function onloadPlaylist() {
     setupPlaylistActionButtons();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
-    $('#registrationLink').fancyZoom(appSettings.fancyZoom);
+    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
     
     window.onpopstate = onPopState;
     $(window).resize(player.updateDisplay);
@@ -277,24 +277,14 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
+        $('#loginButton').click(function(event) {
+          alert('Clicked.');
+        });
+         
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
         
         FB.XFBML.parse(document.getElementById('fbConnectButton'), function(response) { alert('Parsed fbconnect button.'); });
-        
-        $('#loginButton').click(function(event) {
-          alert('Clicked.');
-          FB.login();
-        });
-      
-      /*
-      FB.login(function(response) {
-      if (response.session) {
-          // user successfully logged in
-        } else {
-          // user cancelled login
-        }
-      });
-
+     
         /* Set up registration pane */
         /*
         FB.Event.subscribe('auth.login', function(response) {
