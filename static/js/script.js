@@ -57,6 +57,7 @@ function onloadPlaylist() {
     setupPlaylistActionButtons();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
+    $('#registrationLink').fancyZoom(appSettings.fancyZoom);
     
     window.onpopstate = onPopState;
     $(window).resize(player.updateDisplay);
@@ -267,16 +268,40 @@ function setupKeyboardShortcuts() {
 }
 
 function setupFBML(playlist) {
-    
     window.fbAsyncInit = function() {
         FB.init({
-          appId: '114871205247916',
+          //appId: '114871205247916', // 'Instant.fm' API Key
+          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
         });
         
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        
+        FB.XFBML.parse(document.getElementById('fbConnectButton'), function(response) { alert('Parsed fbconnect button.'); });
+        
+        $('#loginButton').click(function(event) {
+          alert('Clicked.');
+          FB.login();
+        });
+      
+      /*
+      FB.login(function(response) {
+      if (response.session) {
+          // user successfully logged in
+        } else {
+          // user cancelled login
+        }
+      });
+
+        /* Set up registration pane */
+        /*
+        FB.Event.subscribe('auth.login', function(response) {
+          // do something with response
+          alert(response);
+        });
+        */
     };
     
     (function() {

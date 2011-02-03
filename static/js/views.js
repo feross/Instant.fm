@@ -934,7 +934,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     // Load Facebook comment box
     $('#comments')
         .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
-    FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
+    FB.XFBML.parse(document.getElementById('comments'), function(response) {
         playlistview.commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
             .hide()

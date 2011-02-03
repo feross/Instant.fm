@@ -46,7 +46,7 @@
         <a href="#new">New Playlist</a>
         <a href="/search" rel="search" id="searchLink" title="Search Instant.fm">Search</a>
         <a href="#myLists">My Playlists</a>
-        <a href="#signUp">Sign up</a>
+        <a href="#registrationBox" id="registrationLink">Sign Up</a>
       </nav>
     
       <div id="FS_slider" class="clearfix">
@@ -155,6 +155,17 @@
         </dl>
       </section>
     </div> <!-- end of #helpBox -->
+    
+    <div id="registrationBox">
+      <div class="fancyZoomHeader">Sign Up</div>
+      <div id="fbConnectButton">
+        <fb:login-button perms="email">
+          Sign Up using Facebook
+        </fb:login-button>
+      </div>
+      <a id="loginButton" class="medium darkblue awesome"> Connect </a>
+      <div id="fbEmail"></div>
+    </div>
           
   </div> <!-- end of #devNull -->
 {% end %}
