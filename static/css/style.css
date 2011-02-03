@@ -907,6 +907,11 @@ header .awesome { margin-top: 2px; }
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
 
+/* Registration and Login */
+.loginForm {
+  display: inline-block;
+  vertical-align: top;
+}
 
 
 

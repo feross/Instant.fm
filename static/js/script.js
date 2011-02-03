@@ -283,7 +283,11 @@ function setupFBML(playlist) {
               // user successfully logged in
               log('FB login succesful.');
               FB.api('/me', function(response) {
-                alert(response.email);
+                $('#fbConnectButton').hide();
+                var form = $('#fbAccountCreation');
+                $('input[name=name]', form).val(response.name);
+                $('input[name=email]', form).val(response.email);
+                form.show();
               });
             } else {
               // user cancelled login

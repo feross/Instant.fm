@@ -158,8 +158,42 @@
     
     <div id="registrationBox">
       <div class="fancyZoomHeader">Sign Up</div>
-      <a id="loginButton" class="medium darkblue awesome"> Connect </a>
-      <div id="fbEmail"></div>
+      <div class="loginForm">
+        <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
+        <div class="formRow">
+          <label> Email Address: </label>
+          <input type="text" name="email" value="" />
+        </div>
+        <div class="formRow">
+          <label> Password: </label>
+          <input type="password" name="password" value="" />
+        </div>
+        <div class="formRow">
+          <input type="checkbox" name="allow_passwordless" checked="checked" />
+          <label> Let me login without a password on this browser </label>
+        </div>
+      </div>
+      <div class="loginForm">
+        <div class="fancyZoomSectionHeader"> Create an Account </div>
+        <div id="fbConnectButton">
+          <a id="loginButton" class="small darkblue awesome"> Connect your Facebook Account </a>
+          <div id="fbEmail"></div>
+        </div>
+        <div id="fbAccountCreation" style="display:none;">
+           <div class="formRow">
+            <label> Display Name: </label>
+            <input type="text" name="name" value="" />
+          </div>         
+          <div class="formRow">
+            <label> E-mail: </label>
+            <input type="text" name="email" value="" />
+          </div>          
+          <div class="formRow">
+            <label> Password: </label>
+            <input type="password" name="password" value="" />
+          </div>          
+        </div>
+      </div>
     </div>
           
   </div> <!-- end of #devNull -->
