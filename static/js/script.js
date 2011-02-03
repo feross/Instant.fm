@@ -278,20 +278,27 @@ function setupFBML(playlist) {
         });
         
         $('#loginButton').click(function(event) {
-          alert('Clicked.');
+          FB.login(function(response) {
+            if (response.session) {
+              // user successfully logged in
+              log('FB login succesful.');
+              FB.api('/me', function(response) {
+                alert(response.email);
+              });
+            } else {
+              // user cancelled login
+              log('FB login failed.');
+            }
+          });
         });
          
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-        
-        FB.XFBML.parse(document.getElementById('fbConnectButton'), function(response) { alert('Parsed fbconnect button.'); });
      
         /* Set up registration pane */
-        /*
         FB.Event.subscribe('auth.login', function(response) {
           // do something with response
           alert(response);
         });
-        */
     };
     
     (function() {
