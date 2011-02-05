@@ -49,16 +49,16 @@ function onloadPlaylist() {
     
     setupAutogrowInputType();
     player.loadPlaylist(initial_playlist);
-    player.updateDisplay();
+    
+    updateDisplay();
+    $(window).resize(updateDisplay);
+    window.onpopstate = onPopState;
     
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
-    
-    window.onpopstate = onPopState;
-    $(window).resize(player.updateDisplay);
     
     setupDragDropUploader('p', player.loadPlaylist);
     
@@ -265,6 +265,19 @@ function shareOnFacebook() {
             break;
         }
     }
+    
+    // Get top playlist artists
+    var topArtists = [];
+    $.each(model.songs, function(index, value) {
+       var artist = value.a;
+       if (artist && $.inArray(artist, topArtists) == -1) {
+          topArtists.push(artist);
+       }
+       if (topArtists.length >= 4) {
+           return false; // end the $.each() iteration
+       }
+    });
+    
     FB.ui(
       {
         method: 'feed',
@@ -273,7 +286,7 @@ function shareOnFacebook() {
         picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
         caption: 'Instant.fm Playlist',
         description: model.description + '\n',
-        properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
+        properties: {'Artists in this playlist': topArtists.join(', ')},
         actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
       },
       function(response) {
@@ -288,7 +301,7 @@ function shareOnFacebook() {
 }
 
 function shareOnTwitter() {
-    var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
+    var tweetText = encodeURIComponent("#nowplaying I'm listening to "+model.title+" ♫");
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm/p/'+model.playlistId+
               '&text='+tweetText+'&via=instantDOTfm';
@@ -531,7 +544,7 @@ Player.prototype.toggleVideo = function(force) {
     if (Modernizr.csstransitions) {
         var animateResize = function(numCalls) {
             if (numCalls < 80) {
-                player.updateDisplay();
+                updateDisplay();
                 window.setTimeout(function() {
                     animateResize(++numCalls);
                 }, 10);
@@ -539,7 +552,7 @@ Player.prototype.toggleVideo = function(force) {
         }
         animateResize(0);
     } else {
-        player.updateDisplay();
+        updateDisplay();
     }
 };
 
@@ -612,7 +625,7 @@ Player.prototype.addSongToPlaylist = function(song) {
     this.songlist.add(song, '#playlist');
     this.highlightSong('#playlist li:last');
     model.addSong(song);
-    player.updateDisplay(); // resizes short playlists
+    updateDisplay(); // resizes short playlists
         
     if (player.ytplayer.getPlayerState() == 0) { // player is stopped
         player.playSong(model.songs.length - 1);
@@ -643,7 +656,7 @@ Player.prototype.loadPlaylist = function(response) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
         playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#infoDisplay').effect('pulsate', {times: 2});
+        $('#main').effect('pulsate', {times: 2});
     }
 
     model.updatePlaylist(playlist);
@@ -730,7 +743,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
         $('<a href="/search" rel="search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-            .appendTo('#curPlaylistInfo header');
+            .appendTo('#curPlaylistInfo');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
@@ -814,15 +827,6 @@ Player.prototype.highlightSong = function(selector) {
     });
 };
 
-Player.prototype.updateDisplay = function() {
-    var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height()); /* header, player */
-    var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
-    if (newHeight < 50) {
-        newHeight = 50;
-    }
-    $('#playlistDiv').height(newHeight);
-};
-
 
 /*--------------------- BROWSER EVENTS --------------------- */
 
@@ -833,10 +837,9 @@ function onShowMoreText(event) {
 
     var elem = $(this).parent();
     var newContent = elem.data('longContent') + ' ';
-    var link = makeSeeMoreLink(onShowLessText, 'show less');
+    var link = makeSeeMoreLink(onShowLessText, 'less');
 
-    elem
-        .html(newContent)
+    elem.html(newContent)
         .append(link);
 }
 
@@ -861,6 +864,21 @@ function onPopState(event) {
     if (state && state.playlistId != model.playlistId) {
         player.loadPlaylistById(state.playlistId);
     }
+}
+
+function updateDisplay() {
+    /* header + player + footer + good measure */
+    var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height() + 50 + 10);
+    var newPlaylistHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
+    if (newPlaylistHeight < 50) {
+        newPlaylistHeight = 50;
+    }
+    $('#playlistDiv').height(newPlaylistHeight);
+    
+    var newBrowserHeight = newPlaylistHeight + $('#videoDiv').height() - 45;
+    $('#browser').height(newBrowserHeight);
+    
+    // var mainHeight =
 }
 
 function onYouTubePlayerReady(playerId) {
@@ -938,20 +956,6 @@ Model.prototype.addSong = function(song) {
 
 Model.prototype.saveSongs = function() {
     model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
-};
-
-Model.prototype.getTopArtists = function(numArtists) {
-    var artists = [];
-    $.each(this.songs, function(index, value) {
-       var artist = value.a;
-       if (artist && $.inArray(artist, artists) == -1) {
-           artists.push(artist);
-       }
-       if (artists.length >= numArtists) {
-           return false; // end the $.each() iteration
-       }
-    });
-    return artists;
 };
 
 Model.prototype.updateTitle = function(newTitle) {

@@ -50,7 +50,7 @@ function makeFancyZoomImg(thumbId, src, alt) {
 }
 
 function makeSeeMoreLink(onclick, _text) {
-    _text = _text || 'see more';
+    _text = _text || 'more';
     return $('<a class="seeMore" href="#seeMore">('+_text+')</a>').click(onclick);
 }
 
