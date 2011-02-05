@@ -538,21 +538,10 @@ Player.prototype.toggleVideo = function(force) {
 
     if (videoOn) {
         $videoDiv.addClass('noVideo');
+        $('#playlistDiv').animate({height: '+=265'}, 800, 'easeInOutQuad');
     } else {
         $videoDiv.removeClass('noVideo');
-    }
-    if (Modernizr.csstransitions) {
-        var animateResize = function(numCalls) {
-            if (numCalls < 80) {
-                updateDisplay();
-                window.setTimeout(function() {
-                    animateResize(++numCalls);
-                }, 10);
-            }
-        }
-        animateResize(0);
-    } else {
-        updateDisplay();
+        $('#playlistDiv').animate({height: '-=265'}, 800, 'easeInOutQuad');
     }
 };
 
