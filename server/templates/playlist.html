@@ -157,7 +157,7 @@
     </div> <!-- end of #helpBox -->
     
     <div id="registrationBox">
-      <div class="fancyZoomHeader">Sign Up</div>
+      <div class="fancyZoomHeader">Log In or Sign Up</div>
       <div class="loginForm">
         <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
         <div class="formRow">
@@ -177,22 +177,32 @@
         <div class="fancyZoomSectionHeader"> Create an Account </div>
         <div id="fbConnectButton">
           <a id="loginButton" class="small darkblue awesome"> Connect your Facebook Account </a>
-          <div id="fbEmail"></div>
         </div>
         <div id="fbAccountCreation" style="display:none;">
-           <div class="formRow">
-            <label> Display Name: </label>
-            <input type="text" name="name" value="" />
-          </div>         
-          <div class="formRow">
-            <label> E-mail: </label>
-            <input type="text" name="email" value="" />
-          </div>          
-          <div class="formRow">
-            <label> Password: </label>
-            <input type="password" name="password" value="" />
-          </div>          
-        </div>
+          <form id="fbRegistration" method="post">
+            <div class="loginForm">
+              <div class="formRow">
+                <label for="fbName"> Display Name: </label>
+                <input id="fbName" type="text" name="name" class="required" value="" />
+              </div>         
+              <div class="formRow">
+                <label for="fbEmail"> E-mail: </label>
+                <input id="fbEmail" type="text" name="email" class="required email" value="" />
+              </div>          
+              <div class="formRow">
+                <label for="fbPassword"> Password: </label>
+                <input id="fbPassword" type="password" name="password" class="required"/>
+              </div>          
+            </div>
+            <div>
+              <img id="fbProfileImage"></img>
+            </div>
+            <a id="submitFbRegistration" class="small grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
+            <input type="submit"> Submit! </input>
+          </div>
+          <input type="hidden" name="auth_token"></input>
+          <input type="hidden" name="fb_user_id"></input>
+        </form>
       </div>
     </div>
           
@@ -200,11 +210,14 @@
 {% end %}
 
 {% block scripts %}
-    {% block scripts-partial %}{% end %}
-    <script>
-      var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
-        $(function() {
-            onloadPlaylist();
-        });
-    </script>
+  <!-- Validation plugin for registration form. -->
+  <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
+  
+  {% block scripts-partial %}{% end %}
+  <script>
+    var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
+      $(function() {
+          onloadPlaylist();
+      });
+  </script>
 {% end %}

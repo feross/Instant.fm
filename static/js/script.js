@@ -58,6 +58,7 @@ function onloadPlaylist() {
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
     $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
+    $('form#fbRegistration').validate({submitHandler: function() { alert('submit'); log('submit'); }});
     
     window.onpopstate = onPopState;
     $(window).resize(player.updateDisplay);
@@ -278,15 +279,19 @@ function setupFBML(playlist) {
         });
         
         $('#loginButton').click(function(event) {
-          FB.login(function(response) {
-            if (response.session) {
+          FB.login(function(login_response) {
+            if (login_response.session) {
               // user successfully logged in
               log('FB login succesful.');
               FB.api('/me', function(response) {
                 $('#fbConnectButton').hide();
                 var form = $('#fbAccountCreation');
+                log(response);
                 $('input[name=name]', form).val(response.name);
                 $('input[name=email]', form).val(response.email);
+                $('input[name=fb_user_id]', form).val(response.id);
+                $('input[name=auth_token]', form).val(login_response.session.access_token);
+                $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=large');
                 form.show();
               });
             } else {
