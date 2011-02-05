@@ -31,6 +31,7 @@ table { border-collapse:collapse; border-spacing:0; }
 hr { display:block; height:1px; border:0; border-top:1px solid #ccc; margin:1em 0; padding:0; }
 input, select { vertical-align:middle; }
 
+html { overflow: hidden; }
 
 body { font:13px/1.231 sans-serif; *font-size:small; } 
 select, input, textarea, button { font:99% sans-serif; }
@@ -313,20 +314,20 @@ input.file {
     position: relative;
     width: 480px;
     
-    -webkit-transition: height 0.8s ease-in-out;
-	-moz-transition: height 0.8s ease-in-out;
-	-o-transition: height 0.8s ease-in-out;
-	transition: height 0.8s ease-in-out;
+    -webkit-transition: height 0.6s ease-in-out;
+	-moz-transition: height 0.6s ease-in-out;
+	-o-transition: height 0.6s ease-in-out;
+	transition: height 0.6s ease-in-out;
 }
 
 #ytPlayer {
     position: relative;
     top: 0;
     
-    -webkit-transition: top 0.8s ease-in-out;
-	-moz-transition: top 0.8s ease-in-out;
-	-o-transition: top 0.8s ease-in-out;
-	transition: top 0.8s ease-in-out;
+    -webkit-transition: top 0.6s ease-in-out;
+	-moz-transition: top 0.6s ease-in-out;
+	-o-transition: top 0.6s ease-in-out;
+	transition: top 0.6s ease-in-out;
 }
 
 #videoDiv.noVideo { height: 30px; }
@@ -369,16 +370,16 @@ input.file {
 	-moz-transition: all 0.3s ease-in-out;
 	-o-transition: all 0.3s ease-in-out;
 	transition: all 0.3s ease-in-out;
-	width: 10000px; /* TODO: As long as it's big enough, JS replaces this value. */
+	width: 50000px; /* TODO: As long as it's big enough, JS replaces this value. */
 }
 
 #FS_holder .slide {
 	display: block;
 	float: left;
-	width: 490px;
+	width: 480px;
 	margin-top: 0; /* IE6, 7 bugfix */
 	margin-left: 20px;
-	margin-right: 30px;
+	margin-right: 69px;
 }
 
 #browserDisplay h1 {

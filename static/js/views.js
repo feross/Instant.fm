@@ -20,10 +20,9 @@ var MiniBrowser = function() {
 
 MiniBrowser.prototype.setupHandlers = function() {
     // Link handlers for loading partials.
-    $('a[rel="search"], a[rel="artist"], a[rel="album"], a[rel="lyric"]').live('click', function(event) {
+    $('a[rel~="partial"]').live('click', function(event) {
         event.preventDefault();
         browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
-
     });
     
     // Link handlers for the back button.
@@ -50,16 +49,16 @@ MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
 		// Push matching "view" onto minibrowser
 		var view;
 		switch(type) {
-			case 'search':
+			case 'partial search':
 				view = new SearchView();
 				break;
-			case 'artist':
+			case 'partial artist':
 				view = new ArtistView(title);
 				break;
-			case 'album':
+			case 'partial album':
 				log('push album ' + title);
 				break;
-			case 'lyric':
+			case 'partial lyric':
 			    var $link = $(_options.link);
 			    view = new LyricView($link.attr('data-title'), $link.attr('data-artist'));
 			    break;
@@ -80,53 +79,38 @@ MiniBrowser.prototype.pushStatic = function(path, title, _options) {
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title, _createView) {
-    var title = _title || '';
-    
-    var backButton = browser._makeBackButton();
     var prevView = getTopView();
     prevView && prevView.willHide();
 
-    var header = $('<header class="clearfix buttonHeader"></header>')
-        .append(backButton)
-        .append('<h2>'+title+'</h2>');
-    $(elem).prepend(header);
-    
     $(elem).appendTo('#FS_holder');
 
 	var view;
 	if (_createView) {
 		view = _createView();
 		if (view) {
+		    view.content = elem;
 			viewStack.push(view);
-			view.content = elem;
+			view.willSlide();  // Tell the view to do anything it has to now that content is in DOM
 		} else {
-			log('Warning: All partials must create a view and push it onto the viewStack. ('+title+')')
+			log('Warning: All partials must create a view and push it onto the viewStack. ('+_title+')')
 		}
 	} else {
-		log('Warning: All partials must define a createView function. ('+title+')')
+		log('Warning: All partials must define a createView function. ('+_title+')')
 	}
 
-
-    window.setTimeout(function() {
-        $('.buttonHeader h2', elem)
-            .css('left', -1 * $('.backButton', elem).width());
-        view && view.willSlide();  // Tell the view to do anything it has to now that content is in DOM
-    }, 0);
+    // window.setTimeout(function() {
+    //     $('.buttonHeader h2', elem)
+    //         .css('left', -1 * $('.backButton', elem).width());
+    // }, 0);
+        
+    this.numSlides++;
+    this._slideTo(this.numSlides);
+    
+    this._updateToolbar(_title);
     
     window.setTimeout(function() {
       view && view.didSlide();
     }, 300);
-    
-    // TODO: Is there a more robust way we can do this?
-    // We handle the case where the loaded partial didn't push a new view
-    // controller by adding a BaseView controller.
-    // if (view == prevView) {
-    //   view = new BaseView();
-    //   viewStack.push(view);
-    // }
-        
-    this.numSlides++;
-    this._slideTo(this.numSlides);
 };
 
 // Pop the top-most page off of the browser.
@@ -180,21 +164,30 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 	    });
 };
 
+MiniBrowser.prototype._updateToolbar = function(_title) {
+    var title = _title || '';
+    $('#browserDisplay h1').text(title);
+    
+    // var backButton = browser._makeBackButton();
+};
+
 
 /* ---------------------------- BASE VIEW ---------------------------- */
 
 /* All views should extend this one! */
 function BaseView() {};
 
-BaseView.prototype.getNameOfPartial = function() {
-    log('Must override getNameOfPartial() in view controller!');
+BaseView.prototype.getPartialName = function() {
+    log('Must override getPartialName() in view controller!');
     return '';
 };
 
 /* Called after content is added to DOM but before animation. */
-BaseView.prototype.willSlide = function() {};
+BaseView.prototype.willSlide = function() {
+    
+};
 
-/* Called after the content is added to the DOM */
+/* Called after the content is slid fully into view */
 BaseView.prototype.didSlide = function() {};
 
 /* Called before animation starts to either push a new view (hiding this 
@@ -210,6 +203,7 @@ BaseView.prototype.willHide = function() {
  */
 BaseView.prototype.willPop = function() {};
 
+
 function getTopView() {
   return viewStack[viewStack.length - 1];
 }
@@ -223,7 +217,7 @@ function SearchView() {
 }
 copyPrototype(SearchView, BaseView);
 
-SearchView.prototype.getNameOfPartial = function() {
+SearchView.prototype.getPartialName = function() {
     return 'search';
 };
 
@@ -456,7 +450,7 @@ function ArtistView(name) {
 }
 copyPrototype(ArtistView, BaseView);
 
-ArtistView.prototype.getNameOfPartial = function() {
+ArtistView.prototype.getPartialName = function() {
     return 'artist';
 };
 
@@ -647,7 +641,7 @@ function LyricView(title, artist) {
 }
 copyPrototype(LyricView, BaseView);
 
-LyricView.prototype.getNameOfPartial = function() {
+LyricView.prototype.getPartialName = function() {
     return 'lyric';
 };
 
@@ -876,7 +870,7 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
 PlaylistView.prototype._updateArtist = function(artist) {
     var link = $('<a></a>', {
             href: '/'+canonicalize(artist),
-            rel: 'artist',
+            rel: 'partial artist',
             title: artist,
         })
         .html(artist);
@@ -886,7 +880,7 @@ PlaylistView.prototype._updateArtist = function(artist) {
 PlaylistView.prototype._updateAlbum = function(album, artist) {
     var link = $('<a></a>', {
             href: '/'+canonicalize(artist)+'/'+canonicalize(album),
-            rel: 'album',
+            rel: 'partial album',
             title: album
         })
         .html(album);
@@ -899,7 +893,7 @@ PlaylistView.prototype._updateLyricsLink = function(title, artist) {
         'data-artist': artist,
         'data-title': title,
         href: '/lyric/', // TODO: This is a hack.
-        rel: 'lyric',
+        rel: 'partial lyric',
         title: title+' by '+artist
     })
         .html('Get Lyrics');
@@ -1229,7 +1223,7 @@ function makeArtistList(artists) {
         $('<a></a>', {
 			class: 'artistResult',
 			href: '/'+canonicalize(artist.name),
-			rel: 'artist',
+			rel: 'partial artist',
 			title: artist.name
 		})
             .append('<div>'+artist.name+'</div>')
@@ -1256,7 +1250,7 @@ function makeAlbumList(albums) {
         $('<a></a>', {
 			class: 'albumResult',
 			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
-			rel: 'album',
+			rel: 'partial album',
 			title: album.name
 		})
         .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')

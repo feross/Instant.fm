@@ -163,7 +163,7 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 65: // a
-                    browser.pushPartial('/search', 'search', 'Add Songs');
+                    browser.pushPartial('/search', 'partial search', 'Add Songs');
                     break;
                 case 74: // j
                     player.moveSongDown(songIndex);
@@ -538,10 +538,10 @@ Player.prototype.toggleVideo = function(force) {
 
     if (videoOn) {
         $videoDiv.addClass('noVideo');
-        $('#playlistDiv').animate({height: '+=265'}, 800, 'easeInOutQuad');
+        $('#playlistDiv').animate({height: '+=265'}, 600, 'easeInOutQuad');
     } else {
         $videoDiv.removeClass('noVideo');
-        $('#playlistDiv').animate({height: '-=265'}, 800, 'easeInOutQuad');
+        $('#playlistDiv').animate({height: '-=265'}, 600, 'easeInOutQuad');
     }
 };
 
@@ -731,7 +731,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" rel="search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
+        $('<a href="/search" rel="partial search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
             .appendTo('#curPlaylistInfo');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
@@ -856,18 +856,22 @@ function onPopState(event) {
 }
 
 function updateDisplay() {
-    /* header + player + footer + good measure */
-    var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height() + 50 + 10);
+    
+    /* window - (header + footer + good measure) */
+    var mainHeight = $(window).height() - (50 + 50 + 5);
+    $('#main').height(mainHeight);
+    
+    /* - player */
+    var maxPlaylistHeight = mainHeight - $('#videoDiv').height();
     var newPlaylistHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     if (newPlaylistHeight < 50) {
         newPlaylistHeight = 50;
     }
     $('#playlistDiv').height(newPlaylistHeight);
     
-    var newBrowserHeight = newPlaylistHeight + $('#videoDiv').height() - 45;
+    /* - toolbar */
+    var newBrowserHeight = mainHeight - 45;
     $('#browser').height(newBrowserHeight);
-    
-    // var mainHeight =
 }
 
 function onYouTubePlayerReady(playerId) {
