@@ -14,7 +14,23 @@ var MiniBrowser = function() {
     	this.vP = "-o-";
     }
 
+    this.setupHandlers();
     this.refreshContents();
+};
+
+MiniBrowser.prototype.setupHandlers = function() {
+    // Link handlers for loading partials.
+    $('a[rel="search"], a[rel="artist"], a[rel="album"], a[rel="lyric"]').live('click', function(event) {
+        event.preventDefault();
+        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
+
+    });
+    
+    // Link handlers for the back button.
+    $('a.backButton').live('click', function(event) {
+        event.preventDefault();
+        browser.pop();
+    });
 };
 
 // Re-calculate the browser's slide width and number of slides
@@ -184,7 +200,9 @@ BaseView.prototype.didSlide = function() {};
 /* Called before animation starts to either push a new view (hiding this 
  * one), or pop this one.
  */
-BaseView.prototype.willHide = function() {};
+BaseView.prototype.willHide = function() {
+    $('input, textarea', this.content).blur();
+};
   
 /* Called immediately before the view is popped.
  * I can't think of any circumstance when we'll use this, but might as 
@@ -218,8 +236,7 @@ SearchView.prototype.didSlide = function() {
 };
 
 SearchView.prototype.willHide = function() {
-    keyEvents = true;
-    $('.searchBox input.search', this.content).blur();
+    this.BaseView.prototype.willHide();
 };
 
 // Private function that adds handlers to the search box
@@ -237,7 +254,6 @@ SearchView.prototype._addSearchHandlers = function() {
     searchInput.keyup(function(event) {
 		that._handleSearch.apply(that, [searchInput.val()]);
     });
-    addFocusHandlers(searchInput);
     
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
@@ -453,6 +469,7 @@ ArtistView.prototype.didSlide = function() {
 };
 
 ArtistView.prototype.willHide = function() {
+    this.BaseView.prototype.willHide();
 };
 
 ArtistView.prototype._fetchData = function() {
@@ -642,6 +659,7 @@ LyricView.prototype.didSlide = function() {
 };
 
 LyricView.prototype.willHide = function() {
+    this.BaseView.prototype.willHide();
 };
 
 LyricView.prototype._fetchData = function() {
@@ -877,15 +895,16 @@ PlaylistView.prototype._updateAlbum = function(album, artist) {
 
 PlaylistView.prototype._updateLyricsLink = function(title, artist) {
     var link = $('<a></a>', {
-         'data-artist': artist,
-         'data-title': title,
-         href: '/lyric/', // TODO: This is a hack.
-         rel: 'lyric',
-         title: title+' by '+artist,
-        })
+        class: 'small awesome',
+        'data-artist': artist,
+        'data-title': title,
+        href: '/lyric/', // TODO: This is a hack.
+        rel: 'lyric',
+        title: title+' by '+artist
+    })
         .html('Get Lyrics');
 
-    $('#curLyric h4').html(link);
+    $('#curLyric').html(link);
 };
 
 // Private method to update album art to point to given src url
@@ -992,10 +1011,6 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             if($(this).prev().attr('id') == 'curPlaylistTitle') {
                 $('#addSongs').hide();
             }
-            
-            // disable key events while textarea is focused
-            keyEvents = false;
-            addFocusHandlers($('textarea', $(this).parent()));
         }))
         .editable(function(value, settings) {
             $(this).next().show();
@@ -1022,7 +1037,7 @@ PlaylistView.prototype.showHideComments = function() {
             $('#commentsDiv').hide();
         }});
     } else {
-        $('#addComment').html('Close comments');
+        $('#addComment').html('Close comments -');
         $('#commentsDiv')
             .show()
             .animate({height: playlistview.commentsHeight}, {duration: 'slow'});

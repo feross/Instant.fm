@@ -2,7 +2,7 @@ var player;
 var browser;
 var model;
 
-var playlistview; // TODO: Generalize this so it is part of the view stack 
+var playlistview; // TODO: Generalize this so it is part of the view stack
 var viewStack = [];
 
 var songIndex; // Current position in the playlist
@@ -51,7 +51,6 @@ function onloadPlaylist() {
     player.loadPlaylist(initial_playlist);
     player.updateDisplay();
     
-    setupPlayerHoverButtons();
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
@@ -62,8 +61,8 @@ function onloadPlaylist() {
     $(window).resize(player.updateDisplay);
     
     setupDragDropUploader('p', player.loadPlaylist);
-    addLinkHandlers();
     
+    // TODO: Fix this
 	viewStack.push(new BaseView());
     // If the page starts with a view controller on the stack (which it should),
     // we need to call methods on it
@@ -71,33 +70,6 @@ function onloadPlaylist() {
       getTopView().willSlide();
       getTopView().didSlide();
     }
-}
-
-
-/* --------------------------- ADD HANDLER FUNCTIONS -------------------------- */
-
-function addFocusHandlers(elem) {
-    elem.focus(function() {
-        keyEvents = false;
-    })
-    .blur(function() {
-        keyEvents = true;
-    }); 
-}
-
-function addLinkHandlers() {
-    // Link handlers for loading partials.
-    $('a[rel="search"], a[rel="artist"], a[rel="album"], a[rel="lyric"]').live('click', function(event) {
-        event.preventDefault();
-        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
-
-    });
-    
-    // Link handlers for the back button.
-    $('a.backButton').live('click', function(event) {
-        event.preventDefault();
-        browser.pop();
-    })
 }
 
 
@@ -139,29 +111,17 @@ function setupAutogrowInputType() {
     });
 }
 
-function setupPlayerHoverButtons() {
-    $('#toggleShuffle').click(function(event) {
-        event.preventDefault();
-        player.toggleShuffle();
-    });
-    $('#toggleRepeat').click(function(event) {
-        event.preventDefault();
-        player.toggleRepeat();
-    });
-    $('#showVideo').click(function(event) {
-        event.preventDefault();
-        player.toggleVideo(true);
-    });
-    $('#hideVideo').click(function(event) {
-        event.preventDefault();
-        player.toggleVideo(false);
-    });
-}
-
 // Set up keyboard shortcuts in a cross-browser manner
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
+    $('input, textarea').live('focus', function(event) {
+        keyEvents = false; 
+    });
+    $('input, textarea').live('blur', function(event) {
+        keyEvents = true;
+    });
+    
     $(window).keydown(function(event) {
         var k = event.which;
         var pressed1 = true;
@@ -213,29 +173,13 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
-                case 67: // c
-                    $('#addComment').trigger('click');
-                    break;
-                case 8: // backspace
-                    browser.pop();
-                    break;
                 case 191: // ?
                     $('#helpLink').trigger('click');
                     break;
                 case 76: // l
                     player.highlightSong('.playing');
                     break;
-
-                // Share playlists
-                case 70: // f
-                    $('#fbShare').trigger('click');
-                    break;
-                case 84: // t
-                    $('#twShare').trigger('click'); 
-                    break;
-                case 66: // b
-                    shareOnBuzz();
-                    break;
+                    
                 default:
                     pressed1 = false;
                     break;
@@ -249,9 +193,6 @@ function setupKeyboardShortcuts() {
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
-                // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
-                keyEvents = true;
-
                 browser.pop();
                 break;
             default:
@@ -385,7 +326,28 @@ function Player() {
     this.songlist; // Playlist's SongView instance
     this.shuffle = false;
     this.repeat = false;
+    
+    this.setupButtons();
 }
+
+Player.prototype.setupButtons = function() {
+    $('#toggleShuffle').click(function(event) {
+        event.preventDefault();
+        player.toggleShuffle();
+    });
+    $('#toggleRepeat').click(function(event) {
+        event.preventDefault();
+        player.toggleRepeat();
+    });
+    $('#showVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo(true);
+    });
+    $('#hideVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo(false);
+    });
+};
 
 Player.prototype.play = function() {
     player.ytplayer && player.ytplayer.playVideo();

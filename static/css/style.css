@@ -531,13 +531,18 @@ a:hover .zoomIcon {
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
 
-#curSong h4, #curArtist h4, #curAlbum h4, #curLyric h4 { display: inline-block; margin-bottom: 4px; font-size: 15px; width: 285px; }
+#curSong h4, #curArtist h4, #curAlbum h4, #curLyric h5 {
+    display: inline-block;
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    width: 285px;
+}
 
 #curSong h4 { font-size: 20px; }
 
-
-
 #curAlbum { display: 0; /* starting value */ }
+
+#curLyric { margin-top: 15px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
@@ -866,43 +871,113 @@ header .awesome { margin-top: 2px; }
 
 #playlist { color: #444; margin: 0; padding: 0; }
 
-#playlist li {
-    background-color: #f3f6fa;
+#playlist .songListItem {
+    background-color: rgb(243,246,250);
     border-bottom: #E3E3E3 1px solid; 
     cursor: pointer;
+}
+
+#playlist .songListItem.odd { background-color: rgb(255,255,255); }
+
+#playlist .songListItem:hover { background-color: rgb(197,222,254); }
+
+#playlist .songListItem.playing { background-color: rgb(57,142,234); color: #fff}
+
+#playlist .songListItem .songInfo {
+    padding: 0 20px 0 0;
+    position:relative;
+    overflow:hidden;
+    white-space:nowrap;
+    width: 310px;
+}
+
+#playlist .songListItem .songInfo:after {
+    content:"";
+    pointer-events:none;
+    position:absolute;
+    width:20px;
+    height:100%;
+    top:0;
+    right:0;    
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        100% 0,
+        color-stop(0, rgba(243,246,250,0)),
+        color-stop(1, rgba(243,246,250,1))
+    );
+    background-image: -moz-linear-gradient(
+        0,
+        rgba(243,246,250,0),
+        rgba(243,246,250,1)
+    );
+}
+
+#playlist .songListItem.odd .songInfo:after {
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        100% 0,
+        color-stop(0, rgba(255,255,255,0)),
+        color-stop(1, rgba(255,255,255,1))
+    );
+    background-image: -moz-linear-gradient(
+        0,
+        rgba(255,255,255,0),
+        rgba(255,255,255,1)
+    );
+}
+
+#playlist .songListItem:hover .songInfo:after {
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        100% 0,
+        color-stop(0, rgba(197,222,254,0)),
+        color-stop(1, rgba(197,222,254,1))
+    );
+    background-image: -moz-linear-gradient(
+        0,
+        rgba(197,222,254,0),
+        rgba(197,222,254,1)
+    );
+}
+
+#playlist .songListItem.playing .songInfo:after {
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        100% 0,
+        color-stop(0, rgba(57,142,234,0)),
+        color-stop(1, rgba(57,142,234,1))
+    );
+    background-image: -moz-linear-gradient(
+        0,
+        rgba(57,142,234,0),
+        rgba(57,142,234,1)
+    );
 }
 
 #playlist .songActions { height: 15px; margin: 10px 5px 0 0; }
 
 #playlist .songListItem img { margin-left: 0; }
 
-#playlist .songListItem .songInfo { width: 330px; }
-
 #playlist .songInfo .title { font-size: 14px; }
 
-#playlist li.odd { background-color: #fff; }
-
-#playlist li:hover { background-color: #c5defe; }
-
-#playlist li .moveToTop { height: 15px; width: 11px; }
-.editable #playlist li:hover .moveToTop {
+#playlist .songListItem .moveToTop { height: 15px; width: 11px; }
+.editable #playlist .songListItem:hover .moveToTop {
     background: transparent url("/images/top.png") left top no-repeat;
     cursor: pointer;
 }
 .editable #playlist li.songListItem:first-child .moveToTop { background: none; }
 
-#playlist li .drag { height: 15px; width: 15px; }
-.editable #playlist li:hover .drag {
+#playlist .songListItem .drag { height: 15px; width: 15px; }
+.editable #playlist .songListItem:hover .drag {
     background: transparent url("/images/drag.png") left top no-repeat;
     cursor: url('/images/cursors/move.cur'), move !important;
 }
 
-
-.sorting #playlist li { cursor: url('/images/cursors/move.cur'), move !important; }
-
-#playlist li.playing { background-color: #3990ea; color: #fff}
-/*#playlist .playing .title { background: transparent url("/images/speaker.png") 0 0 no-repeat; }
-#playlist .playing.paused .title { background: transparent url("/images/speaker-off.png") 0 0 no-repeat; }*/
+.sorting #playlist .songListItem { cursor: url('/images/cursors/move.cur'), move !important; }
 
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
