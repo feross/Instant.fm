@@ -301,7 +301,7 @@ function shareOnFacebook() {
 }
 
 function shareOnTwitter() {
-    var tweetText = encodeURIComponent("#nowplaying I'm listening to "+model.title+" ♫");
+    var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm/p/'+model.playlistId+
               '&text='+tweetText+'&via=instantDOTfm';
@@ -688,12 +688,12 @@ Player.prototype.renderPlaylist = function(playlist) {
                 }
                 player.moveSong(songId, 0);
             },
-            class: 'moveToTop ir',
+            className: 'moveToTop ir',
             text: 'Move to top'
         },
         {
             action: $.noop,
-            class: 'drag ir',
+            className: 'drag ir',
             text: 'Drag this song to reorder it'
         }],
         id: 'playlist',
@@ -731,8 +731,8 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" rel="partial search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-            .appendTo('#curPlaylistInfo');
+        $('<a href="/search" id="addSongs" rel="partial search" title="Add Songs">Add Songs +</a>')
+            .appendTo('#playlistToolbar');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
@@ -861,8 +861,8 @@ function updateDisplay() {
     var mainHeight = $(window).height() - (50 + 50 + 5);
     $('#main').height(mainHeight);
     
-    /* - player */
-    var maxPlaylistHeight = mainHeight - $('#videoDiv').height();
+    /* - player - playlist toolbar*/
+    var maxPlaylistHeight = mainHeight - $('#videoDiv').height() - 28;
     var newPlaylistHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
     if (newPlaylistHeight < 50) {
         newPlaylistHeight = 50;

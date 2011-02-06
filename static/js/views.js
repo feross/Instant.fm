@@ -370,8 +370,8 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             action: function(event, song) {
                 player.addSongToPlaylist(song);
             },
-            class: 'awesome small',
-            text: 'Add to playlist +'
+            className: 'awesome small white',
+            text: 'Add to Playlist'
         }];
     }
     var songlist = new SongList({
@@ -586,8 +586,8 @@ ArtistView.prototype._handleTopSongs = function(data) {
             action: function(event, song) {
                 player.addSongToPlaylist(song);
             },
-            class: 'awesome small',
-            text: 'Add to playlist +'
+            className: 'awesome small white',
+            text: 'Add to Playlist'
         }],
     });
     
@@ -889,7 +889,6 @@ PlaylistView.prototype._updateAlbum = function(album, artist) {
 
 PlaylistView.prototype._updateLyricsLink = function(title, artist) {
     var link = $('<a></a>', {
-        class: 'small awesome',
         'data-artist': artist,
         'data-title': title,
         href: '/lyric/', // TODO: This is a hack.
@@ -942,7 +941,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
-    $('#addComment').html('Add a comment +');
+    $('#addComment').html('Add a Comment');
     
     // Load Facebook comment box
     $('#comments')
@@ -983,7 +982,7 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
                 lineHeight: 30,
                 minHeight: 30,
             };
-            buttonClass = 'large awesome';
+            buttonClass = 'large awesome white';
             break;
         default:
             autogrowSettings = {
@@ -991,7 +990,7 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
                 lineHeight: 16,
                 minHeight: 16,
             };
-            buttonClass = 'small awesome';
+            buttonClass = 'small awesome white';
             break;
     }
     
@@ -1026,12 +1025,12 @@ PlaylistView.prototype.showHideComments = function() {
     // This is a workaround for a JQuery bug where the Facebook comment box
     // animation is jumpy. (http://goo.gl/so18k)
     if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a comment +');
+        $('#addComment').html('Add a Comment');
         $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
             $('#commentsDiv').hide();
         }});
     } else {
-        $('#addComment').html('Close comments -');
+        $('#addComment').html('Hide Comments');
         $('#commentsDiv')
             .show()
             .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
@@ -1098,7 +1097,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     var $buttonActions = $('<div class="songActions"></div>');
     for (var i = 0; i < this.buttons.length; i++) {
         $('<div></div>')
-            .addClass(this.buttons[i].class)
+            .addClass(this.buttons[i].className)
             .text(this.buttons[i].text || '')
             .click(this.buttonHelper(i, song))
             .appendTo($buttonActions);
@@ -1221,7 +1220,7 @@ function makeArtistList(artists) {
         var img = $('<img src="'+artist.image+'">');
         
         $('<a></a>', {
-			class: 'artistResult',
+			'class': 'artistResult',
 			href: '/'+canonicalize(artist.name),
 			rel: 'partial artist',
 			title: artist.name
@@ -1248,12 +1247,12 @@ function makeAlbumList(albums) {
         var img = $('<img src="' + album.image + '">');
 
         $('<a></a>', {
-			class: 'albumResult',
+			'class': 'albumResult',
 			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
 			rel: 'partial album',
 			title: album.name
 		})
-        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append('<span class="mask"></span>'+'<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')
         .append(img)
         .appendTo(result);
     }
