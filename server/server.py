@@ -496,9 +496,25 @@ class UploadHandler(BaseHandler):
             self.write(json.dumps(result))
         
 class FbSignupHandler(BaseHandler):
+    def validate_args(self, arg_names, errors):
+        for arg_name in arg_names:
+            if self.get_argument(arg_name, '', True) == '':
+                errors[arg_name] = 'Please enter a valid ' + arg_name + '.' 
+            
     def post(self):
-        self.write('{"email": "Email is already being used by another user."}')
-        #self.write("true")
+        result = {"success": True}
+        errors = {}
+        
+        self.validate_args(['name', 'email', 'password'], errors)
+        
+        if None == re.compile('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$').match(self.get_argument('email', '', True)):
+            errors['email'] = 'Please enter a valid email.'
+        
+        if len(errors.keys()) > 0:
+            result['errors'] = errors
+            result['success'] = False
+            
+        self.write(json.dumps(result));
 
 class ErrorHandler(BaseHandler):
     def prepare(self):
