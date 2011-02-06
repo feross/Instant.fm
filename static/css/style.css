@@ -103,7 +103,7 @@ a.awesome:hover { text-decoration: none; }
 }
  
 .awesome:hover { background-color: #111; color: #fff; }
-.awesome:active { top: 1px; }
+/*.awesome:active { top: 1px; }*/
 .small.awesome, .small.awesome:visited { font-size: 11px; }
 .awesome, .awesome:visited, .medium.awesome, .medium.awesome:visited {
     font-size: 13px;
