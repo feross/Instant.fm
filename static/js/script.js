@@ -55,23 +55,22 @@ function onloadPlaylist() {
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
+    setupRegistration();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
-    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
-    $('form#fbRegistration').validate({submitHandler: function() { alert('submit'); log('submit'); }});
-    
+     
     window.onpopstate = onPopState;
     $(window).resize(player.updateDisplay);
     
     setupDragDropUploader('p', player.loadPlaylist);
     addLinkHandlers();
-    
-	viewStack.push(new BaseView());
+      
+  	viewStack.push(new BaseView());
     // If the page starts with a view controller on the stack (which it should),
     // we need to call methods on it
-	if (viewStack.length > 0) {
-      getTopView().willSlide();
-      getTopView().didSlide();
+  	if (viewStack.length > 0) {
+        getTopView().willSlide();
+        getTopView().didSlide();
     }
 }
 
@@ -164,6 +163,9 @@ function setupPlayerHoverButtons() {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
+    // Temporarily disabled because they make registration a pain.
+    return;
+    
     $(window).keydown(function(event) {
         var k = event.which;
         var pressed1 = true;
@@ -302,12 +304,6 @@ function setupFBML(playlist) {
         });
          
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-     
-        /* Set up registration pane */
-        FB.Event.subscribe('auth.login', function(response) {
-          // do something with response
-          alert(response);
-        });
     };
     
     (function() {
@@ -335,6 +331,72 @@ function setupPlaylistActionButtons() {
     $('#twShare').click(function(event) {
         event.preventDefault();
         shareOnTwitter();
+    });
+}
+
+function setupRegistration() {
+    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
+     
+    // adds an effect called "wall" to the validator
+    // TODO: Feross, I just copied and pasted this from JQuery Tools's page.
+    //       I'm not sure what effect we want here, but this is how the error
+    //       effects are implemented.
+    $.tools.validator.addEffect("wall", function(errors, event) {
+        // get the message wall
+        var wall = $(this.getConf().container).fadeIn();
+        
+        // remove all existing messages
+        wall.find("p").remove();
+        
+        // add new ones
+        $.each(errors, function(index, error) {
+            wall.append(
+                "<p><strong>" +error.input.attr("name")+ "</strong> " +error.messages[0]+ "</p>"
+            );    
+        });
+  
+    // the effect does nothing when all inputs are valid  
+    }, function(inputs)  {
+    });
+    
+    // initialize validator and add a custom form submission logic
+    $("form#fbRegistration").validator({
+        effect: 'wall', 
+        container: '#registrationErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+    
+        var form = $(this);
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/signup/fb',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    // everything is ok. (server returned true)
+                    if (json && json === true)  {
+                      log("Registration posted successfully.")
+                      $('#registrationErrors').html('Registration postd succesfully.');
+              
+                    // server-side validation failed. use invalidate() to show errors
+                    } else {
+                      form.data("validator").invalidate(json);
+                      log('Registration failt.');
+                    }
+                },
+                error: function() { log('Error posting form ;_;'); },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        }
     });
 }
 

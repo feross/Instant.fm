@@ -181,28 +181,29 @@
         <div id="fbAccountCreation" style="display:none;">
           <form id="fbRegistration" method="post">
             <div class="loginForm">
+              <div id="registrationErrors"></div>
               <div class="formRow">
                 <label for="fbName"> Display Name: </label>
-                <input id="fbName" type="text" name="name" class="required" value="" />
+                <input id="fbName" type="text" name="name" required="required" value="" maxlength="32"/>
               </div>         
               <div class="formRow">
                 <label for="fbEmail"> E-mail: </label>
-                <input id="fbEmail" type="text" name="email" class="required email" value="" />
+                <input id="fbEmail" type="email" name="email" required="required"/>
               </div>          
               <div class="formRow">
                 <label for="fbPassword"> Password: </label>
-                <input id="fbPassword" type="password" name="password" class="required"/>
+                <input id="fbPassword" type="password" name="password" required="required"/>
               </div>          
             </div>
             <div>
               <img id="fbProfileImage"></img>
             </div>
+            <input type="hidden" name="auth_token"></input>
+            <input type="hidden" name="fb_user_id"></input>
+            {{ xsrf_form_html() }}
             <a id="submitFbRegistration" class="small grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
-            <input type="submit"> Submit! </input>
           </div>
-          <input type="hidden" name="auth_token"></input>
-          <input type="hidden" name="fb_user_id"></input>
-        </form>
+       </form>
       </div>
     </div>
           
@@ -210,9 +211,6 @@
 {% end %}
 
 {% block scripts %}
-  <!-- Validation plugin for registration form. -->
-  <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
-  
   {% block scripts-partial %}{% end %}
   <script>
     var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};

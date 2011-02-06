@@ -39,6 +39,7 @@ class Application(tornado.web.Application):
             (r"/terms/?$", TermsHandler),
             (r"/suggest/?$", ArtistAutocompleteHandler),
             (r"/search/?$", SearchHandler),
+            (r"/signup/fb", FbSignupHandler),
             (r"/([^/]+)/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -494,6 +495,10 @@ class UploadHandler(BaseHandler):
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
         
+class FbSignupHandler(BaseHandler):
+    def post(self):
+        self.write('{"email": "Email is already being used by another user."}')
+        #self.write("true")
 
 class ErrorHandler(BaseHandler):
     def prepare(self):
@@ -528,6 +533,7 @@ def main():
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
     
+""" Used for generating a playlist programatically. Sort of a hack. """
 class Playlist:
     def __init__(self, songs, user_id=-1, title='', description='', playlist_id=-1):
         self.songs = json.dumps(songs)
