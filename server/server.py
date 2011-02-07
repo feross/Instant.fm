@@ -11,8 +11,13 @@ import tornado.database
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornado.auth
 import lastfm
 import lastfm_cache
+import hmac
+import hashlib
+import random
+import binascii
 
 from datetime import datetime
 from optparse import OptionParser
@@ -111,7 +116,7 @@ class BaseHandler(tornado.web.RequestHandler):
     
     def makePlaylistJSON(self, playlist_entry):
         """Generate a playlist's JSON representation"""
-        user_cookie = self.get_secure_cookie('user_id')
+        user_cookie = self.get_secure_cookie('session_id')
         if user_cookie is None:
             editable = False
         else:    
@@ -139,12 +144,12 @@ class BaseHandler(tornado.web.RequestHandler):
                 
         return super(BaseHandler, self).get_error_html(status_code, **kwargs)
         
-    def set_user_cookie(self):
+    def set_session_cookie(self):
         """Checks if a user_id cookie is set and sets one if not"""
-        if not self.get_secure_cookie('user_id'):
+        if not self.get_secure_cookie('session_id'):
             create_date = datetime.utcnow().isoformat(' ')
-            new_id = self.db.execute("INSERT INTO users (create_date) VALUES (%s);", create_date)
-            self.set_secure_cookie('user_id', str(new_id))
+            new_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (%s);", create_date)
+            self.set_secure_cookie('session_id', str(new_id))
           
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
@@ -154,12 +159,10 @@ class ArtistAutocompleteHandler(BaseHandler):
     
 class HomeHandler(BaseHandler):
     def get(self):
-        self.set_user_cookie()
         self.render("index.html")
         
 class TermsHandler(BaseHandler):
     def get(self):
-        self.set_user_cookie()
         self.render("terms.html")
     
 class PlaylistBaseHandler(BaseHandler):
@@ -196,7 +199,6 @@ class PlaylistHandler(PlaylistBaseHandler):
 
     """Landing page for a playlist"""
     def get(self, playlist_alpha_id):
-        self.set_user_cookie()
         playlist_id = self.base36_10(playlist_alpha_id)
         if self.get_argument('json', default=False):
             self._render_playlist_json(playlist_id);
@@ -207,7 +209,6 @@ class PlaylistHandler(PlaylistBaseHandler):
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
-        self.set_user_cookie()
         self._render_playlist_view('search.html')
         
 class LyricHandler(PlaylistBaseHandler):
@@ -218,12 +219,10 @@ class LyricHandler(PlaylistBaseHandler):
     
     def on_response(self, response):
            if response.error: raise tornado.web.HTTPError(500)
-           self.set_user_cookie()
            self._render_playlist_view('lyric.html', playlist=None, lyric=response.body)
 
 class ArtistHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name):
-        self.set_user_cookie()
         
         try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
@@ -254,7 +253,6 @@ class ArtistHandler(PlaylistBaseHandler):
 
 class AlbumHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name, requested_album_name):
-        self.set_user_cookie()
         
         """ Instead of using album.get_info, we search for the album concatenated with the artist name and take the first result. Otherwise, we have to know the album's exact name and we can't use the artist's name to help find it. """
         try:
@@ -283,7 +281,7 @@ class PlaylistEditHandler(BaseHandler):
         return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s AND user_id = %s;", col_value, playlist_id, user_id) == 1
     
     def post(self, playlist_alpha_id):
-        user_cookie = self.get_secure_cookie('user_id')
+        user_cookie = self.get_secure_cookie('session_id')
         if not user_cookie:
             self.write(json.dumps({'status': 'No user cookie'}))
             return
@@ -428,7 +426,7 @@ class UploadHandler(BaseHandler):
         return self.base10_36(new_id)
                 
     def _handle_request(self):
-        user_cookie = self.get_secure_cookie('user_id')
+        user_cookie = self.get_secure_cookie('session_id')
         if not user_cookie:
             return {'status': 'No user cookie'}
             
@@ -486,6 +484,7 @@ class UploadHandler(BaseHandler):
         return playlist
     
     def post(self):
+        self.set_session_cookie()
         result = self._handle_request()
         
         if self.get_argument('redirect', 'false') == 'true':
@@ -495,26 +494,84 @@ class UploadHandler(BaseHandler):
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
         
-class FbSignupHandler(BaseHandler):
-    def validate_args(self, arg_names, errors):
-        for arg_name in arg_names:
-            if self.get_argument(arg_name, '', True) == '':
-                errors[arg_name] = 'Please enter a valid ' + arg_name + '.' 
+class FbSignupHandler(BaseHandler, 
+                      tornado.auth.FacebookGraphMixin):
+    def _generate_salt(self):
+        return binascii.hexlify("".join(chr(random.randrange(256)) for i in xrange(8)))
+        
+    def _hash_password(self, password, salt):
+        return hmac.HMAC(password.encode('ascii'), salt, hashlib.sha256).hexdigest()
+    
+    def _validate_args(self, args, errors):
+        for name, types in args.iteritems():
+            value = self.get_argument(name, '', True)
+            email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
+            if "email" in types and None == email_regex.match(value):
+                errors[name] = 'Please enter a valid email.' 
+            if "password" in types and len(value) < 4:
+                errors[name] = 'Passwords must be at least 4 characters.' 
+            if "required" in types and value == '':
+                errors[name] = 'The field "' + name + '" is required.' 
             
+    def _send_errors(self, errors):
+        result = {'errors': errors, 'success': False}
+        self.write(json.dumps(result))
+        self.finish()
+        return
+         
+    @tornado.web.asynchronous
     def post(self):
+        self.set_session_cookie()
         result = {"success": True}
         errors = {}
+        args = {'name': ['required'],
+                'email': ['required','email'],
+                'password': ['required', 'password'], 
+                'fb_user_id': ['required'],
+                'auth_token': ['required'], 
+        }
         
-        self.validate_args(['name', 'email', 'password'], errors)
-        
-        if None == re.compile('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$').match(self.get_argument('email', '', True)):
-            errors['email'] = 'Please enter a valid email.'
-        
-        if len(errors.keys()) > 0:
-            result['errors'] = errors
-            result['success'] = False
+        self._validate_args(args, errors)
+           
+        # Make sure that FBID and email aren't already taken
+        if self.db.get('SELECT * FROM users WHERE fb_id = %s', 
+                       self.get_argument('fb_user_id', '', True)):
+            errors['fb_user_id'] = 'This Facebook user is already registered on Instant.fm. Try logging in instead.'
+        if self.db.get('SELECT * FROM users WHERE email = %s', 
+                       self.get_argument('email', '', True)):
+            errors['email'] = 'This email is already registered on Instant.fm. Try logging in instead.'
             
-        self.write(json.dumps(result));
+        if len(errors.keys()) > 0:
+            self._send_errors(errors)
+            return
+           
+        # Authenticate to Facebook
+        self.facebook_request(
+            "/me",
+            access_token=self.get_argument("auth_token"),
+            callback=self.async_callback(self._on_auth))
+        
+    def _on_auth(self, user):
+        errors = []
+        if user['id'] == self.get_argument('fb_user_id'):
+            salt = self._generate_salt()
+            hashed_pass = self._hash_password(self.get_argument('password'), salt)
+            print(hashed_pass)
+            user_id = self.db.execute('INSERT INTO users (fb_id, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s)',
+                                      self.get_argument('fb_user_id'),
+                                      self.get_argument('email'),
+                                      hashed_pass,
+                                      salt,
+                                      datetime.utcnow().isoformat(' '))
+            self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s',
+                            user_id,
+                            self.get_secure_cookie('session_id'))
+            
+            self.write('true')
+            self.finish()
+        else:
+            errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
+            self._send_errors(errors)
 
 class ErrorHandler(BaseHandler):
     def prepare(self):
