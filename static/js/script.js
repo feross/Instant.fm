@@ -70,6 +70,15 @@ function onloadPlaylist() {
       getTopView().willSlide();
       getTopView().didSlide();
     }
+    
+    
+    $('#browserHeader .right').toggle(function() {
+		$('#browserDisplay').addClass('flip');
+		log('add');
+	}, function(){
+		$('#browserDisplay').removeClass('flip');
+		log('remove');
+	});
 }
 
 
@@ -97,10 +106,10 @@ function setupAutogrowInputType() {
             var width;
             switch(elemId) {
                 case 'curPlaylistTitle':
-                    width = 390;
+                    width = 380;
                     break;
                 case 'curPlaylistDesc':
-                    width = 480;
+                    width = 470;
                     break;
                 default:
                     width = $(this).width();
@@ -153,12 +162,10 @@ function setupKeyboardShortcuts() {
                     break;
                 case 83: // s
                     player.toggleShuffle();
-                    player.flashVideoTools();
                     
                     break;
                 case 82: // r
                     player.toggleRepeat();
-                    player.flashVideoTools();
                     break;
 
                 // Playlist editing
@@ -352,13 +359,9 @@ Player.prototype.setupButtons = function() {
         event.preventDefault();
         player.toggleRepeat();
     });
-    $('#showVideo').click(function(event) {
+    $('#toggleVideo').click(function(event) {
         event.preventDefault();
-        player.toggleVideo(true);
-    });
-    $('#hideVideo').click(function(event) {
-        event.preventDefault();
-        player.toggleVideo(false);
+        player.toggleVideo();
     });
 };
 
@@ -538,15 +541,25 @@ Player.prototype.toggleVideo = function(force) {
 
     if (videoOn) {
         $videoDiv.addClass('noVideo');
-        $('#playlistDiv').animate({height: '+=265'}, 600, 'easeInOutQuad');
+        $('#toggleVideo').removeClass('on');
+        if (Modernizr.csstransitions) {
+            $('#playlistDiv').animate({height: '+=265'}, 600, 'easeInOutQuad');
+        } else {
+            $('#playlistDiv').height($('#playlistDiv').height()+265);
+        }
     } else {
         $videoDiv.removeClass('noVideo');
-        $('#playlistDiv').animate({height: '-=265'}, 600, 'easeInOutQuad');
+        $('#toggleVideo').addClass('on');
+        if (Modernizr.csstransitions) {
+            $('#playlistDiv').animate({height: '-=265'}, 600, 'easeInOutQuad');
+        } else {
+            $('#playlistDiv').height($('#playlistDiv').height()-265);
+        }
     }
 };
 
 Player.prototype.toggleShuffle = function(force) {
-    this.shuffle = force !== undefined ? force : !this.shuffle;
+    this.shuffle = (force !== undefined) ? force : !this.shuffle;
     
     if (this.shuffle) {
         $('#toggleShuffle').addClass('on');
@@ -556,7 +569,7 @@ Player.prototype.toggleShuffle = function(force) {
 };
 
 Player.prototype.toggleRepeat = function(force) {
-    this.repeat = force !== undefined ? force : !this.repeat;
+    this.repeat = (force !== undefined) ? force : !this.repeat;
     
     if (this.repeat) {
         $('#toggleRepeat').addClass('on');
@@ -564,17 +577,6 @@ Player.prototype.toggleRepeat = function(force) {
         $('#toggleRepeat').removeClass('on');
     }
 };
-
-Player.prototype.flashVideoTools = function() {
-    var videoOn = !$('#videoDiv').hasClass('noVideo');
-    
-    if (videoOn) {
-        $('#videoTools').addClass('flash');
-        window.setTimeout(function() {
-            $('#videoTools').removeClass('flash');
-        }, 400);
-    }
-}
 
 
 /* Playlist editing */
@@ -731,8 +733,8 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" id="addSongs" rel="partial search" title="Add Songs">Add Songs +</a>')
-            .appendTo('#playlistToolbar');
+        $('<a href="/search" id="addSongs" rel="partial search" title="Add Songs"><span>Add Songs</span></a>')
+            .appendTo('#playlistToolbar .right');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
@@ -856,22 +858,21 @@ function onPopState(event) {
 }
 
 function updateDisplay() {
-    
     /* window - (header + footer + good measure) */
     var mainHeight = $(window).height() - (50 + 50 + 5);
-    $('#main').height(mainHeight);
+    $('#main').height((mainHeight > 0) ? mainHeight : 0);
     
     /* - player - playlist toolbar*/
-    var maxPlaylistHeight = mainHeight - $('#videoDiv').height() - 28;
-    var newPlaylistHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
-    if (newPlaylistHeight < 50) {
-        newPlaylistHeight = 50;
-    }
-    $('#playlistDiv').height(newPlaylistHeight);
+    var playlistDivHeight = mainHeight - $('#videoDiv').height() - 27;
+    $('#playlistDiv').height((playlistDivHeight > 0) ? playlistDivHeight : 0);
+    
+    /* + enough to hide the jittery toggleVideo resize */
+    var playlistDisplayHeight = mainHeight - 6;
+    $('#playlistDisplay').height(playlistDisplayHeight);
     
     /* - toolbar */
-    var newBrowserHeight = mainHeight - 45;
-    $('#browser').height(newBrowserHeight);
+    var browserHeight = mainHeight - 45;
+    $('#browser').height((browserHeight > 0) ? browserHeight : 0);
 }
 
 function onYouTubePlayerReady(playerId) {

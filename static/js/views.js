@@ -80,7 +80,7 @@ MiniBrowser.prototype.pushStatic = function(path, title, _options) {
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title, _createView) {
     var prevView = getTopView();
-    prevView && prevView.willHide();
+    prevView && prevView.willSleep();
 
     $(elem).appendTo('#FS_holder');
 
@@ -97,16 +97,15 @@ MiniBrowser.prototype.push = function(elem, _title, _createView) {
 	} else {
 		log('Warning: All partials must define a createView function. ('+_title+')')
 	}
-
-    // window.setTimeout(function() {
-    //     $('.buttonHeader h2', elem)
-    //         .css('left', -1 * $('.backButton', elem).width());
-    // }, 0);
         
     this.numSlides++;
     this._slideTo(this.numSlides);
     
-    this._updateToolbar(_title);
+    if (viewStack.length) {
+        this._updateHeader(_title, true);
+    } else {
+        this._updateHeader(_title, false);
+    }
     
     window.setTimeout(function() {
       view && view.didSlide();
@@ -118,11 +117,15 @@ MiniBrowser.prototype.pop = function() {
     if (!getTopView() || browser.numSlides <= 1) {
         return;
     }
+    
     // Tell the view controller it's going to be popped, then pop it
 	var view = getTopView();
-    view.willHide();
+    view.willSleep();
     view.willPop();
     viewStack.pop();
+    
+    // Tell the new top view that it's about to be awoken
+    getTopView().willAwake();
     
 	browser.numSlides--;
     browser._slideTo(browser.numSlides);
@@ -156,7 +159,7 @@ MiniBrowser.prototype._slideTo = function(slide) {
 MiniBrowser.prototype._makeBackButton = function(text) {
     text = text || 'Back';
     
-    return $('<a href="#back" class="backButton awesome">'+text+'</a>')
+    return $('<a class="left prev" href="#back">'+text+'</a>')
 		.click(function(event) {
 	        event.preventDefault();
 			event.stopPropagation(); // Not sure why, but without this, clicking back causes two pops.
@@ -164,18 +167,23 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 	    });
 };
 
-MiniBrowser.prototype._updateToolbar = function(_title) {
+MiniBrowser.prototype._updateHeader = function(_title, showBack) {
     var title = _title || '';
-    $('#browserDisplay h1').text(title);
+    $('#browserHeader h1').text(title);
     
-    // var backButton = browser._makeBackButton();
+    if (showBack) {
+        var backButton = browser._makeBackButton();
+        $('#browserHeader .left').replaceWith(backButton);
+    }
 };
 
 
 /* ---------------------------- BASE VIEW ---------------------------- */
 
 /* All views should extend this one! */
-function BaseView() {};
+function BaseView() {
+    this.content;
+};
 
 BaseView.prototype.getPartialName = function() {
     log('Must override getPartialName() in view controller!');
@@ -184,7 +192,7 @@ BaseView.prototype.getPartialName = function() {
 
 /* Called after content is added to DOM but before animation. */
 BaseView.prototype.willSlide = function() {
-    
+    $('#browser').scrollTop(0);
 };
 
 /* Called after the content is slid fully into view */
@@ -193,8 +201,14 @@ BaseView.prototype.didSlide = function() {};
 /* Called before animation starts to either push a new view (hiding this 
  * one), or pop this one.
  */
-BaseView.prototype.willHide = function() {
+BaseView.prototype.willSleep = function() {
     $('input, textarea', this.content).blur();
+};
+
+/* Called when another view gets popped and this one re-appears.
+ */
+BaseView.prototype.willAwake = function() {
+    $('#browser').scrollTop(0);
 };
   
 /* Called immediately before the view is popped.
@@ -222,15 +236,22 @@ SearchView.prototype.getPartialName = function() {
 };
 
 SearchView.prototype.willSlide = function() {
+    this.BaseView.prototype.willSlide();
     this._addSearchHandlers();
 };
 
 SearchView.prototype.didSlide = function() {
+    this.BaseView.prototype.didSlide();
     $('.searchBox input.search', this.content).focus();
 };
 
-SearchView.prototype.willHide = function() {
-    this.BaseView.prototype.willHide();
+SearchView.prototype.willSleep = function() {
+    this.BaseView.prototype.willSleep();
+};
+
+SearchView.prototype.willAwake = function() {
+    this.BaseView.prototype.willAwake();
+    $('.searchBox input.search', this.content).focus();
 };
 
 // Private function that adds handlers to the search box
@@ -258,14 +279,15 @@ SearchView.prototype._addSearchHandlers = function() {
 
 // Private function that handles search
 SearchView.prototype._handleSearch = function(searchString) {
+    searchString = $.trim(searchString);
     if (!this.delaySearch && (this.prevSearchString != searchString)) {
         this.prevSearchString = searchString;
         if (searchString.length) {
             this.search(searchString);
         } else {
-            $('.songResults', this.content).slideUp('fast');
-	        $('.artistResults', this.content).slideUp('fast');
-			$('.albumResults', this.content).slideUp('fast');
+            $('.songResults', this.content).hide();
+	        $('.artistResults', this.content).hide();
+			$('.albumResults', this.content).hide();
         }
         
         // Don't allow another search for a while.
@@ -284,7 +306,6 @@ SearchView.prototype._handleSearch = function(searchString) {
 
 // Perform a search for given search string
 SearchView.prototype.search = function(searchString) {
-    // log('Searching for "' + searchString + '".');
     if (!searchString) {
         return;
     }
@@ -342,7 +363,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
 
     if (!trackResults || !trackResults.length) {
-        $('.songResults', this.content).slideUp('fast');
+        $('.songResults', this.content).hide();
         return;
     }
 
@@ -387,7 +408,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     
     var $songResults = $('.songResults', this.content);
     songlist.render($songResults);
-    $songResults.slideDown('fast');
+    $songResults.show();
 };
 
 SearchView.prototype._handleArtistSearchResults = function(data) {
@@ -395,7 +416,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
     
     if (!artistResults || !artistResults.length) {
-        $('.artistResults', this.content).slideUp('fast');
+        $('.artistResults', this.content).hide();
         return;
     }
 
@@ -413,7 +434,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     $('.artistResults div', this.content).remove();
     $('.artistResults', this.content)
         .append(makeArtistList(artists))
-        .slideDown('fast');
+        .show();
 };
 
 SearchView.prototype._handleAlbumSearchResults = function(data) {
@@ -421,7 +442,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
 
     if (!albumResults || !albumResults.length) {
-        $('.albumResults', this.content).slideUp('fast');
+        $('.albumResults', this.content).hide();
         return;
     }
 
@@ -439,7 +460,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     $('.albumResults div', this.content).remove();
     $('.albumResults', this.content)
         .append(makeAlbumList(albums))
-        .slideDown('fast');
+        .show();
 };
 
 
@@ -455,15 +476,21 @@ ArtistView.prototype.getPartialName = function() {
 };
 
 ArtistView.prototype.willSlide = function() {
+    this.BaseView.prototype.willSlide();
 	this._fetchData();
 	$('.name', this.content).text(this.name);
 };
 
 ArtistView.prototype.didSlide = function() {
+    this.BaseView.prototype.didSlide();
 };
 
-ArtistView.prototype.willHide = function() {
-    this.BaseView.prototype.willHide();
+ArtistView.prototype.willSleep = function() {
+    this.BaseView.prototype.willSleep();
+};
+
+ArtistView.prototype.willAwake = function() {
+    this.BaseView.prototype.willAwake();
 };
 
 ArtistView.prototype._fetchData = function() {
@@ -555,7 +582,6 @@ ArtistView.prototype._handleInfo = function(data) {
 
 ArtistView.prototype._handleTopSongs = function(data) {
     var songResults = data && data.toptracks && data.toptracks.track;
-    log(songResults);
     if (!songResults || !songResults.length) {
         $('.songResults', this.content).slideUp('fast');
         return;
@@ -572,7 +598,6 @@ ArtistView.prototype._handleTopSongs = function(data) {
 
         songs.push(song);
     };
-    log(songs);
     
     var songlist = new SongList({
         songs: songs,
@@ -646,19 +671,24 @@ LyricView.prototype.getPartialName = function() {
 };
 
 LyricView.prototype.willSlide = function() {
+    this.BaseView.prototype.willSlide();
     this._fetchData();
 };
 
 LyricView.prototype.didSlide = function() {
+    this.BaseView.prototype.didSlide();
 };
 
-LyricView.prototype.willHide = function() {
-    this.BaseView.prototype.willHide();
+LyricView.prototype.willSleep = function() {
+    this.BaseView.prototype.willSleep();
+};
+
+LyricView.prototype.willAwake = function() {
+    this.BaseView.prototype.willAwake();
 };
 
 LyricView.prototype._fetchData = function() {
     var url = '/lyric/?a='+encodeURIComponent(this.artist)+'&t='+encodeURIComponent(this.title);
-    log(url);
     $.ajax({
        type: 'GET',
        url: url,
@@ -673,7 +703,6 @@ LyricView.prototype._fetchData = function() {
 /* ------------------- CURRENTLY PLAYING VIEW -------------------- */
 
 function PlaylistView() {
-    this.commentsHeight; // Height of Facebook comment box. Used to smooth the animation.
 }
 
 
@@ -733,6 +762,7 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     // Update song title, artist name
     $('#curSong h4').text(trackName);
     playlistview._updateArtist(artistName);
+    
     // Update album art
     // We'll set alt text once we know album name
     playlistview._updateAlbumImg(albumImg, '');
@@ -740,7 +770,6 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
     if (model.songs[srcIndex].i === undefined && albumImg) {
         var $playlistImg = $('#song'+srcIndex+' img');
         if ($playlistImg.attr('src') == '/images/unknown.png') {
-            // log('updated image in playlist');
             $playlistImg.attr('src', albumImg)
         }
         model.updateAlbumImg(srcIndex, albumImg);
@@ -945,29 +974,33 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     
     // Load Facebook comment box
     $('#comments')
-        .html('<h4>Add a comment...</h4><fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/fbcomments.css?53" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
+        .html('<fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/css/fbcomments.css?58" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
-        playlistview.commentsHeight = $('#commentsDiv').height();
         $('#commentsDiv')
+            .appendTo('#curPlaylist')
             .hide()
-            .css({height: 0});
-        $('#commentsDiv')
-            .data('loaded', true)
-            .appendTo('#curPlaylistInfo');
+            .data('loaded', true);
     });
     
     // Resize comment box on comment
     FB.Event.subscribe('comments.add', function(response) {
         $('#commentsDiv').height('auto'); // default
-        
-        // Update the stored height of the comment box after it's had time to resize
-        // (I think that Facebook autoresizes the iframe)
-        window.setTimeout(function() {
-            playlistview.commentsHeight = $('#commentsDiv').height();
-        }, 1000);
     });
 };
 
+PlaylistView.prototype.showHideComments = function() {
+    if (!$('#commentsDiv').data('loaded')) {
+        return;
+    }
+    
+    if ($('#commentsDiv').is(':visible')) {
+        $('#addComment').html('Add a Comment');
+        $('#commentsDiv').slideUp();
+    } else {
+        $('#addComment').html('Hide Comments');
+        $('#commentsDiv').slideDown();
+    }
+};
 
 // Makes the given element editable by adding an edit link.
 // @elem - the element to make editable
@@ -1015,26 +1048,6 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             updateCallback(value);
             return value;
         }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
-};
-
-PlaylistView.prototype.showHideComments = function() {
-    if (!$('#commentsDiv').data('loaded')) {
-        return;
-    }
-    
-    // This is a workaround for a JQuery bug where the Facebook comment box
-    // animation is jumpy. (http://goo.gl/so18k)
-    if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a Comment');
-        $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
-            $('#commentsDiv').hide();
-        }});
-    } else {
-        $('#addComment').html('Hide Comments');
-        $('#commentsDiv')
-            .show()
-            .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
-    }
 };
 
 
@@ -1164,14 +1177,12 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
         if (!this.concurrentReqs) {
             this.albumUpdateFinished = true;
             model.saveSongs();
-            // log('Finished fetching and saving all album art');
         }
         return;
     }
     
     if (albumIndex % 25 == 0) {
         model.saveSongs();
-        // log('Saving newly fetched album art: ' + albumIndex);
     }
     
     // Don't try to refetch albums that already have art
@@ -1192,10 +1203,8 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
             if (albumImg) {
                 $('#song'+albumIndex+' img').attr('src', albumImg);
                 that.songs[albumIndex].i = albumImg;
-                // log('updated album image: ' + song.t + ' ' + song.a);
             } else {
                 that.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
-                // log('update album image to null: ' + song.t + ' ' + song.a);
             }
             continueFetching();
 	    },
