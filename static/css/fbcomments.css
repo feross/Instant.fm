@@ -1,0 +1,23 @@
+/* Like button text color */
+div.like span.connect_widget_text a {color:#499bd1;}
+
+/* Comments box text color */
+div.comment_body div.composer div.connected span.namelink a {color:#499bd1;}
+div.comment_body div.show_connected a.editsettings {color:#499bd1;}
+div.comment_body div.wallkit_postcontent h4 a {color:#499bd1;}
+div.comment_body div.wallkit_postcontent div a {color:#c4ffc4;}
+div.comment_body div.wallkit_actionset a {color:#499bd1 !important;}
+div.comment_body div.wallkit_subtitle div.pager a {color:#499bd1;}
+div.comment_body div.wall_captcha a {color:#499bd1;}
+
+/* Hide like-button */
+div.like, div.like div { display:none; }
+
+div.comment_body div.wallkit_post { border-bottom: solid 1px #ccc; }
+
+/*.uiTextMetadata { display: none !important; } */
+div.comment_body .subtitle_left { display: none !important; }
+img.connected.img { margin-top: 20px; }
+
+.show_not_connected .connect_button_text { width: 480px !important; }
+.show_not_connected .hint_text { position: relative !important; top: 5px; }

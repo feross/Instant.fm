@@ -2,7 +2,7 @@ var player;
 var browser;
 var model;
 
-var playlistview; // TODO: Generalize this so it is part of the view stack 
+var playlistview; // TODO: Generalize this so it is part of the view stack
 var viewStack = [];
 
 var songIndex; // Current position in the playlist
@@ -49,56 +49,29 @@ function onloadPlaylist() {
     
     setupAutogrowInputType();
     player.loadPlaylist(initial_playlist);
-    player.updateDisplay();
     
-    setupPlayerHoverButtons();
+    updateDisplay();
+    $(window).resize(updateDisplay);
+    window.onpopstate = onPopState;
+    
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
     setupRegistration();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
-     
-    window.onpopstate = onPopState;
-    $(window).resize(player.updateDisplay);
-    
+   
     setupDragDropUploader('p', player.loadPlaylist);
-    addLinkHandlers();
-      
+    
+      // TODO: Fix this
   	viewStack.push(new BaseView());
+  	
     // If the page starts with a view controller on the stack (which it should),
     // we need to call methods on it
   	if (viewStack.length > 0) {
         getTopView().willSlide();
         getTopView().didSlide();
     }
-}
-
-
-/* --------------------------- ADD HANDLER FUNCTIONS -------------------------- */
-
-function addFocusHandlers(elem) {
-    elem.focus(function() {
-        keyEvents = false;
-    })
-    .blur(function() {
-        keyEvents = true;
-    }); 
-}
-
-function addLinkHandlers() {
-    // Link handlers for loading partials.
-    $('a[rel="search"], a[rel="artist"], a[rel="album"], a[rel="lyric"]').live('click', function(event) {
-        event.preventDefault();
-        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
-
-    });
-    
-    // Link handlers for the back button.
-    $('a.backButton').live('click', function(event) {
-        event.preventDefault();
-        browser.pop();
-    })
 }
 
 
@@ -140,31 +113,16 @@ function setupAutogrowInputType() {
     });
 }
 
-function setupPlayerHoverButtons() {
-    $('#toggleShuffle').click(function(event) {
-        event.preventDefault();
-        player.toggleShuffle();
-    });
-    $('#toggleRepeat').click(function(event) {
-        event.preventDefault();
-        player.toggleRepeat();
-    });
-    $('#showVideo').click(function(event) {
-        event.preventDefault();
-        player.toggleVideo(true);
-    });
-    $('#hideVideo').click(function(event) {
-        event.preventDefault();
-        player.toggleVideo(false);
-    });
-}
-
 // Set up keyboard shortcuts in a cross-browser manner
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    // Temporarily disabled because they make registration a pain.
-    return;
+    $('input, textarea').live('focus', function(event) {
+        keyEvents = false; 
+    });
+    $('input, textarea').live('blur', function(event) {
+        keyEvents = true;
+    });
     
     $(window).keydown(function(event) {
         var k = event.which;
@@ -207,7 +165,7 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 65: // a
-                    browser.pushPartial('/search', 'search', 'Add Songs');
+                    browser.pushPartial('/search', 'partial search', 'Add Songs');
                     break;
                 case 74: // j
                     player.moveSongDown(songIndex);
@@ -217,29 +175,13 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
-                case 67: // c
-                    $('#addComment').trigger('click');
-                    break;
-                case 8: // backspace
-                    browser.pop();
-                    break;
                 case 191: // ?
                     $('#helpLink').trigger('click');
                     break;
                 case 76: // l
                     player.highlightSong('.playing');
                     break;
-
-                // Share playlists
-                case 70: // f
-                    $('#fbShare').trigger('click');
-                    break;
-                case 84: // t
-                    $('#twShare').trigger('click'); 
-                    break;
-                case 66: // b
-                    shareOnBuzz();
-                    break;
+                    
                 default:
                     pressed1 = false;
                     break;
@@ -253,9 +195,6 @@ function setupKeyboardShortcuts() {
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
-                // Turn keyboard shortcuts back on, in case we deleted a focused form during the pop.
-                keyEvents = true;
-
                 browser.pop();
                 break;
             default:
@@ -419,6 +358,19 @@ function shareOnFacebook() {
             break;
         }
     }
+    
+    // Get top playlist artists
+    var topArtists = [];
+    $.each(model.songs, function(index, value) {
+       var artist = value.a;
+       if (artist && $.inArray(artist, topArtists) == -1) {
+          topArtists.push(artist);
+       }
+       if (topArtists.length >= 4) {
+           return false; // end the $.each() iteration
+       }
+    });
+    
     FB.ui(
       {
         method: 'feed',
@@ -427,7 +379,7 @@ function shareOnFacebook() {
         picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
         caption: 'Instant.fm Playlist',
         description: model.description + '\n',
-        properties: {'Artists in this playlist': model.getTopArtists(4).join(', ')},
+        properties: {'Artists in this playlist': topArtists.join(', ')},
         actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
       },
       function(response) {
@@ -480,7 +432,28 @@ function Player() {
     this.songlist; // Playlist's SongView instance
     this.shuffle = false;
     this.repeat = false;
+    
+    this.setupButtons();
 }
+
+Player.prototype.setupButtons = function() {
+    $('#toggleShuffle').click(function(event) {
+        event.preventDefault();
+        player.toggleShuffle();
+    });
+    $('#toggleRepeat').click(function(event) {
+        event.preventDefault();
+        player.toggleRepeat();
+    });
+    $('#showVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo(true);
+    });
+    $('#hideVideo').click(function(event) {
+        event.preventDefault();
+        player.toggleVideo(false);
+    });
+};
 
 Player.prototype.play = function() {
     player.ytplayer && player.ytplayer.playVideo();
@@ -658,21 +631,10 @@ Player.prototype.toggleVideo = function(force) {
 
     if (videoOn) {
         $videoDiv.addClass('noVideo');
+        $('#playlistDiv').animate({height: '+=265'}, 600, 'easeInOutQuad');
     } else {
         $videoDiv.removeClass('noVideo');
-    }
-    if (Modernizr.csstransitions) {
-        var animateResize = function(numCalls) {
-            if (numCalls < 80) {
-                player.updateDisplay();
-                window.setTimeout(function() {
-                    animateResize(++numCalls);
-                }, 10);
-            }
-        }
-        animateResize(0);
-    } else {
-        player.updateDisplay();
+        $('#playlistDiv').animate({height: '-=265'}, 600, 'easeInOutQuad');
     }
 };
 
@@ -745,7 +707,7 @@ Player.prototype.addSongToPlaylist = function(song) {
     this.songlist.add(song, '#playlist');
     this.highlightSong('#playlist li:last');
     model.addSong(song);
-    player.updateDisplay(); // resizes short playlists
+    updateDisplay(); // resizes short playlists
         
     if (player.ytplayer.getPlayerState() == 0) { // player is stopped
         player.playSong(model.songs.length - 1);
@@ -776,7 +738,7 @@ Player.prototype.loadPlaylist = function(response) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
         playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#infoDisplay').effect('pulsate', {times: 2});
+        $('#main').effect('pulsate', {times: 2});
     }
 
     model.updatePlaylist(playlist);
@@ -819,12 +781,12 @@ Player.prototype.renderPlaylist = function(playlist) {
                 }
                 player.moveSong(songId, 0);
             },
-            class: 'moveToTop ir',
+            className: 'moveToTop ir',
             text: 'Move to top'
         },
         {
             action: $.noop,
-            class: 'drag ir',
+            className: 'drag ir',
             text: 'Drag this song to reorder it'
         }],
         id: 'playlist',
@@ -862,8 +824,8 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" rel="search" title="Add Songs" id="addSongs" class="forwardButton awesome">Add songs +</a>')
-            .appendTo('#curPlaylistInfo header');
+        $('<a href="/search" id="addSongs" rel="partial search" title="Add Songs">Add Songs +</a>')
+            .appendTo('#playlistToolbar');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
     
@@ -947,15 +909,6 @@ Player.prototype.highlightSong = function(selector) {
     });
 };
 
-Player.prototype.updateDisplay = function() {
-    var maxPlaylistHeight = $(window).height() - (50 + $('#videoDiv').height()); /* header, player */
-    var newHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
-    if (newHeight < 50) {
-        newHeight = 50;
-    }
-    $('#playlistDiv').height(newHeight);
-};
-
 
 /*--------------------- BROWSER EVENTS --------------------- */
 
@@ -966,10 +919,9 @@ function onShowMoreText(event) {
 
     var elem = $(this).parent();
     var newContent = elem.data('longContent') + ' ';
-    var link = makeSeeMoreLink(onShowLessText, 'show less');
+    var link = makeSeeMoreLink(onShowLessText, 'less');
 
-    elem
-        .html(newContent)
+    elem.html(newContent)
         .append(link);
 }
 
@@ -994,6 +946,25 @@ function onPopState(event) {
     if (state && state.playlistId != model.playlistId) {
         player.loadPlaylistById(state.playlistId);
     }
+}
+
+function updateDisplay() {
+    
+    /* window - (header + footer + good measure) */
+    var mainHeight = $(window).height() - (50 + 50 + 5);
+    $('#main').height(mainHeight);
+    
+    /* - player - playlist toolbar*/
+    var maxPlaylistHeight = mainHeight - $('#videoDiv').height() - 28;
+    var newPlaylistHeight = Math.min($('#playlist').height(), maxPlaylistHeight);
+    if (newPlaylistHeight < 50) {
+        newPlaylistHeight = 50;
+    }
+    $('#playlistDiv').height(newPlaylistHeight);
+    
+    /* - toolbar */
+    var newBrowserHeight = mainHeight - 45;
+    $('#browser').height(newBrowserHeight);
 }
 
 function onYouTubePlayerReady(playerId) {
@@ -1071,20 +1042,6 @@ Model.prototype.addSong = function(song) {
 
 Model.prototype.saveSongs = function() {
     model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
-};
-
-Model.prototype.getTopArtists = function(numArtists) {
-    var artists = [];
-    $.each(this.songs, function(index, value) {
-       var artist = value.a;
-       if (artist && $.inArray(artist, artists) == -1) {
-           artists.push(artist);
-       }
-       if (artists.length >= numArtists) {
-           return false; // end the $.each() iteration
-       }
-    });
-    return artists;
 };
 
 Model.prototype.updateTitle = function(newTitle) {

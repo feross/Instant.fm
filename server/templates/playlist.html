@@ -3,29 +3,36 @@
 {% block bodyId %}p{% end %}
 
 {% block body %}
-  <div class="clearfix" id="main">
-    <div id="playlistDisplay">
-    
-      <header id="header">
-        <a class="ir" href="/" id="headerLogo">
-          <h1>Instant.fm - Share Music Playlists Instantly</h1>
-        </a>
-      </header>
+  <header class="clearfix" id="header">
+    <a class="ir" href="/" id="headerLogo">
+      <h1>Instant.fm - Share Music Playlists Instantly</h1>
+    </a>
+  
+    <nav>
+      <a href="#new">New Playlist</a>
+      <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
+      <a href="#myLists">My Playlists</a>
+      <a href="#signUp">Sign up</a>
+    </nav>
+  </header>
+  <div class="clearfix" id="main"> 
+       
+    <section id="playlistDisplay">
     
       <div id="videoDiv">
         <div id="videoTools">
-          <a href="#toggleShuffle" id="toggleShuffle" class="small awesome white">
+          <a href="#toggleShuffle" id="toggleShuffle" class="small awesome ytbutton">
             Shuffle
           </a>
-          <a href="#toggleRepeat" id="toggleRepeat" class="small awesome white">
+          <a href="#toggleRepeat" id="toggleRepeat" class="small awesome ytbutton">
             Repeat
           </a>
-          <a href="#hideVideo" id="hideVideo" class="small awesome white">
+          <a href="#hideVideo" id="hideVideo" class="small awesome ytbutton">
             Hide Video
           </a>
         </div>
         <div id="hiddenVideoTools">
-          <a href="#showVideo" id="showVideo" class="small awesome white">
+          <a href="#showVideo" id="showVideo" class="small awesome ytbutton">
             Show Video
           </a>
         </div>
@@ -38,36 +45,34 @@
         </ul>
       </div>
       
-    </div> <!-- end of #playlistDisplay -->
-  
-    <div id="infoDisplay">
+      <div id="playlistToolbar">
+      </div>
       
-      <nav class="clearfix" id="headerMenu">
-        <a href="#new">New Playlist</a>
-        <a href="/search" rel="search" id="searchLink" title="Search Instant.fm">Search</a>
-        <a href="#myLists">My Playlists</a>
-        <a href="#registrationBox" id="registrationLink">Sign Up</a>
-      </nav>
-    
-      <div id="FS_slider" class="clearfix">
-        <div id="FS_holder">
-          {% block mini-browser %}
-          {% end %}
-        </div> <!-- end of #FS_holder -->
-      </div> <!-- end of #FS_slider -->      
-        
-      <footer id="footer">
-        <strong><a href="#">Instant.fm</a></strong> |
-        <a href="#">FAQ</a> |
-        <a href="#">Blog</a> |
-        <a href="#">Contact</a>
-        <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
-      </footer>
-    
-    </div> <!-- end of #infoDisplay -->
+    </section> <!-- end of #playlistDisplay -->
   
+    <section id="browserDisplay">
+
+      <h1>Now Playing</h1>
+      <div id="browser">
+        <div id="FS_slider" class="clearfix">
+          <div id="FS_holder">
+            {% block mini-browser %}
+            {% end %}
+          </div> <!-- end of #FS_holder -->
+        </div> <!-- end of #FS_slider -->
+      </div> <!-- end of #browser -->
+     
+    </section> <!-- end of #browserDisplay -->
 
   </div> <!-- end of #main -->
+  
+  <footer id="footer">
+    <strong><a href="#">Instant.fm</a></strong> |
+    <a href="#">FAQ</a> |
+    <a href="#">Blog</a> |
+    <a href="#">Contact</a>
+    <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
+  </footer>
 
   <div class="invisible" id="devNull">
     <div id="curAlbumImgZoom">&nbsp;</div>
@@ -94,34 +99,15 @@
         </dl>
         <dl class="clearfix shortcut">
           <dt class="key">S</dt>
-          <dd class="action">Shuffle on/off</dd>
+          <dd class="action">Toggle shuffle</dd>
         </dl>
         <dl class="clearfix shortcut">
           <dt class="key">R</dt>
-          <dd class="action">Repeat on/off</dd>
+          <dd class="action">Toggle repeat song</dd>
         </dl>
         <dl class="clearfix shortcut">
           <dt class="key">V</dt>
-          <dd class="action">Show/hide video</dd>
-        </dl>
-      </section>
-      <section class="helpSection">
-        <div class="fancyZoomSectionHeader">Playlist Sharing</div>
-        <dl class="clearfix shortcut">
-          <dt class="key">F</dt>
-          <dd class="action">Share on Facebook</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">T</dt>
-          <dd class="action">Share on Twitter</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">B</dt>
-          <dd class="action">Share on Buzz</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">C</dt>
-          <dd class="action">Show/hide comments</dd>
+          <dd class="action">Toggle video display</dd>
         </dl>
       </section>
       <section class="helpSection">

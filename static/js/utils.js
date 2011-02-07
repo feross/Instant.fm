@@ -50,7 +50,7 @@ function makeFancyZoomImg(thumbId, src, alt) {
 }
 
 function makeSeeMoreLink(onclick, _text) {
-    _text = _text || 'see more';
+    _text = _text || 'more';
     return $('<a class="seeMore" href="#seeMore">('+_text+')</a>').click(onclick);
 }
 
@@ -85,6 +85,7 @@ function cleanHTML(html) {
 function copyPrototype(descendant, parent) {
     var sConstructor = parent.toString();
     var aMatch = sConstructor.match( /\s*function (.*)\(/ );
+    log(aMatch[1]);
     if ( aMatch != null ) { descendant.prototype[aMatch[1]] = parent; }
     for (var m in parent.prototype) {
         descendant.prototype[m] = parent.prototype[m];

@@ -14,7 +14,22 @@ var MiniBrowser = function() {
     	this.vP = "-o-";
     }
 
+    this.setupHandlers();
     this.refreshContents();
+};
+
+MiniBrowser.prototype.setupHandlers = function() {
+    // Link handlers for loading partials.
+    $('a[rel~="partial"]').live('click', function(event) {
+        event.preventDefault();
+        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
+    });
+    
+    // Link handlers for the back button.
+    $('a.backButton').live('click', function(event) {
+        event.preventDefault();
+        browser.pop();
+    });
 };
 
 // Re-calculate the browser's slide width and number of slides
@@ -34,16 +49,16 @@ MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
 		// Push matching "view" onto minibrowser
 		var view;
 		switch(type) {
-			case 'search':
+			case 'partial search':
 				view = new SearchView();
 				break;
-			case 'artist':
+			case 'partial artist':
 				view = new ArtistView(title);
 				break;
-			case 'album':
+			case 'partial album':
 				log('push album ' + title);
 				break;
-			case 'lyric':
+			case 'partial lyric':
 			    var $link = $(_options.link);
 			    view = new LyricView($link.attr('data-title'), $link.attr('data-artist'));
 			    break;
@@ -64,53 +79,38 @@ MiniBrowser.prototype.pushStatic = function(path, title, _options) {
 // Push a new element onto the browser. If a title is specified, then we'll show
 // a title header with a back button.
 MiniBrowser.prototype.push = function(elem, _title, _createView) {
-    var title = _title || '';
-    
-    var backButton = browser._makeBackButton();
     var prevView = getTopView();
     prevView && prevView.willHide();
 
-    var header = $('<header class="clearfix buttonHeader"></header>')
-        .append(backButton)
-        .append('<h2>'+title+'</h2>');
-    $(elem).prepend(header);
-    
     $(elem).appendTo('#FS_holder');
 
 	var view;
 	if (_createView) {
 		view = _createView();
 		if (view) {
+		    view.content = elem;
 			viewStack.push(view);
-			view.content = elem;
+			view.willSlide();  // Tell the view to do anything it has to now that content is in DOM
 		} else {
-			log('Warning: All partials must create a view and push it onto the viewStack. ('+title+')')
+			log('Warning: All partials must create a view and push it onto the viewStack. ('+_title+')')
 		}
 	} else {
-		log('Warning: All partials must define a createView function. ('+title+')')
+		log('Warning: All partials must define a createView function. ('+_title+')')
 	}
 
-
-    window.setTimeout(function() {
-        $('.buttonHeader h2', elem)
-            .css('left', -1 * $('.backButton', elem).width());
-        view && view.willSlide();  // Tell the view to do anything it has to now that content is in DOM
-    }, 0);
+    // window.setTimeout(function() {
+    //     $('.buttonHeader h2', elem)
+    //         .css('left', -1 * $('.backButton', elem).width());
+    // }, 0);
+        
+    this.numSlides++;
+    this._slideTo(this.numSlides);
+    
+    this._updateToolbar(_title);
     
     window.setTimeout(function() {
       view && view.didSlide();
     }, 300);
-    
-    // TODO: Is there a more robust way we can do this?
-    // We handle the case where the loaded partial didn't push a new view
-    // controller by adding a BaseView controller.
-    // if (view == prevView) {
-    //   view = new BaseView();
-    //   viewStack.push(view);
-    // }
-        
-    this.numSlides++;
-    this._slideTo(this.numSlides);
 };
 
 // Pop the top-most page off of the browser.
@@ -164,33 +164,45 @@ MiniBrowser.prototype._makeBackButton = function(text) {
 	    });
 };
 
+MiniBrowser.prototype._updateToolbar = function(_title) {
+    var title = _title || '';
+    $('#browserDisplay h1').text(title);
+    
+    // var backButton = browser._makeBackButton();
+};
+
 
 /* ---------------------------- BASE VIEW ---------------------------- */
 
 /* All views should extend this one! */
 function BaseView() {};
 
-BaseView.prototype.getNameOfPartial = function() {
-    log('Must override getNameOfPartial() in view controller!');
+BaseView.prototype.getPartialName = function() {
+    log('Must override getPartialName() in view controller!');
     return '';
 };
 
 /* Called after content is added to DOM but before animation. */
-BaseView.prototype.willSlide = function() {};
+BaseView.prototype.willSlide = function() {
+    
+};
 
-/* Called after the content is added to the DOM */
+/* Called after the content is slid fully into view */
 BaseView.prototype.didSlide = function() {};
 
 /* Called before animation starts to either push a new view (hiding this 
  * one), or pop this one.
  */
-BaseView.prototype.willHide = function() {};
+BaseView.prototype.willHide = function() {
+    $('input, textarea', this.content).blur();
+};
   
 /* Called immediately before the view is popped.
  * I can't think of any circumstance when we'll use this, but might as 
  * well have it. 
  */
 BaseView.prototype.willPop = function() {};
+
 
 function getTopView() {
   return viewStack[viewStack.length - 1];
@@ -205,7 +217,7 @@ function SearchView() {
 }
 copyPrototype(SearchView, BaseView);
 
-SearchView.prototype.getNameOfPartial = function() {
+SearchView.prototype.getPartialName = function() {
     return 'search';
 };
 
@@ -218,8 +230,7 @@ SearchView.prototype.didSlide = function() {
 };
 
 SearchView.prototype.willHide = function() {
-    keyEvents = true;
-    $('.searchBox input.search', this.content).blur();
+    this.BaseView.prototype.willHide();
 };
 
 // Private function that adds handlers to the search box
@@ -237,7 +248,6 @@ SearchView.prototype._addSearchHandlers = function() {
     searchInput.keyup(function(event) {
 		that._handleSearch.apply(that, [searchInput.val()]);
     });
-    addFocusHandlers(searchInput);
     
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
@@ -360,8 +370,8 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             action: function(event, song) {
                 player.addSongToPlaylist(song);
             },
-            class: 'awesome small',
-            text: 'Add to playlist +'
+            className: 'awesome small white',
+            text: 'Add to Playlist'
         }];
     }
     var songlist = new SongList({
@@ -440,7 +450,7 @@ function ArtistView(name) {
 }
 copyPrototype(ArtistView, BaseView);
 
-ArtistView.prototype.getNameOfPartial = function() {
+ArtistView.prototype.getPartialName = function() {
     return 'artist';
 };
 
@@ -453,6 +463,7 @@ ArtistView.prototype.didSlide = function() {
 };
 
 ArtistView.prototype.willHide = function() {
+    this.BaseView.prototype.willHide();
 };
 
 ArtistView.prototype._fetchData = function() {
@@ -575,8 +586,8 @@ ArtistView.prototype._handleTopSongs = function(data) {
             action: function(event, song) {
                 player.addSongToPlaylist(song);
             },
-            class: 'awesome small',
-            text: 'Add to playlist +'
+            className: 'awesome small white',
+            text: 'Add to Playlist'
         }],
     });
     
@@ -630,7 +641,7 @@ function LyricView(title, artist) {
 }
 copyPrototype(LyricView, BaseView);
 
-LyricView.prototype.getNameOfPartial = function() {
+LyricView.prototype.getPartialName = function() {
     return 'lyric';
 };
 
@@ -642,6 +653,7 @@ LyricView.prototype.didSlide = function() {
 };
 
 LyricView.prototype.willHide = function() {
+    this.BaseView.prototype.willHide();
 };
 
 LyricView.prototype._fetchData = function() {
@@ -858,7 +870,7 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
 PlaylistView.prototype._updateArtist = function(artist) {
     var link = $('<a></a>', {
             href: '/'+canonicalize(artist),
-            rel: 'artist',
+            rel: 'partial artist',
             title: artist,
         })
         .html(artist);
@@ -868,7 +880,7 @@ PlaylistView.prototype._updateArtist = function(artist) {
 PlaylistView.prototype._updateAlbum = function(album, artist) {
     var link = $('<a></a>', {
             href: '/'+canonicalize(artist)+'/'+canonicalize(album),
-            rel: 'album',
+            rel: 'partial album',
             title: album
         })
         .html(album);
@@ -877,15 +889,15 @@ PlaylistView.prototype._updateAlbum = function(album, artist) {
 
 PlaylistView.prototype._updateLyricsLink = function(title, artist) {
     var link = $('<a></a>', {
-         'data-artist': artist,
-         'data-title': title,
-         href: '/lyric/', // TODO: This is a hack.
-         rel: 'lyric',
-         title: title+' by '+artist,
-        })
+        'data-artist': artist,
+        'data-title': title,
+        href: '/lyric/', // TODO: This is a hack.
+        rel: 'partial lyric',
+        title: title+' by '+artist
+    })
         .html('Get Lyrics');
 
-    $('#curLyric h4').html(link);
+    $('#curLyric').html(link);
 };
 
 // Private method to update album art to point to given src url
@@ -929,7 +941,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
-    $('#addComment').html('Add a comment +');
+    $('#addComment').html('Add a Comment');
     
     // Load Facebook comment box
     $('#comments')
@@ -970,7 +982,7 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
                 lineHeight: 30,
                 minHeight: 30,
             };
-            buttonClass = 'large awesome';
+            buttonClass = 'large awesome white';
             break;
         default:
             autogrowSettings = {
@@ -978,7 +990,7 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
                 lineHeight: 16,
                 minHeight: 16,
             };
-            buttonClass = 'small awesome';
+            buttonClass = 'small awesome white';
             break;
     }
     
@@ -992,10 +1004,6 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             if($(this).prev().attr('id') == 'curPlaylistTitle') {
                 $('#addSongs').hide();
             }
-            
-            // disable key events while textarea is focused
-            keyEvents = false;
-            addFocusHandlers($('textarea', $(this).parent()));
         }))
         .editable(function(value, settings) {
             $(this).next().show();
@@ -1017,12 +1025,12 @@ PlaylistView.prototype.showHideComments = function() {
     // This is a workaround for a JQuery bug where the Facebook comment box
     // animation is jumpy. (http://goo.gl/so18k)
     if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a comment +');
+        $('#addComment').html('Add a Comment');
         $('#commentsDiv').animate({height: 0}, {duration: 'slow', complete: function() {
             $('#commentsDiv').hide();
         }});
     } else {
-        $('#addComment').html('Close comments');
+        $('#addComment').html('Hide Comments');
         $('#commentsDiv')
             .show()
             .animate({height: playlistview.commentsHeight}, {duration: 'slow'});
@@ -1089,7 +1097,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     var $buttonActions = $('<div class="songActions"></div>');
     for (var i = 0; i < this.buttons.length; i++) {
         $('<div></div>')
-            .addClass(this.buttons[i].class)
+            .addClass(this.buttons[i].className)
             .text(this.buttons[i].text || '')
             .click(this.buttonHelper(i, song))
             .appendTo($buttonActions);
@@ -1211,9 +1219,9 @@ function makeArtistList(artists) {
         var img = $('<img src="'+artist.image+'">');
         
         $('<a></a>', {
-			class: 'artistResult',
+			'class': 'artistResult',
 			href: '/'+canonicalize(artist.name),
-			rel: 'artist',
+			rel: 'partial artist',
 			title: artist.name
 		})
             .append('<div>'+artist.name+'</div>')
@@ -1238,12 +1246,12 @@ function makeAlbumList(albums) {
         var img = $('<img src="' + album.image + '">');
 
         $('<a></a>', {
-			class: 'albumResult',
+			'class': 'albumResult',
 			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
-			rel: 'album',
+			rel: 'partial album',
 			title: album.name
 		})
-        .append('<div>' + album.name + '<span>' + album.artist + '</span></div>')
+        .append('<span class="mask"></span>'+'<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')
         .append(img)
         .appendTo(result);
     }
