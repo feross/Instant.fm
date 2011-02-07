@@ -62,20 +62,17 @@ function onloadPlaylist() {
     
     setupDragDropUploader('p', player.loadPlaylist);
     
-    // TODO: Fix this
-	viewStack.push(new BaseView());
-    // If the page starts with a view controller on the stack (which it should),
-    // we need to call methods on it
-	if (viewStack.length > 0) {
-      getTopView().willSlide();
-      getTopView().didSlide();
-    }
+    browser.pushPartial('/search', 'partial search', 'Add Songs');
     
-    
-    $('#browserHeader .right').toggle(function() {
+    $('#nowPlayingHeader .right').click(function(event) {
+        event.preventDefault();
+        event.stopPropagation();
 		$('#browserDisplay').addClass('flip');
 		log('add');
-	}, function(){
+	});
+	$('#browserHeader').click(function() {
+	    event.preventDefault();
+        event.stopPropagation();
 		$('#browserDisplay').removeClass('flip');
 		log('remove');
 	});

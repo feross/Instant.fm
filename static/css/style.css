@@ -382,7 +382,7 @@ input.file {
     border-radius: 5px;
 }
 
-#playlistDiv, #browser {
+#playlistDiv, #browser, #nowPlayingContainer {
     overflow: auto;
     overflow-x: hidden; /* use css3 when available */
     overflow-y: auto; 
@@ -557,7 +557,7 @@ input.file {
 
 /* Mini Browser (right) */
 
-#browser {
+#browser, #nowPlayingContainer {
     -webkit-border-bottom-left-radius:5px;
     -webkit-border-bottom-right-radius:5px;
     -moz-border-radius-bottomleft:5px;
@@ -567,6 +567,11 @@ input.file {
 }
 
 #browserDisplay {
+    -webkit-perspective: 600;
+    position: relative;
+}
+
+#browserDisplay > div {
     background: -webkit-gradient(
         linear,
         left top, right top,
@@ -575,14 +580,11 @@ input.file {
         color-stop(1, rgba(243, 243, 247, 0.8))
     );
     border-left: #666 solid 1px;
-    float: left;
     font-size: 14px;
-    -webkit-perspective: 600;
-    position: relative;
     width: 519px;
 }
 
-#FS_slider {
+#FS_slider, #nowPlayingContainer {
 	width: 519px;
 	position: relative; /* IE6,7 bugfix */    
 }
@@ -604,7 +606,7 @@ input.file {
 	margin-right: 69px;
 }
 
-#browserHeader {
+.iPhoneHeader {
     position: relative;
     z-index: 1;
     height: 44px;
@@ -641,7 +643,7 @@ input.file {
     border-top-right-radius:5px;
 }
 
-#browserHeader a {
+.iPhoneHeader a {
   height: 31px;
   top: 7px;
   font-size: 0.6em;
@@ -654,47 +656,46 @@ input.file {
   opacity: 0.9;
 }
 
-#browserHeader a.left { left: 20px; }
-#browserHeader a.right { right: 20px; }
+.iPhoneHeader a.left { left: 20px; }
+.iPhoneHeader a.right { right: 20px; }
 
-#browserHeader a, #browserHeader a:before, #browserHeader a:after {
+.iPhoneHeader a, .iPhoneHeader a:before, .iPhoneHeader a:after {
   position: absolute;
 }
 
-#browserHeader a:before {
+.iPhoneHeader a:before {
   left: -10px;
   content: url('/images/navbutton-left-side.png');
 }
-#browserHeader a:after {
+.iPhoneHeader a:after {
   right: -10px;
   top: 0;
   content: url('/images/navbutton-right-side.png');
 }
 
-#browserHeader a.prev:before {
+.iPhoneHeader a.prev:before {
   left: -13px;
   content: url('/images/navbutton-left-arr.png');
 }
-#browserHeader a.next:after {
+.iPhoneHeader a.next:after {
   right: -13px;
   top: 0;
   content: url('/images/navbutton-right-arr.png');
 }
 
-#browserHeader a:active {
+.iPhoneHeader a:active {
   opacity: .65;
 }
-#browserHeader a {
+.iPhoneHeader a {
   text-decoration: none;
 }
 
 
 /* CSS3 Card Flip */
 #browserDisplay .front {
-	float: none;
 	position: absolute;
 	top: 0;
-	left: 0;
+	left: 480px;
 	z-index: 900;
 	
 	-webkit-transform: rotateY(0deg);
@@ -712,10 +713,9 @@ input.file {
 }
 
 #browserDisplay .back {
-	float: none;
 	position: absolute;
 	top: 0;
-	left: 0;
+	left: 480px;
 	z-index: 800;
 		
 	-webkit-transform: rotateY(-180deg);

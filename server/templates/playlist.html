@@ -44,90 +44,100 @@
       
       <div class="front">
         
-        <header id="browserHeader">
+        <header class="iPhoneHeader" id="nowPlayingHeader">
           <span class="left"><!-- dynamic back button --></span>
           <h1>Now Playing</h1>
           <a class="right" href="#flip">Flip</a>
         </header>
         
-        <section id="nowPlaying" class="slide">
-          <section id="curPlaylist">
-            <header class="clearfix">
-              <h2 id="curPlaylistTitle">&nbsp;</h2>
-            </header>
-            <article>
-              <span id="curPlaylistDesc">&nbsp;</span>
-            </article>
+        <div id="nowPlayingContainer">
+          
+          <section id="nowPlaying" class="slide">
+            <section id="curPlaylist">
+              <header class="clearfix">
+                <h2 id="curPlaylistTitle">&nbsp;</h2>
+              </header>
+              <article>
+                <span id="curPlaylistDesc">&nbsp;</span>
+              </article>
 
-            <section id="playlistActions">
-              <a href="#addComment" id="addComment" class="awesome white">
-                Add a Comment
-              </a>
-              <a href="#fbShare" id="fbShare" class="darkblue awesome">
-                Share on Facebook
-              </a>
-              <a href="#twShare" id="twShare" class="blue awesome">
-                Share on Twitter
-              </a>
-            </section> <!-- end of #playlistActions -->
+              <section id="playlistActions">
+                <a href="#addComment" id="addComment" class="awesome white">
+                  Add a Comment
+                </a>
+                <a href="#fbShare" id="fbShare" class="darkblue awesome">
+                  Share on Facebook
+                </a>
+                <a href="#twShare" id="twShare" class="blue awesome">
+                  Share on Twitter
+                </a>
+              </section> <!-- end of #playlistActions -->
 
-            <!-- <a href="#TODO" id="curPlaylistAuthor">
-              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-              <div>Feross Aboukhadijeh</div>
-            </a> -->
-          </section>
+              <!-- <a href="#TODO" id="curPlaylistAuthor">
+                <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+                <div>Feross Aboukhadijeh</div>
+              </a> -->
+            </section>
 
-          <!-- Facebook comments are loaded with JS here -->
+            <!-- Facebook comments are loaded with JS here -->
 
-          <section id="curPlaying">
-            <header>
-              <h3>Currently Playing</h3>
-            </header>
-            <div class="clearfix" id="curAlbumBlock">
-              <div id="curAlbumImg">
-                <span class="zoomIcon">&nbsp;</span>
-              </div>
-              <div id="curAlbumInfo">
-                <div id="curSong">
-                  <h4>&nbsp;</h4>
-                </div>
-                <div id="curArtist">
-                  <span class="curLabel">by</span> 
-                  <h4>&nbsp;</h4>
-                </div>
-                <div id="curAlbum">
-                  <span class="curLabel">on</span> 
-                  <h4>&nbsp;</h4>
-                </div>
-                <div id="curLyric"></div>
-              </div>
-              <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
-            </div> <!-- end of #curAlbumBlock -->
-
-            <div id="curDescs">
-              <section id="curSongDesc">
-                <h4>&nbsp;</h4> 
-                <article>&nbsp;</article>
-              </section>
-              <section class="artistDesc">
-                <h4>&nbsp;</h4>
-                <span class="artistImg" id="curArtistImg">
+            <section id="curPlaying">
+              <header>
+                <h3>Currently Playing</h3>
+              </header>
+              <div class="clearfix" id="curAlbumBlock">
+                <div id="curAlbumImg">
                   <span class="zoomIcon">&nbsp;</span>
-                </span>
-                <article>&nbsp;</article>
-              </section>
-            </div> <!-- end of #curDescs -->
+                </div>
+                <div id="curAlbumInfo">
+                  <div id="curSong">
+                    <h4>&nbsp;</h4>
+                  </div>
+                  <div id="curArtist">
+                    <span class="curLabel">by</span> 
+                    <h4>&nbsp;</h4>
+                  </div>
+                  <div id="curAlbum">
+                    <span class="curLabel">on</span> 
+                    <h4>&nbsp;</h4>
+                  </div>
+                  <div id="curLyric"></div>
+                </div>
+                <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
+              </div> <!-- end of #curAlbumBlock -->
 
-          </section> <!-- end of #curPlaying -->
+              <div id="curDescs">
+                <section id="curSongDesc">
+                  <h4>&nbsp;</h4> 
+                  <article>&nbsp;</article>
+                </section>
+                <section class="artistDesc">
+                  <h4>&nbsp;</h4>
+                  <span class="artistImg" id="curArtistImg">
+                    <span class="zoomIcon">&nbsp;</span>
+                  </span>
+                  <article>&nbsp;</article>
+                </section>
+              </div> <!-- end of #curDescs -->
 
-        </section> <!-- end of #nowPlaying -->
+            </section> <!-- end of #curPlaying -->
+
+          </section> <!-- end of #nowPlaying -->
+              
+        </div> <!-- end of #browser -->
         
       </div> <!-- end of #front -->
       
       <div class="back">
         
+        <header class="iPhoneHeader" id="browserHeader">
+          <span class="left"><!-- dynamic back button --></span>
+          <h1>Now Playing</h1>
+          <a class="right" href="#flip">Flip</a>
+        </header>
+        
         <div id="browser">
-          <div id="FS_slider" class="clearfix">
+          <div id="FS_slider">
             <div id="FS_holder">
               {% block mini-browser %}
               {% end %}
