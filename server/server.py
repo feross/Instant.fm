@@ -556,14 +556,22 @@ class FbSignupHandler(BaseHandler,
         if user['id'] == self.get_argument('fb_user_id'):
             salt = self._generate_salt()
             hashed_pass = self._hash_password(self.get_argument('password'), salt)
-            print(hashed_pass)
+            
+            # Write the user to DB
             user_id = self.db.execute('INSERT INTO users (fb_id, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s)',
                                       self.get_argument('fb_user_id'),
                                       self.get_argument('email'),
                                       hashed_pass,
                                       salt,
                                       datetime.utcnow().isoformat(' '))
+            
+            # Associate the user's session with the user
             self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s',
+                            user_id,
+                            self.get_secure_cookie('session_id'))
+            
+            # Update playlist ownership
+            self.db.execute('UPDATE playlists SET user_id = %s, session_id = NULL WHERE session_id = %s',
                             user_id,
                             self.get_secure_cookie('session_id'))
             
