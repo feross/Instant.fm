@@ -57,10 +57,14 @@ function onloadPlaylist() {
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
+    setupRegistration();
 
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
-    
+   
     setupDragDropUploader('p', player.loadPlaylist);
+    
+    
+    /* Setup minibrowser with flipping */
     
     browser.pushPartial('/search', 'partial search', 'Add Songs');
     
@@ -70,7 +74,7 @@ function onloadPlaylist() {
 		$('#browserDisplay').addClass('flip');
 		log('add');
 	});
-	$('#browserHeader').click(function() {
+	$('#browserHeader .right').click(function() {
 	    event.preventDefault();
         event.stopPropagation();
 		$('#browserDisplay').removeClass('flip');
@@ -212,15 +216,38 @@ function setupKeyboardShortcuts() {
 }
 
 function setupFBML(playlist) {
-    
     window.fbAsyncInit = function() {
         FB.init({
-          appId: '114871205247916',
+          //appId: '114871205247916', // 'Instant.fm' API Key
+          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
         });
         
+        $('#loginButton').click(function(event) {
+          FB.login(function(login_response) {
+            if (login_response.session) {
+              // user successfully logged in
+              log('FB login succesful.');
+              FB.api('/me', function(response) {
+                $('#fbConnectButton').hide();
+                var form = $('#fbAccountCreation');
+                log(response);
+                $('input[name=name]', form).val(response.name);
+                $('input[name=email]', form).val(response.email);
+                $('input[name=fb_user_id]', form).val(response.id);
+                $('input[name=auth_token]', form).val(login_response.session.access_token);
+                $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=large');
+                form.show();
+              });
+            } else {
+              // user cancelled login
+              log('FB login failed.');
+            }
+          });
+        });
+         
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
@@ -249,6 +276,74 @@ function setupPlaylistActionButtons() {
     $('#twShare').click(function(event) {
         event.preventDefault();
         shareOnTwitter();
+    });
+}
+
+function setupRegistration() {
+    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
+     
+    // adds an effect called "wall" to the validator
+    // TODO: Feross, I just copied and pasted this from JQuery Tools's page.
+    //       I'm not sure what effect we want here, but this is how the error
+    //       effects are implemented.
+    $.tools.validator.addEffect("wall", function(errors, event) {
+        // get the message wall
+        var wall = $(this.getConf().container).fadeIn();
+        
+        // remove all existing messages
+        wall.find("p").remove();
+        
+        // add new ones
+        $.each(errors, function(index, error) {
+            wall.append(
+                "<p><strong>" +error.input.attr("name")+ "</strong> " +error.messages[0]+ "</p>"
+            );    
+        });
+  
+    // the effect does nothing when all inputs are valid  
+    }, function(inputs)  {
+    });
+    
+    // initialize validator and add a custom form submission logic
+    $("form#fbRegistration").validator({
+        effect: 'wall', 
+        container: '#registrationErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+    
+        var form = $(this);
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/signup/fb',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    // everything is ok. (server returned true)
+                    if (json && json.success && json.success === true)  {
+                      log("Registration posted successfully.")
+                      $('#registrationErrors').html('Registration postd succesfully.');
+              
+                    // server-side validation failed. use invalidate() to show errors
+                    } else {
+                        if (json && json.success === false && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            log('Registration failt.');
+                        }
+                    }
+                },
+                error: function() { log('Error posting form ;_;'); },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        }
     });
 }
 
@@ -869,7 +964,10 @@ function updateDisplay() {
     
     /* - toolbar */
     var browserHeight = mainHeight - 45;
-    $('#browser').height((browserHeight > 0) ? browserHeight : 0);
+    browserHeight = (browserHeight > 0) ? browserHeight : 0;
+    $('#browser').height(browserHeight);
+    $('#nowPlayingContainer').height(browserHeight);
+    
 }
 
 function onYouTubePlayerReady(playerId) {

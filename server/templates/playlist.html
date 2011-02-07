@@ -12,7 +12,7 @@
       <a href="#new">New Playlist</a>
       <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
       <a href="#myLists">My Playlists</a>
-      <a href="#signUp">Sign up</a>
+      <a id="registrationLink" href="#signUp">Sign up</a>
     </nav>
   </header>
   <div class="clearfix" id="main"> 
@@ -47,7 +47,7 @@
         <header class="iPhoneHeader" id="nowPlayingHeader">
           <span class="left"><!-- dynamic back button --></span>
           <h1>Now Playing</h1>
-          <a class="right" href="#flip">Flip</a>
+          <a class="right" href="#flip">Search</a>
         </header>
         
         <div id="nowPlayingContainer">
@@ -124,7 +124,7 @@
 
           </section> <!-- end of #nowPlaying -->
               
-        </div> <!-- end of #browser -->
+        </div> <!-- end of #nowPlayingContainer -->
         
       </div> <!-- end of #front -->
       
@@ -133,7 +133,7 @@
         <header class="iPhoneHeader" id="browserHeader">
           <span class="left"><!-- dynamic back button --></span>
           <h1>Now Playing</h1>
-          <a class="right" href="#flip">Flip</a>
+          <a class="right" href="#flip">Now Playing</a>
         </header>
         
         <div id="browser">
@@ -145,10 +145,9 @@
           </div> <!-- end of #FS_slider -->
         </div> <!-- end of #browser -->
         
-      </div> <!-- #back -->
+      </div> <!-- end of #back -->
      
     </section> <!-- end of #browserDisplay -->
-  
 
   </div> <!-- end of #main -->
   
@@ -227,16 +226,67 @@
         </dl>
       </section>
     </div> <!-- end of #helpBox -->
+    
+    <div id="registrationBox">
+      <div class="fancyZoomHeader">Log In or Sign Up</div>
+      <div class="loginForm">
+        <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
+        <div class="formRow">
+          <label> Email Address: </label>
+          <input type="text" name="email" value="" />
+        </div>
+        <div class="formRow">
+          <label> Password: </label>
+          <input type="password" name="password" value="" />
+        </div>
+        <div class="formRow">
+          <input type="checkbox" name="allow_passwordless" checked="checked" />
+          <label> Let me login without a password on this browser </label>
+        </div>
+      </div>
+      <div class="loginForm">
+        <div class="fancyZoomSectionHeader"> Create an Account </div>
+        <div id="fbConnectButton">
+          <a id="loginButton" class="small darkblue awesome"> Connect your Facebook Account </a>
+        </div>
+        <div id="fbAccountCreation" style="display:none;">
+          <form id="fbRegistration" method="post">
+            <div class="loginForm">
+              <div id="registrationErrors"></div>
+              <div class="formRow">
+                <label for="fbName"> Display Name: </label>
+                <input id="fbName" type="text" name="name" value="" maxlength="32"/>
+              </div>         
+              <div class="formRow">
+                <label for="fbEmail"> E-mail: </label>
+                <input id="fbEmail" type="text" name="email" />
+              </div>          
+              <div class="formRow">
+                <label for="fbPassword"> Password: </label>
+                <input id="fbPassword" type="password" name="password" />
+              </div>          
+            </div>
+            <div>
+              <img id="fbProfileImage"></img>
+            </div>
+            <input type="hidden" name="auth_token"></input>
+            <input type="hidden" name="fb_user_id"></input>
+            {{ xsrf_form_html() }}
+            <a id="submitFbRegistration" class="small grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
+          </div>
+       </form>
+      </div>
+    </div>
           
   </div> <!-- end of #devNull -->
 {% end %}
 
 {% block scripts %}
-    {% block scripts-partial %}{% end %}
-    <script>
-      var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
-        $(function() {
-            onloadPlaylist();
-        });
-    </script>
+  {% block scripts-partial %}{% end %}
+  <script>
+    var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
+      $(function() {
+          onloadPlaylist();
+      });
+  </script>
 {% end %}

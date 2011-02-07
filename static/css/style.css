@@ -350,7 +350,6 @@ input.file {
     -webkit-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
     box-shadow: 0 6px 5px rgba(0,0,0,0.5);
     position: relative;
-    overflow: hidden;
     width: 1000px;
 }
 
@@ -572,13 +571,14 @@ input.file {
 }
 
 #browserDisplay > div {
-    background: -webkit-gradient(
+    background: #F3F3F7 url('/images/pinstripes.png') top left repeat;
+/*    background: -webkit-gradient(
         linear,
         left top, right top,
-        color-stop(0.3, rgba(255,255,255,0.8)),
-        color-stop(0.7, rgba(249, 249, 251, 0.8)),
-        color-stop(1, rgba(243, 243, 247, 0.8))
-    );
+        color-stop(0.3, rgba(255,255,255,1)),
+        color-stop(0.7, rgba(249,249,251,1)),
+        color-stop(1, rgba(243,243,247,1))
+    );*/
     border-left: #666 solid 1px;
     font-size: 14px;
     width: 519px;
@@ -608,7 +608,6 @@ input.file {
 
 .iPhoneHeader {
     position: relative;
-    z-index: 1;
     height: 44px;
     text-align: center;
     font-size: 1.5em;
@@ -621,17 +620,17 @@ input.file {
         linear,
         0 0,
         0 100%,
-        color-stop(0, rgba(181,192,206,0.8)),
-        color-stop(0.5, rgba(136,155,179,0.8)),
-        color-stop(0.51, rgba(127,148,176,0.8)),
-        color-stop(1, rgba(109,131,161,0.8))
+        color-stop(0, rgb(181,192,206)),
+        color-stop(0.5, rgb(136,155,179)),
+        color-stop(0.51, rgb(127,148,176)),
+        color-stop(1, rgb(109,131,161))
     ) top left no-repeat;
     background-image: transparent -moz-linear-gradient(
         top center,
-        rgba(181,192,206,0.8) 0%,
-        rgba(136,155,179,0.8) 50%,
-        rgba(127,148,176,0.8) 51%,
-        rgba(109,131,161,0.8) 100%
+        rgb(181,192,206) 0%,
+        rgb(136,155,179) 50%,
+        rgb(127,148,176) 51%,
+        rgb(109,131,161) 100%
     ) top left no-repeat;
     
     border-bottom: 1px solid #2d3033;
@@ -644,16 +643,16 @@ input.file {
 }
 
 .iPhoneHeader a {
-  height: 31px;
-  top: 7px;
-  font-size: 0.6em;
-  font-weight: 400;
-  line-height: 31px;
-  color: #fff;
-  background: url('/images/navbutton-center.png');
-  text-shadow: 0 -1px 0 rgba(0,0,0,.4);
-  filter: alpha(opacity=90);
-  opacity: 0.9;
+    background: url('/images/navbutton-center.png');
+    color: #fff;
+    filter: alpha(opacity=90);
+    font-size: 13px;
+    font-weight: 400;
+    height: 31px;
+    line-height: 31px;
+    opacity: 0.9;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.4);
+    top: 7px;
 }
 
 .iPhoneHeader a.left { left: 20px; }
@@ -691,7 +690,10 @@ input.file {
 }
 
 
-/* CSS3 Card Flip */
+/* CSS3 Card Flip 
+   from: http://css3playground.com/flip-card.php
+*/
+
 #browserDisplay .front {
 	position: absolute;
 	top: 0;
@@ -701,6 +703,13 @@ input.file {
 	-webkit-transform: rotateY(0deg);
 	-webkit-transform-style: preserve-3d;
 	-webkit-backface-visibility: hidden;
+
+	-webkit-border-bottom-left-radius:5px;
+    -webkit-border-bottom-right-radius:5px;
+    -moz-border-radius-bottomleft:5px;
+    -moz-border-radius-bottomright:5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
 
 	/* -- transition is the magic sauce for animation -- */
 	transition: all .4s ease-in-out;
@@ -721,6 +730,13 @@ input.file {
 	-webkit-transform: rotateY(-180deg);
 	-webkit-transform-style: preserve-3d;
 	-webkit-backface-visibility: hidden;
+
+	-webkit-border-bottom-left-radius:5px;
+    -webkit-border-bottom-right-radius:5px;
+    -moz-border-radius-bottomleft:5px;
+    -moz-border-radius-bottomright:5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
 
 	/* -- transition is the magic sauce for animation -- */
 	transition: all .4s ease-in-out;
@@ -1210,6 +1226,11 @@ a:hover .zoomIcon {
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
 
+/* Registration and Login */
+.loginForm {
+  display: inline-block;
+  vertical-align: top;
+}
 
 
 

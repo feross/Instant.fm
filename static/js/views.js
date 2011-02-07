@@ -1214,7 +1214,6 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
 	});
 };
 
-
 // Takes an array of objects with properties 'name', 'image' 
 function makeArtistList(artists) {
     var result = $('<div></div>');
