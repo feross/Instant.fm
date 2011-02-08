@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 import os
 import re
 import json
@@ -18,7 +17,6 @@ import bcrypt
 
 from datetime import datetime
 from optparse import OptionParser
-from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.options import define, options
 
 def canonicalize(str):
@@ -41,6 +39,7 @@ class Application(tornado.web.Application):
             (r"/terms/?$", TermsHandler),
             (r"/suggest/?$", ArtistAutocompleteHandler),
             (r"/search/?$", SearchHandler),
+            (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
             (r"/([^/]+)/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
@@ -147,6 +146,14 @@ class BaseHandler(tornado.web.RequestHandler):
             create_date = datetime.utcnow().isoformat(' ')
             new_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('session_id', str(new_id))
+            
+    def get_current_user(self):
+        session_id = self.get_secure_cookie('session_id')
+        if session_id:
+            return self.db.get('SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE id = %s)',
+                               session_id)
+        else:
+            return None
           
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
@@ -163,6 +170,9 @@ class TermsHandler(BaseHandler):
         self.render("terms.html")
     
 class PlaylistBaseHandler(BaseHandler):
+    def _render_user_name(self):
+        return '<span class="userName">' + self.get_current_user().name + '</span>'
+        
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
@@ -202,7 +212,15 @@ class PlaylistHandler(PlaylistBaseHandler):
         else:
             playlist = self._get_playlist_by_id(playlist_id)
             self._render_playlist_view('search.html', playlist);
-        
+            
+    """ Convenience method for use in templates. """
+    def hide_on_logout(self):
+        return 'class="hideOnLogout"' + (' style="display:none;"' if None == self.get_current_user() else '')        
+    
+    """ Convenience method for use in templates. """
+    def hide_on_login(self):
+        return 'class="hideOnLogin"' + (' style="display:none;"' if self.get_current_user() else '')        
+    
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
@@ -215,8 +233,8 @@ class LyricHandler(PlaylistBaseHandler):
         http.fetch("http://api.lyricsfly.com/api/api.php?i=730ed9883b40839ab-temporary.API.access&a=five+iron+frenzy&t=every+new+day", callback=self.on_response)
     
     def on_response(self, response):
-           if response.error: raise tornado.web.HTTPError(500)
-           self._render_playlist_view('lyric.html', playlist=None, lyric=response.body)
+        if response.error: raise tornado.web.HTTPError(500)
+        self._render_playlist_view('lyric.html', playlist=None, lyric=response.body)
 
 class ArtistHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name):
@@ -515,11 +533,13 @@ class FbSignupHandler(BaseHandler,
         self.write(json.dumps(result))
         self.finish()
         return
+    
+    def _is_registered_fbid(self, fbid):
+        return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
          
     @tornado.web.asynchronous
     def post(self):
         self.set_session_cookie()
-        result = {"success": True}
         errors = {}
         args = {'name': ['required'],
                 'email': ['required','email'],
@@ -555,8 +575,9 @@ class FbSignupHandler(BaseHandler,
             hashed_pass = self._hash_password(self.get_argument('password'), salt)
             
             # Write the user to DB
-            user_id = self.db.execute('INSERT INTO users (fb_id, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s)',
+            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s, %s)',
                                       self.get_argument('fb_user_id'),
+                                      self.get_argument('name'),
                                       self.get_argument('email'),
                                       hashed_pass,
                                       salt,
@@ -577,6 +598,10 @@ class FbSignupHandler(BaseHandler,
         else:
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
+            
+class FbCheckHandler(FbSignupHandler):
+    def get(self):
+        self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
 
 class ErrorHandler(BaseHandler):
     def prepare(self):

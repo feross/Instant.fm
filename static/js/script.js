@@ -225,20 +225,33 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        $('#loginButton').click(function(event) {
+        $('#fbConnectButton').click(function(event) {
           FB.login(function(login_response) {
             if (login_response.session) {
-              // user successfully logged in
               log('FB login succesful.');
               FB.api('/me', function(response) {
-                $('#fbConnectButton').hide();
+                // Check if already registered
+                $.ajax({
+                  'url': '/signup/fb-check',
+                  'method': 'GET',
+                  'data': {'fb_id': response.id},
+                  'dataType': 'json',
+                  'success': function(response) {
+                    if (response === true) {
+                      $('#alreadyRegistered').show();
+                    } else {
+                      $('#alreadyRegistered').hide();
+                    }
+                  }
+                });
+                
                 var form = $('#fbAccountCreation');
-                log(response);
                 $('input[name=name]', form).val(response.name);
                 $('input[name=email]', form).val(response.email);
                 $('input[name=fb_user_id]', form).val(response.id);
                 $('input[name=auth_token]', form).val(login_response.session.access_token);
                 $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=large');
+                $('#fbConnectButton').hide();
                 form.show();
               });
             } else {
@@ -327,8 +340,6 @@ function setupRegistration() {
                 success: function(json) {
                     // everything is ok. (server returned true)
                     if (json && json.success && json.success === true)  {
-                      log("Registration posted successfully.")
-                      $('#registrationErrors').html('Registration postd succesfully.');
               
                     // server-side validation failed. use invalidate() to show errors
                     } else {

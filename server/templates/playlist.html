@@ -1,3 +1,4 @@
+{% import template_utils %}
 {% extends "base.html" %}
 
 {% block bodyId %}p{% end %}
@@ -12,7 +13,10 @@
       <a href="#new">New Playlist</a>
       <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
       <a href="#myLists">My Playlists</a>
-      <a id="registrationLink" href="#signUp">Sign up</a>
+      <a id="registrationLink" {{ handler.hide_on_login() }} href="#signUp">Sign up</a>
+      <a id="logInLink" {{ handler.hide_on_login() }} href="#logIn">Login</a>
+      <a href="#profile" {{ handler.hide_on_logout() }}> {{ handler._render_user_name() }} </a>
+      <a id="logOutLink" {{ handler.hide_on_logout() }} href="#logIn">Logout</a>
     </nav>
   </header>
   <div class="clearfix" id="main"> 
@@ -246,12 +250,13 @@
       </div>
       <div class="loginForm">
         <div class="fancyZoomSectionHeader"> Create an Account </div>
-        <div id="fbConnectButton">
-          <a id="loginButton" class="small darkblue awesome"> Connect your Facebook Account </a>
-        </div>
+        <a id="fbConnectButton" class="small darkblue awesome"> Connect your Facebook Account </a>
         <div id="fbAccountCreation" style="display:none;">
           <form id="fbRegistration" method="post">
             <div class="loginForm">
+              <div id="alreadyRegistered">
+                This Facebook user is already registered on Instant.fm. Try logging in instead.
+              </div>
               <div id="registrationErrors"></div>
               <div class="formRow">
                 <label for="fbName"> Display Name: </label>
@@ -263,7 +268,7 @@
               </div>          
               <div class="formRow">
                 <label for="fbPassword"> Password: </label>
-                <input id="fbPassword" type="password" name="password" minlength="4" required="required"/>
+                <input id="fbPassword" type="password" name="password" pattern=".{4}" title="Passwords must be at least 4 characters" required="required"/>
               </div>          
             </div>
             <div>
