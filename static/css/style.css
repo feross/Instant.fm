@@ -259,7 +259,10 @@ a.awesome:hover { text-decoration: none; }
 
 /* Primary Styles */
 
-body { background: #000 url("/images/fullmetal.jpg") 0 0 repeat; text-align: center; }
+body {
+    background: #000 url('/images/bob-marley.jpg') top left repeat;
+    text-align: center;
+}
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
@@ -645,11 +648,12 @@ input.file {
 .iPhoneHeader a {
     background: url('/images/navbutton-center.png');
     color: #fff;
-    filter: alpha(opacity=90);
     font-size: 13px;
     font-weight: 400;
     height: 31px;
     line-height: 31px;
+    -moz-opacity: 0.9;
+    filter: alpha(opacity: 90);
     opacity: 0.9;
     text-shadow: 0 -1px 0 rgba(0,0,0,.4);
     top: 7px;
@@ -683,7 +687,9 @@ input.file {
 }
 
 .iPhoneHeader a:active {
-  opacity: .65;
+    -moz-opacity: 0.65;
+    filter: alpha(opacity: 65);
+    opacity: 0.65;
 }
 .iPhoneHeader a {
   text-decoration: none;
@@ -718,15 +724,15 @@ input.file {
 }
 #browserDisplay.flip .front {
 	z-index: 900;
+    
 	-webkit-transform: rotateY(180deg);
 }
-
 #browserDisplay .back {
 	position: absolute;
 	top: 0;
 	left: 480px;
 	z-index: 800;
-		
+    
 	-webkit-transform: rotateY(-180deg);
 	-webkit-transform-style: preserve-3d;
 	-webkit-backface-visibility: hidden;
@@ -743,12 +749,58 @@ input.file {
 	-moz-transition: all .4s ease-in-out;
 	-webkit-transition: all .4s ease-in-out;
 }
-
 #browserDisplay.flip .back {
 	z-index: 1000;
+	
 	-webkit-transform: rotateY(0deg);
 }
 
+/* Safari, Chrome Windows */
+
+.csstransforms3d #browserDisplay .front .slide{
+    visibility: visible;
+    
+    -moz-transition-property: visibility;
+    -moz-transition-duration: 0;
+    -moz-transition-delay: .3s;
+    
+    -webkit-transition-property: visibility;
+    -webkit-transition-duration: 0;
+    -webkit-transition-delay: .3s;
+    
+    -o-transition-property: visibility;
+    -o-transition-duration: 0;
+    -o-transition-delay: .3s;
+    
+    transition-property: visibility;
+    transition-duration: 0;
+    transition-delay: .3s;
+}
+.csstransforms3d #browserDisplay.flip .front .slide{
+    visibility: hidden;
+}
+.csstransforms3d #browserDisplay .back .slide{
+    visibility: hidden;
+    
+    -moz-transition-property: visibility;
+    -moz-transition-duration: 0;
+    -moz-transition-delay: .3s;
+    
+    -webkit-transition-property: visibility;
+    -webkit-transition-duration: 0;
+    -webkit-transition-delay: .3s;
+    
+    -o-transition-property: visibility;
+    -o-transition-duration: 0;
+    -o-transition-delay: .3s;
+    
+    transition-property: visibility;
+    transition-duration: 0;
+    transition-delay: .3s;
+}
+.csstransforms3d #browserDisplay.flip .back .slide {
+    visibility: visible;
+}
 
 /* Current Playlist Info */
 

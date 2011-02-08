@@ -72,13 +72,19 @@ function onloadPlaylist() {
         event.preventDefault();
         event.stopPropagation();
 		$('#browserDisplay').addClass('flip');
-		log('add');
+		
+		if (!Modernizr.csstransforms && !Modernizr.csstransforms3d) {
+		    log('No CSS tranform support. Using jQuery fallback.');
+		}
 	});
-	$('#browserHeader .right').click(function() {
+	$('#browserHeader .right').click(function(event) {
 	    event.preventDefault();
         event.stopPropagation();
 		$('#browserDisplay').removeClass('flip');
-		log('remove');
+		
+		if (!Modernizr.csstransforms && !Modernizr.csstransforms3d) {
+		    log('No CSS tranform support. Using jQuery fallback.');
+		}
 	});
 }
 
@@ -218,8 +224,8 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          //appId: '114871205247916', // 'Instant.fm' API Key
-          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          appId: '114871205247916', // 'Instant.fm' API Key
+          // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
@@ -238,14 +244,14 @@ function setupFBML(playlist) {
                 $('input[name=email]', form).val(response.email);
                 $('input[name=fb_user_id]', form).val(response.id);
                 $('input[name=auth_token]', form).val(login_response.session.access_token);
-                $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=large');
+                $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
                 form.show();
               });
             } else {
               // user cancelled login
               log('FB login failed.');
             }
-          });
+          }, {perms:'email,publish_stream'});
         });
          
         playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
@@ -348,7 +354,10 @@ function setupRegistration() {
 }
 
 function setupDragDropUploader(dropId, callback) {
-    new uploader(dropId, null, '/upload', null, callback); // HTML5 dragdrop upload
+    log(Modernizr.draganddrop);
+    if (Modernizr.draganddrop) {
+        new uploader(dropId, null, '/upload', null, callback);
+    }
 }
 
 
@@ -1012,7 +1021,10 @@ function onYouTubePlayerStateChange(newState) {
 function Model(playlist) {
     playlist && this.updatePlaylist(playlist);
     
-    var cache = new LastFMCache();
+    var cache;
+    if (!Modernizr.localstorage) {
+	    cache = new LastFMCache();
+	}
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
 		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
