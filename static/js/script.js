@@ -58,7 +58,8 @@ function onloadPlaylist() {
     setupFBML(initial_playlist);
     setupPlaylistActionButtons();
     setupRegistration();
-
+    setupLogin();
+    setupLogout();
     $('#helpLink').fancyZoom(appSettings.fancyZoom);
    
     setupDragDropUploader('p', player.loadPlaylist);
@@ -339,8 +340,9 @@ function setupRegistration() {
                 dataType: 'json',
                 success: function(json) {
                     // everything is ok. (server returned true)
-                    if (json && json.success && json.success === true)  {
-              
+                    if (json && json === true)  {
+                        log('Registration succeeded.');
+                        loginStatusChanged();
                     // server-side validation failed. use invalidate() to show errors
                     } else {
                         if (json && json.success === false && json.errors) {
@@ -356,6 +358,19 @@ function setupRegistration() {
             e.preventDefault();
         }
     });
+}
+
+function setupLogin() {
+  
+}
+
+function setupLogout() {
+  $('a[href="#logout"]').click(function(event) {
+      $.post('/logout', function() {
+              loginStatusChanged();
+              log('Logged out.');
+      });
+  });
 }
 
 function setupDragDropUploader(dropId, callback) {
@@ -1017,6 +1032,57 @@ function onYouTubePlayerStateChange(newState) {
     }
 }
 
+/* ------------------------ LOGIN ------------------------------*/
+
+/* The following three functions are from QuirksMode.org */
+function createCookie(name,value,days) {
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime()+(days*24*60*60*1000));
+    var expires = "; expires="+date.toGMTString();
+  }
+  else var expires = "";
+  document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function readCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0;i < ca.length;i++) {
+    var c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function eraseCookie(name) {
+  createCookie(name,"",-1);
+}
+
+/* Call this right after the user is logged in or out to update
+ * display. 
+ */
+function loginStatusChanged() {
+    var user_id = readCookie('user_id');
+    var user_name = readCookie('user_name');
+    if (user_id && user_name) {
+        $('.hideOnLogin').hide();
+        $('.hideOnLogout').show();
+        $('.username').html(unescape(user_name));
+    } else {
+        $('.hideOnLogout').hide();
+        $('.hideOnLogin').show();
+    }
+}
+
+function logout() {
+    eraseCookie('user_id');
+    eraseCookie('user_name');
+    eraseCookie('session_id');
+    loginStatusChanged();
+}
+
 
 /* --------------------------- MODEL --------------------------- */
 
@@ -1024,9 +1090,8 @@ function Model(playlist) {
     playlist && this.updatePlaylist(playlist);
     
     var cache = new LastFMCache();
-	this.lastfm = new LastFM({
+  	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
-		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
 		cache     : cache
 	});
 }

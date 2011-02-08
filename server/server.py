@@ -14,6 +14,7 @@ import tornado.auth
 import lastfm
 import lastfm_cache
 import bcrypt
+import urllib2
 
 from datetime import datetime
 from optparse import OptionParser
@@ -41,6 +42,7 @@ class Application(tornado.web.Application):
             (r"/search/?$", SearchHandler),
             (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
+            (r"/logout", LogoutHandler),
             (r"/([^/]+)/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -142,10 +144,14 @@ class BaseHandler(tornado.web.RequestHandler):
         
     def set_session_cookie(self):
         """Checks if a user_id cookie is set and sets one if not"""
-        if not self.get_secure_cookie('session_id'):
+        session_id = self.get_secure_cookie('session_id')
+        if not session_id:
             create_date = datetime.utcnow().isoformat(' ')
             new_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (%s);", create_date)
             self.set_secure_cookie('session_id', str(new_id))
+            return new_id
+        else:
+            return session_id
             
     def get_current_user(self):
         session_id = self.get_secure_cookie('session_id')
@@ -155,6 +161,15 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return None
           
+    def log_user_in(self, user_id):
+        session_id = self.set_session_cookie()
+        user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
+        self.db.execute('UPDATE sessions SET user_id=%s WHERE id=%s',
+                        user_id,
+                        session_id);
+        self.set_cookie('user_id', user_id)
+        self.set_cookie('user_name', urllib2.quote(user['name']))
+        
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
         prefix = self.get_argument('term');
@@ -170,9 +185,6 @@ class TermsHandler(BaseHandler):
         self.render("terms.html")
     
 class PlaylistBaseHandler(BaseHandler):
-    def _render_user_name(self):
-        return '<span class="userName">' + self.get_current_user().name + '</span>'
-        
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
@@ -213,13 +225,18 @@ class PlaylistHandler(PlaylistBaseHandler):
             playlist = self._get_playlist_by_id(playlist_id)
             self._render_playlist_view('search.html', playlist);
             
-    """ Convenience method for use in templates. """
+    """ Convenience methods for use in templates. """
     def hide_on_logout(self):
         return 'class="hideOnLogout"' + (' style="display:none;"' if None == self.get_current_user() else '')        
     
-    """ Convenience method for use in templates. """
     def hide_on_login(self):
         return 'class="hideOnLogin"' + (' style="display:none;"' if self.get_current_user() else '')        
+    
+    def render_user_name(self):
+        user = self.get_current_user()
+        name = user.name if user else ''
+        return '<span class="username">' + name + '</span>'
+        
     
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
@@ -508,9 +525,8 @@ class UploadHandler(BaseHandler):
         else:
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
-        
-class FbSignupHandler(BaseHandler, 
-                      tornado.auth.FacebookGraphMixin):
+
+class SignupHandler(BaseHandler):
     def _generate_salt(self):
         return bcrypt.gensalt()
         
@@ -537,6 +553,8 @@ class FbSignupHandler(BaseHandler,
     def _is_registered_fbid(self, fbid):
         return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
          
+class FbSignupHandler(SignupHandler, 
+                      tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     def post(self):
         self.set_session_cookie()
@@ -588,20 +606,23 @@ class FbSignupHandler(BaseHandler,
                             user_id,
                             self.get_secure_cookie('session_id'))
             
-            # Update playlist ownership
-            self.db.execute('UPDATE playlists SET user_id = %s, session_id = NULL WHERE session_id = %s',
-                            user_id,
-                            self.get_secure_cookie('session_id'))
-            
-            self.write('true')
+            self.log_user_in(str(user_id))
+            self.write(json.dumps(True))
             self.finish()
         else:
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
             
-class FbCheckHandler(FbSignupHandler):
+class FbCheckHandler(SignupHandler):
     def get(self):
         self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
+        
+class LogoutHandler(SignupHandler):
+    def post(self):
+        self.clear_all_cookies()
+        session_id = self.get_secure_cookie('session_id')
+        if session_id:
+            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)
 
 class ErrorHandler(BaseHandler):
     def prepare(self):

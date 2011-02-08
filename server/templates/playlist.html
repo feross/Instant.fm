@@ -14,9 +14,9 @@
       <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
       <a href="#myLists">My Playlists</a>
       <a id="registrationLink" {{ handler.hide_on_login() }} href="#signUp">Sign up</a>
-      <a id="logInLink" {{ handler.hide_on_login() }} href="#logIn">Login</a>
-      <a href="#profile" {{ handler.hide_on_logout() }}> {{ handler._render_user_name() }} </a>
-      <a id="logOutLink" {{ handler.hide_on_logout() }} href="#logIn">Logout</a>
+      <a {{ handler.hide_on_login() }} href="#login">Login</a>
+      <a id="profileLink" href="#profile" {{ handler.hide_on_logout() }}> {{ handler.render_user_name() }} </a>
+      <a {{ handler.hide_on_logout() }} href="#logout">Logout</a>
     </nav>
   </header>
   <div class="clearfix" id="main"> 
