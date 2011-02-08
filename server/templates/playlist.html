@@ -13,10 +13,10 @@
       <a href="#new">New Playlist</a>
       <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
       <a href="#myLists">My Playlists</a>
-      <a id="registrationLink" {{ handler.hide_on_login() }} href="#signUp">Sign up</a>
-      <a {{ handler.hide_on_login() }} href="#login">Login</a>
-      <a id="profileLink" href="#profile" {{ handler.hide_on_logout() }}> {{ handler.render_user_name() }} </a>
-      <a {{ handler.hide_on_logout() }} href="#logout">Logout</a>
+      <a id="registrationLink" class="hideOnLogin" href="#signUp">Sign up</a>
+      <a class="hideOnLogin" href="#login">Login</a>
+      <a id="profileLink" href="#profile" class="hideOnLogout"> {{ handler.render_user_name() }} </a>
+      <a class="hideOnLogout" href="#logout">Logout</a>
     </nav>
   </header>
   <div class="clearfix" id="main"> 

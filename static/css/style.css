@@ -1232,6 +1232,13 @@ a:hover .zoomIcon {
   vertical-align: top;
 }
 
+.loggedIn .hideOnLogin {
+  display: none !important;
+}
+
+.loggedOut .hideOnLogout {
+  display: none !important;
+}
 
 
 

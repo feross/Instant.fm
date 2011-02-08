@@ -1067,12 +1067,12 @@ function loginStatusChanged() {
     var user_id = readCookie('user_id');
     var user_name = readCookie('user_name');
     if (user_id && user_name) {
-        $('.hideOnLogin').hide();
-        $('.hideOnLogout').show();
+        $('html').addClass('loggedIn');
+        $('html').removeClass('loggedOut');
         $('.username').html(unescape(user_name));
     } else {
-        $('.hideOnLogout').hide();
-        $('.hideOnLogin').show();
+        $('html').addClass('loggedOut');
+        $('html').removeClass('loggedIn');
     }
 }
 
