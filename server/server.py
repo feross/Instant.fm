@@ -553,8 +553,6 @@ class FbSignupHandler(BaseHandler,
         if user['id'] == self.get_argument('fb_user_id'):
             salt = self._generate_salt()
             hashed_pass = self._hash_password(self.get_argument('password'), salt)
-            print('PW: ' + hashed_pass)
-            print('Salt: ' + salt)
             
             # Write the user to DB
             user_id = self.db.execute('INSERT INTO users (fb_id, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s)',
