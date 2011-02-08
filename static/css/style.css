@@ -569,8 +569,7 @@ input.file {
 }
 
 #browserDisplay {
-    -webkit-perspective: 600;
-    position: relative;
+
 }
 
 #browserDisplay > div {
@@ -583,7 +582,10 @@ input.file {
         color-stop(1, rgba(243,243,247,1))
     );*/
     border-left: #666 solid 1px;
+    float: left;
     font-size: 14px;
+    position: relative;
+    -webkit-perspective: 600;
     width: 519px;
 }
 
@@ -701,10 +703,14 @@ input.file {
 */
 
 #browserDisplay .front {
+    float: none;
 	position: absolute;
 	top: 0;
 	left: 480px;
 	z-index: 900;
+	
+	width: inherit;
+	height: inherit;
 	
 	-webkit-transform: rotateY(0deg);
 	-webkit-transform-style: preserve-3d;
@@ -728,10 +734,13 @@ input.file {
 	-webkit-transform: rotateY(180deg);
 }
 #browserDisplay .back {
+    float: none;
 	position: absolute;
 	top: 0;
 	left: 480px;
 	z-index: 800;
+	width: inherit;
+	height: inherit;
     
 	-webkit-transform: rotateY(-180deg);
 	-webkit-transform-style: preserve-3d;
@@ -756,25 +765,25 @@ input.file {
 }
 
 /* Safari, Chrome Windows */
-
+/*
 .csstransforms3d #browserDisplay .front .slide{
     visibility: visible;
     
     -moz-transition-property: visibility;
     -moz-transition-duration: 0;
-    -moz-transition-delay: .3s;
+    -moz-transition-delay: .2s;
     
     -webkit-transition-property: visibility;
     -webkit-transition-duration: 0;
-    -webkit-transition-delay: .3s;
+    -webkit-transition-delay: .2s;
     
     -o-transition-property: visibility;
     -o-transition-duration: 0;
-    -o-transition-delay: .3s;
+    -o-transition-delay: .2s;
     
     transition-property: visibility;
     transition-duration: 0;
-    transition-delay: .3s;
+    transition-delay: .2s;
 }
 .csstransforms3d #browserDisplay.flip .front .slide{
     visibility: hidden;
@@ -784,23 +793,23 @@ input.file {
     
     -moz-transition-property: visibility;
     -moz-transition-duration: 0;
-    -moz-transition-delay: .3s;
+    -moz-transition-delay: .2s;
     
     -webkit-transition-property: visibility;
     -webkit-transition-duration: 0;
-    -webkit-transition-delay: .3s;
+    -webkit-transition-delay: .2s;
     
     -o-transition-property: visibility;
     -o-transition-duration: 0;
-    -o-transition-delay: .3s;
+    -o-transition-delay: .2s;
     
     transition-property: visibility;
     transition-duration: 0;
-    transition-delay: .3s;
+    transition-delay: .2s;
 }
 .csstransforms3d #browserDisplay.flip .back .slide {
     visibility: visible;
-}
+}*/
 
 /* Current Playlist Info */
 
