@@ -14,10 +14,7 @@ import tornado.web
 import tornado.auth
 import lastfm
 import lastfm_cache
-import hmac
-import hashlib
-import random
-import binascii
+import bcrypt
 
 from datetime import datetime
 from optparse import OptionParser
@@ -497,10 +494,10 @@ class UploadHandler(BaseHandler):
 class FbSignupHandler(BaseHandler, 
                       tornado.auth.FacebookGraphMixin):
     def _generate_salt(self):
-        return binascii.hexlify("".join(chr(random.randrange(256)) for i in xrange(8)))
+        return bcrypt.gensalt()
         
     def _hash_password(self, password, salt):
-        return hmac.HMAC(password.encode('ascii'), salt, hashlib.sha256).hexdigest()
+        return bcrypt.hashpw(password, salt)
     
     def _validate_args(self, args, errors):
         for name, types in args.iteritems():
@@ -556,6 +553,8 @@ class FbSignupHandler(BaseHandler,
         if user['id'] == self.get_argument('fb_user_id'):
             salt = self._generate_salt()
             hashed_pass = self._hash_password(self.get_argument('password'), salt)
+            print('PW: ' + hashed_pass)
+            print('Salt: ' + salt)
             
             # Write the user to DB
             user_id = self.db.execute('INSERT INTO users (fb_id, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s)',
