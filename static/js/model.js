@@ -9,7 +9,6 @@ function Model(playlist) {
 	}
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
-		apiSecret : '02cf123c38342b2d0b9d3472b65baf82',
 		cache     : cache
 	});
 }
@@ -20,6 +19,8 @@ Model.prototype.updatePlaylist = function(playlist) {
     this.description = playlist.description;
     this.songs       = playlist.songs || [];
     this.editable    = playlist.editable || false;
+    this.session_id  = playlist.session_id || -1;
+    this.user_id     = playlist.user_id || -1;
 };
 
 // Move song in the playlist

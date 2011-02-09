@@ -244,9 +244,10 @@
           <input type="password" name="password" required="required"/>
         </div>
         <div class="formRow">
-          <input type="checkbox" name="allow_passwordless" checked="checked" />
+          <input type="checkbox" name="passwordless" checked="checked" />
           <label> Let me login without a password on this browser </label>
         </div>
+        {{ xsrf_form_html() }}
         <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
       </form>
     </div>
