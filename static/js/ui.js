@@ -1,7 +1,7 @@
 // Called automatically on browser resize
 function updateDisplay() {
     // window - (header + footer + good measure)
-    var mainHeight = $(window).height() - (50 + 50 + 5);
+    var mainHeight = $(window).height() - (50 + 50 + 2);
     $('#main').height((mainHeight > 0) ? mainHeight : 0);
     
     // - player - playlist toolbar
@@ -20,7 +20,7 @@ function updateDisplay() {
     
     // + good measure
     // Save the top position of the browser in it's closed state.
-    browser.closedCSSTop = mainHeight + 5;
+    browser.closedCSSTop = mainHeight + 2;
     
     // Set it immediately, if the browser is closed. If the browser is open, don't do anything.
     if (!browser.isOpen) {

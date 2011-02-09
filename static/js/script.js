@@ -1,9 +1,7 @@
-var player;
-var browser;
 var model;
-
-var playlistview; // TODO: Generalize this so it is part of the view stack
-var viewStack = [];
+var player;
+var playlistview;
+var browser;
 
 var songIndex; // Current position in the playlist
 var keyEvents = true; // Used to disable keyboard shortuts
@@ -27,9 +25,6 @@ var appSettings = {
     }
 };
 
-
-/* --------------------------- ON LOAD --------------------------- */
-
 function onloadHome() {
     $('.file').change(function(event) {
         var val = $(this).val();
@@ -49,12 +44,11 @@ function onloadHome() {
     });
 }
 
-
 function onloadPlaylist() {
     model = new Model();
     player = new Player();
-    browser = new MiniBrowser();
     playlistview = new PlaylistView();
+    browser = new MiniBrowser();
     
     setupAutogrowInputType();
     player.loadPlaylist(initial_playlist);
