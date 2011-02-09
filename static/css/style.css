@@ -352,6 +352,7 @@ input.file {
     -moz-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
     -webkit-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
     box-shadow: 0 6px 5px rgba(0,0,0,0.5);
+    overflow: hidden;
     position: relative;
     width: 1000px;
 }
@@ -560,32 +561,23 @@ input.file {
 /* Mini Browser (right) */
 
 #browser, #nowPlayingContainer {
-    -webkit-border-bottom-left-radius:5px;
-    -webkit-border-bottom-right-radius:5px;
-    -moz-border-radius-bottomleft:5px;
-    -moz-border-radius-bottomright:5px;
-    border-bottom-left-radius:5px;
-    border-bottom-right-radius:5px;
-}
-
-#browserDisplay {
-
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
 
 #browserDisplay > div {
-    background: #F3F3F7 url('/images/pinstripes.png') top left repeat;
-/*    background: -webkit-gradient(
+    background-color: #f3f3f7;
+    background: -webkit-gradient(
         linear,
         left top, right top,
-        color-stop(0.3, rgba(255,255,255,1)),
-        color-stop(0.7, rgba(249,249,251,1)),
-        color-stop(1, rgba(243,243,247,1))
-    );*/
+        color-stop(0.3, rgba(255,255,255,0.8)),
+        color-stop(0.7, rgba(249,249,251,0.8)),
+        color-stop(1, rgba(243,243,247,0.8))
+    );
     border-left: #666 solid 1px;
-    float: left;
     font-size: 14px;
     position: relative;
-    -webkit-perspective: 600;
     width: 519px;
 }
 
@@ -595,11 +587,14 @@ input.file {
 }
 
 #FS_holder {
-	-webkit-transition: all 0.3s ease-in-out;
+	width: 50000px; /* TODO: As long as it's big enough, JS replaces this value. */
+}
+
+#FS_holder.animate {
+    -webkit-transition: all 0.3s ease-in-out;
 	-moz-transition: all 0.3s ease-in-out;
 	-o-transition: all 0.3s ease-in-out;
 	transition: all 0.3s ease-in-out;
-	width: 50000px; /* TODO: As long as it's big enough, JS replaces this value. */
 }
 
 .slide {
@@ -697,119 +692,31 @@ input.file {
   text-decoration: none;
 }
 
-
-/* CSS3 Card Flip 
-   from: http://css3playground.com/flip-card.php
-*/
-
-#browserDisplay .front {
-    float: none;
+#browserDisplay #behind {
 	position: absolute;
 	top: 0;
 	left: 480px;
-	z-index: 900;
-	
-	width: inherit;
-	height: inherit;
-	
-	-webkit-transform: rotateY(0deg);
-	-webkit-transform-style: preserve-3d;
-	-webkit-backface-visibility: hidden;
-
-	-webkit-border-bottom-left-radius:5px;
-    -webkit-border-bottom-right-radius:5px;
-    -moz-border-radius-bottomleft:5px;
-    -moz-border-radius-bottomright:5px;
-    border-bottom-left-radius:5px;
-    border-bottom-right-radius:5px;
-
-	/* -- transition is the magic sauce for animation -- */
-	transition: all .4s ease-in-out;
-	-moz-transition: all .4s ease-in-out;
-	-webkit-transition: all .4s ease-in-out;
+	z-index: 1;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
-#browserDisplay.flip .front {
-	z-index: 900;
-    
-	-webkit-transform: rotateY(180deg);
-}
-#browserDisplay .back {
-    float: none;
+#browserDisplay #modal {
+    background: #F3F3F7 url('/images/pinstripes.png') top left repeat;
+	left: 480px;
 	position: absolute;
 	top: 0;
-	left: 480px;
-	z-index: 800;
-	width: inherit;
-	height: inherit;
+	z-index: 2;
     
-	-webkit-transform: rotateY(-180deg);
-	-webkit-transform-style: preserve-3d;
-	-webkit-backface-visibility: hidden;
-
-	-webkit-border-bottom-left-radius:5px;
-    -webkit-border-bottom-right-radius:5px;
-    -moz-border-radius-bottomleft:5px;
-    -moz-border-radius-bottomright:5px;
-    border-bottom-left-radius:5px;
-    border-bottom-right-radius:5px;
-
-	/* -- transition is the magic sauce for animation -- */
-	transition: all .4s ease-in-out;
-	-moz-transition: all .4s ease-in-out;
-	-webkit-transition: all .4s ease-in-out;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
 }
-#browserDisplay.flip .back {
-	z-index: 1000;
-	
-	-webkit-transform: rotateY(0deg);
+#browserDisplay #modal.animate {
+    transition: all 1s ease-in-out;
+	-moz-transition: all 1s ease-in-out;
+	-webkit-transition: all 1s ease-in-out;
 }
-
-/* Safari, Chrome Windows */
-/*
-.csstransforms3d #browserDisplay .front .slide{
-    visibility: visible;
-    
-    -moz-transition-property: visibility;
-    -moz-transition-duration: 0;
-    -moz-transition-delay: .2s;
-    
-    -webkit-transition-property: visibility;
-    -webkit-transition-duration: 0;
-    -webkit-transition-delay: .2s;
-    
-    -o-transition-property: visibility;
-    -o-transition-duration: 0;
-    -o-transition-delay: .2s;
-    
-    transition-property: visibility;
-    transition-duration: 0;
-    transition-delay: .2s;
-}
-.csstransforms3d #browserDisplay.flip .front .slide{
-    visibility: hidden;
-}
-.csstransforms3d #browserDisplay .back .slide{
-    visibility: hidden;
-    
-    -moz-transition-property: visibility;
-    -moz-transition-duration: 0;
-    -moz-transition-delay: .2s;
-    
-    -webkit-transition-property: visibility;
-    -webkit-transition-duration: 0;
-    -webkit-transition-delay: .2s;
-    
-    -o-transition-property: visibility;
-    -o-transition-duration: 0;
-    -o-transition-delay: .2s;
-    
-    transition-property: visibility;
-    transition-duration: 0;
-    transition-delay: .2s;
-}
-.csstransforms3d #browserDisplay.flip .back .slide {
-    visibility: visible;
-}*/
 
 /* Current Playlist Info */
 

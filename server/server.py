@@ -204,7 +204,8 @@ class PlaylistHandler(PlaylistBaseHandler):
             self._render_playlist_json(playlist_id);
         else:
             playlist = self._get_playlist_by_id(playlist_id)
-            self._render_playlist_view('search.html', playlist);
+            self.render('playlist.html', playlist=playlist);
+            # self._render_playlist_view('search.html', playlist);
         
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""

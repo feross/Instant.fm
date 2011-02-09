@@ -35,30 +35,34 @@
 
   <div id="fb-root"></div>
 
+  <!-- START SCRIPTS -->
+  
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-  <script src="http://platform.twitter.com/widgets.js" type="text/javascript"></script>
+  <script src="/js/libs/html5uploader.js"></script>
   
   <script src="/js/libs/jquery-ui-1.8.8.custom.min.js"></script>
+  <script src="/js/plugins.js"></script>
     
-  <script src="/js/libs/html5uploader.js"></script>
   <script src="/js/libs/lastfm.api.md5.js"></script>
   <script src="/js/libs/lastfm.api.js"></script>
   <script src="/js/libs/lastfm.api.cache.js"></script>
-
-  <script src="/js/plugins.js"></script>
   
+  <script src="/js/browser.js"></script>
+  <script src="/js/model.js"></script>
+  <script src="/js/nowplaying.js"></script>
+  <script src="/js/player.js"></script>
+  <script src="/js/setup.js"></script>
+  <script src="/js/ui.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/views.js"></script>
-  <script src="/js/script.js"></script>
   
   {% block scripts %}{% end %}
-  <!-- end concatenated and minified scripts-->
   
-  <!--[if lt IE 7 ]>
-    <script src="js/libs/dd_belatedpng.js"></script>
-    <script> DD_belatedPNG.fix('img, .png_bg'); </script>
-  <![endif]-->
+  <script src="/js/script.js"></script>
+  
+  <!-- END SCRIPTS -->
+  
 
   <!-- yui profiler and profileviewer - remove for production -->
   <!-- <script src="js/profiling/yahoo-profiling.min.js"></script>
