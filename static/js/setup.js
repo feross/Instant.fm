@@ -90,9 +90,6 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Playlist editing
-                case 65: // a
-                    browser.pushPartial('/search', 'partial search', 'Add Songs');
-                    break;
                 case 74: // j
                     player.moveSongDown(songIndex);
                     break;
@@ -101,11 +98,18 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
-                case 191: // ?
-                    $('#helpLink').trigger('click');
+                case 70: // f
+                    browser.pushPartial({
+                        path: '/search',
+                        type: 'partial search',
+                        title: 'Search'
+                    });
                     break;
                 case 76: // l
                     player.highlightSong('.playing');
+                    break;
+                case 191: // ?
+                    $('#helpLink').trigger('click');
                     break;
                     
                 default:

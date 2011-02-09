@@ -2,78 +2,73 @@
 
 /* All views should extend this one! */
 function BaseView() {
-    this.content; // DOM reference to minibrowser view
-    this.title; // Minibrowser title
-};
-
-BaseView.prototype.getPartialName = function() {
-    log('Must override getPartialName() in view controller!');
-    return '';
 };
 
 /* Called after content is added to DOM but before animation. */
-BaseView.prototype.willSlide = function() {
+BaseView.prototype.willSlide = function(config) {
     $('#browser').scrollTop(0);
+    browser._updateHeader();
 };
 
 /* Called after the content is slid fully into view */
-BaseView.prototype.didSlide = function() {};
+BaseView.prototype.didSlide = function(config) {
+    playlistview.updateOpenButtonText(config.title);
+};
 
 /* Called before animation starts to either push a new view (hiding this 
  * one), or pop this one.
  */
-BaseView.prototype.willSleep = function() {
+BaseView.prototype.willSleep = function(config) {
     $('input, textarea', this.content).blur();
 };
 
 /* Called when another view gets popped and this one re-appears.
  */
-BaseView.prototype.willAwake = function() {
+BaseView.prototype.willAwake = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
+    // log(this.subclass.config.title);
+    playlistview.updateOpenButtonText(config.title);
 };
   
 /* Called immediately before the view is popped.
  * I can't think of any circumstance when we'll use this, but might as 
  * well have it. 
  */
-BaseView.prototype.willPop = function() {};
-
-
-function getTopView() {
-  return viewStack[viewStack.length - 1];
-}
+BaseView.prototype.willPop = function(config) {
+};
 
 
 /* --------------------------- SEARCH VIEW --------------------------- */
 
-function SearchView() {
+function SearchView(config) {
+    this.config = config;
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
 }
 copyPrototype(SearchView, BaseView);
 
-SearchView.prototype.getPartialName = function() {
-    return 'search';
-};
-
 SearchView.prototype.willSlide = function() {
-    this.BaseView.prototype.willSlide();
+    this.BaseView.prototype.willSlide(this.config);
     this._addSearchHandlers();
 };
 
 SearchView.prototype.didSlide = function() {
-    this.BaseView.prototype.didSlide();
+    this.BaseView.prototype.didSlide(this.config);
     $('.searchBox input.search', this.content).focus();
 };
 
 SearchView.prototype.willSleep = function() {
-    this.BaseView.prototype.willSleep();
+    this.BaseView.prototype.willSleep(this.config);
 };
 
 SearchView.prototype.willAwake = function() {
-    this.BaseView.prototype.willAwake();
+    this.BaseView.prototype.willAwake(this.config);
     $('.searchBox input.search', this.content).focus();
+};
+
+SearchView.prototype.willPop = function() {
+    this.BaseView.prototype.willPop(this.config);
 };
 
 // Private function that adds handlers to the search box
@@ -288,31 +283,33 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
 
 /* --------------------------- ARTIST VIEW --------------------------- */
 
-function ArtistView(name) {
-	this.name = name;
+function ArtistView(config) {
+    this.config = config;
+    this.BaseView.prototype.constructor(this);
+	this.name = config.title;
 }
 copyPrototype(ArtistView, BaseView);
 
-ArtistView.prototype.getPartialName = function() {
-    return 'artist';
-};
-
 ArtistView.prototype.willSlide = function() {
-    this.BaseView.prototype.willSlide();
+    this.BaseView.prototype.willSlide(this.config);
 	this._fetchData();
 	$('.name', this.content).text(this.name);
 };
 
 ArtistView.prototype.didSlide = function() {
-    this.BaseView.prototype.didSlide();
+    this.BaseView.prototype.didSlide(this.config);
 };
 
 ArtistView.prototype.willSleep = function() {
-    this.BaseView.prototype.willSleep();
+    this.BaseView.prototype.willSleep(this.config);
 };
 
 ArtistView.prototype.willAwake = function() {
-    this.BaseView.prototype.willAwake();
+    this.BaseView.prototype.willAwake(this.config);
+};
+
+ArtistView.prototype.willPop = function() {
+    this.BaseView.prototype.willPop(this.config);
 };
 
 ArtistView.prototype._fetchData = function() {
@@ -366,7 +363,7 @@ ArtistView.prototype._handleInfo = function(data) {
 	if (!artist) {
         $('.artistDesc article', this.content)
             .html('<p>No artist named "' + this.name + '" were found.</p>')
-            .slideDown('fast');
+            .show();
         return;
     }
     
@@ -399,13 +396,13 @@ ArtistView.prototype._handleInfo = function(data) {
     var image = artist.image[artist.image.length - 1]['#text'];
  	this._updateArtistImg(image, name);
  	
- 	$('.artistDesc', this.content).slideDown('fast');
+ 	$('.artistDesc', this.content).show();
 };
 
 ArtistView.prototype._handleTopSongs = function(data) {
     var songResults = data && data.toptracks && data.toptracks.track;
     if (!songResults || !songResults.length) {
-        $('.songResults', this.content).slideUp('fast');
+        $('.songResults', this.content).hide();
         return;
     }
     
@@ -442,13 +439,13 @@ ArtistView.prototype._handleTopSongs = function(data) {
     $songResults.find('div').remove();
     songlist.render($songResults);
     
-    $songResults.slideDown('fast');
+    $songResults.show();
 };
 
 ArtistView.prototype._handleTopAlbums = function(data) {
     var albumResults = data && data.topalbums && data.topalbums.album;
     if (!albumResults || !albumResults.length) {
-        $('.albumResults', this.content).slideUp('fast');
+        $('.albumResults', this.content).hide();
         return;
     }
     
@@ -466,7 +463,7 @@ ArtistView.prototype._handleTopAlbums = function(data) {
     $('.albumResults div', this.content).remove();
     $('.albumResults', this.content)
         .append(makeAlbumList(albums))
-        .slideDown('fast'); 
+        .show(); 
 };
 
 ArtistView.prototype._updateArtistImg = function(src, alt) {
@@ -482,31 +479,32 @@ ArtistView.prototype._updateArtistImg = function(src, alt) {
 
 /* ------------------- LYRIC VIEW -------------------- */
 
-function LyricView(title, artist) {
-	this.title = title;
-	this.artist = artist;
+function LyricView(config) {
+    this.config = config;
+	this.title = config.linkElem.attr('data-title');
+	this.artist = config.linkElem.attr('data-artist');
 }
 copyPrototype(LyricView, BaseView);
 
-LyricView.prototype.getPartialName = function() {
-    return 'lyric';
-};
-
 LyricView.prototype.willSlide = function() {
-    this.BaseView.prototype.willSlide();
+    this.BaseView.prototype.willSlide(this.config);
     this._fetchData();
 };
 
 LyricView.prototype.didSlide = function() {
-    this.BaseView.prototype.didSlide();
+    this.BaseView.prototype.didSlide(this.config);
 };
 
 LyricView.prototype.willSleep = function() {
-    this.BaseView.prototype.willSleep();
+    this.BaseView.prototype.willSleep(this.config);
 };
 
 LyricView.prototype.willAwake = function() {
-    this.BaseView.prototype.willAwake();
+    this.BaseView.prototype.willAwake(this.config);
+};
+
+SearchView.prototype.willPop = function() {
+    this.BaseView.prototype.willPop(this.config);
 };
 
 LyricView.prototype._fetchData = function() {

@@ -396,7 +396,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" id="addSongs" rel="partial search" title="Add Songs"><span>Add Songs</span></a>')
+        $('<a href="/search" id="addSongs" rel="partial search" title="Search"><span>Add Songs</span></a>')
             .appendTo('#playlistToolbar .right');
     }
     // TODO: END ---- This shouldn't be in Player.renderPlaylist()
@@ -404,8 +404,6 @@ Player.prototype.renderPlaylist = function(playlist) {
     $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
     });
-
-    player.renderRowColoring();
 };
 
 Player.prototype._onClickSong = function() {
@@ -460,16 +458,6 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
     
     // Keep our position in the playlist up to date in case we moved the current song
     songIndex = parseInt(playingItem.attr('id').substring(4));
-
-    this.renderRowColoring();
-};
-
-// Recolors the playlist rows
-Player.prototype.renderRowColoring = function() {
-    $('#playlist li')
-        .removeClass('odd')
-        .filter(':odd')
-        .addClass('odd');
 };
 
 // Show currently playing song
