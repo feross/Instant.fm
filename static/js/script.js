@@ -384,7 +384,7 @@ function setupLogin() {
                 success: function(json) {
                     // everything is ok. (server returned true)
                     if (json && json === true)  {
-                        log('Registration succeeded.');
+                        log('Login succeeded.');
                         loginStatusChanged();
                     // server-side validation failed. use invalidate() to show errors
                     } else {

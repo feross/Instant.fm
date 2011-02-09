@@ -42,6 +42,7 @@ class Application(tornado.web.Application):
             (r"/search/?$", SearchHandler),
             (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
+            (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
             (r"/([^/]+)/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
@@ -167,7 +168,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.db.execute('UPDATE sessions SET user_id=%s WHERE id=%s',
                         user_id,
                         session_id);
-        self.set_cookie('user_id', user_id)
+        self.set_cookie('user_id', str(user_id))
         self.set_cookie('user_name', urllib2.quote(user['name']))
         
 class ArtistAutocompleteHandler(BaseHandler):
@@ -545,10 +546,14 @@ class SignupHandler(BaseHandler):
                 errors[name] = 'The field "' + name + '" is required.' 
             
     def _send_errors(self, errors):
+        """ Send errors if there are any. """
+        if not errors:
+            return False
+        
         result = {'errors': errors, 'success': False}
         self.write(json.dumps(result))
         self.finish()
-        return
+        return True
     
     def _is_registered_fbid(self, fbid):
         return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
@@ -616,6 +621,33 @@ class FbSignupHandler(SignupHandler,
 class FbCheckHandler(SignupHandler):
     def get(self):
         self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
+        
+class LoginHandler(SignupHandler):
+    def post(self):
+        errors = {}
+        args = {
+            "email": ["required", "email"],
+            "password": ["required"],
+        }
+        self._validate_args(args, errors)
+        if self._send_errors(errors):
+            return
+        
+        user = self.db.get('SELECT * FROM users WHERE email=%s',
+                           self.get_argument('email', '', True))
+        if not user:
+            errors['email'] = 'No account matching that e-mail address found.'
+            if self._send_errors(errors):
+                return
+            
+        if self._hash_password(self.get_argument('password'), user.salt) != user.password:
+            errors['password'] = 'Incorrect password.'
+            if self._send_errors(errors):
+                return
+            
+        # If we haven't failed out yet, the login is valid.
+        self.log_user_in(user.id)
+        self.write(json.dumps(True))
         
 class LogoutHandler(SignupHandler):
     def post(self):
