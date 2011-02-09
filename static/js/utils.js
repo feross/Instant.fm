@@ -33,6 +33,7 @@ function scrollTo(selectedElem, _container, options) {
     }
 }
 
+// TODO: Remove this.
 // TODO: This shouldn't use IDs.
 // TODO: This shouldn't expect an empty div in the page with the id thumbId+'Zoom'
 // Make an image that opens a fancyzoom lightbox when clicked on
@@ -47,25 +48,6 @@ function makeFancyZoomImg(thumbId, src, alt) {
                .append('<img alt="'+alt+'" src="'+src+'">')
                .append('<span class="zoomIcon"></span>')
                .fancyZoom($.extend({}, appSettings.fancyZoom, {closeOnClick: true, scaleImg: true}));
-}
-
-function makeSeeMoreLink(onclick, _text) {
-    _text = _text || 'more';
-    return $('<a class="seeMore" href="#seeMore">('+_text+')</a>').click(onclick);
-}
-
-function makeEditLink(onclick) {
-    return $('<a class="editLink" href="#edit">Edit</a>')
-        .click(onclick);
-}
-
-function showThrobber(show) {
-    if (show) {
-        $('<div id="throbber"><img src="/images/throbber.gif"></div>')
-            .appendTo('#uploadDiv');
-    } else {
-        $('#throbber').remove();
-    }
 }
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
@@ -111,3 +93,21 @@ function canonicalize(name) {
         .replace(r, '-')
         .toLowerCase();
 }
+
+
+// These functions came for free with HTML5 Biolerplate
+
+window.log = function(){
+  log.history = log.history || [];   
+  log.history.push(arguments);
+  if(this.console){
+    console.log( Array.prototype.slice.call(arguments) );
+  }
+};
+(function(doc){
+  var write = doc.write;
+  doc.write = function(q){ 
+    log('document.write(): ',arguments); 
+    if (/docwriteregexwhitelist/.test(q)) write.apply(doc,arguments);  
+  };
+})(document);

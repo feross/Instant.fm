@@ -234,20 +234,12 @@ class PlaylistHandler(PlaylistBaseHandler):
             self.write(json.dumps(self._get_playlist_by_id(playlist_id)))
         else:
             playlist = self._get_playlist_by_id(playlist_id)
-            self._render_playlist_view('search.html', playlist);
-            
-    """ Convenience methods for use in templates. """
-    def hide_on_logout(self):
-        return 'class="hideOnLogout"' + (' style="display:none;"' if None == self.get_current_user() else '')        
-    
-    def hide_on_login(self):
-        return 'class="hideOnLogin"' + (' style="display:none;"' if self.get_current_user() else '')        
-    
+            self.render('playlist.html', playlist=playlist);
+   
     def render_user_name(self):
         user = self.get_current_user()
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
-        
     
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""

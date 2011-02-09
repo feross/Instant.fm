@@ -46,10 +46,10 @@
   
     <section id="browserDisplay">
       
-      <div class="front">
+      <div id="behind">
         
         <header class="iPhoneHeader" id="nowPlayingHeader">
-          <span class="left"><!-- dynamic back button --></span>
+          <span class="left"><!-- not used on now playing view --></span>
           <h1>Now Playing</h1>
           <a class="right" href="#flip">Search</a>
         </header>
@@ -130,13 +130,13 @@
               
         </div> <!-- end of #nowPlayingContainer -->
         
-      </div> <!-- end of #front -->
+      </div> <!-- end of #behind -->
       
-      <div class="back">
+      <div class="animate" id="modal">
         
         <header class="iPhoneHeader" id="browserHeader">
           <span class="left"><!-- dynamic back button --></span>
-          <h1>Now Playing</h1>
+          <h1><!-- dynamic title --></h1>
           <a class="right" href="#flip">Now Playing</a>
         </header>
         
@@ -149,7 +149,7 @@
           </div> <!-- end of #FS_slider -->
         </div> <!-- end of #browser -->
         
-      </div> <!-- end of #back -->
+      </div> <!-- end of #modal -->
      
     </section> <!-- end of #browserDisplay -->
 
