@@ -560,7 +560,6 @@ class SignupHandler(BaseHandler):
          
 class FbSignupHandler(SignupHandler, 
                       tornado.auth.FacebookGraphMixin):
-    @tornado.web.asynchronous
     def post(self):
         self.set_session_cookie()
         errors = {}
