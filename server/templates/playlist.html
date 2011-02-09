@@ -231,23 +231,30 @@
       </section>
     </div> <!-- end of #helpBox -->
     
-    <div id="registrationBox">
-      <div class="fancyZoomHeader">Log In or Sign Up</div>
-      <div class="loginForm">
+    <div id="loginBox">
+      <form id="login">
         <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
+        <div id="loginErrors"></div>
         <div class="formRow">
           <label> Email Address: </label>
-          <input type="text" name="email" value="" />
+          <input type="email" name="email" required="required"/>
         </div>
         <div class="formRow">
           <label> Password: </label>
-          <input type="password" name="password" value="" />
+          <input type="password" name="password" required="required"/>
         </div>
         <div class="formRow">
           <input type="checkbox" name="allow_passwordless" checked="checked" />
           <label> Let me login without a password on this browser </label>
         </div>
-      </div>
+        <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
+      </form>
+    </div>
+ 
+    </div>
+    
+    <div id="registrationBox">
+      <div class="fancyZoomHeader">Log In or Sign Up</div>
       <div class="loginForm">
         <div class="fancyZoomSectionHeader"> Create an Account </div>
         <a id="fbConnectButton" class="small darkblue awesome"> Connect your Facebook Account </a>

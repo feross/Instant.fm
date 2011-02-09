@@ -361,7 +361,46 @@ function setupRegistration() {
 }
 
 function setupLogin() {
-  
+    $('a[href="#login"]').colorbox({inline: true, href: "#loginBox"});
+        $("form#login").validator({
+        effect: 'wall', 
+        container: '#loginErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+    
+        var form = $(this);
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/login',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    // everything is ok. (server returned true)
+                    if (json && json === true)  {
+                        log('Registration succeeded.');
+                        loginStatusChanged();
+                    // server-side validation failed. use invalidate() to show errors
+                    } else {
+                        if (json && json.success === false && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            log('Login failt.');
+                        }
+                    }
+                },
+                error: function() { log('Error posting form ;_;'); },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        }
+    });
 }
 
 function setupLogout() {
