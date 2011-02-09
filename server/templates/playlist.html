@@ -296,7 +296,7 @@
 {% block scripts %}
   {% block scripts-partial %}{% end %}
   <script>
-    var initial_playlist = {{ playlist.replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
+    var initial_playlist = {{ json.dumps(playlist).replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
       $(function() {
           onloadPlaylist();
       });

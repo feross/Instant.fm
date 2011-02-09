@@ -190,13 +190,23 @@ class PlaylistBaseHandler(BaseHandler):
     def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
         print "Getting playlist ID: " + str(playlist_id)
-        playlist_entry = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
-        if not playlist_entry:
+        playlist = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
+        if not playlist:
             print "Couldn't find playlist"
             raise tornado.web.HTTPError(404)
         
-        playlist = self.makePlaylistJSON(playlist_entry)
-        return playlist
+        # Unfortunately, JSON encoding works a little funny if it's not a dictionary.
+        # Maybe it's a good idea to be explicit about which fields we send anyway.
+        playlist_dict = {
+            "id": playlist.playlist_id,
+            "title": playlist.title,
+            "description": playlist.description,
+            "user_id": playlist.user_id,
+            "session_id": playlist.session_id,
+            "songs": json.loads(playlist.songs),
+        }
+        
+        return playlist_dict
         
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name;
@@ -210,8 +220,8 @@ class PlaylistHandler(PlaylistBaseHandler):
     def _render_playlist_json(self, playlist_id):
         """Renders the specified playlist's JSON representation"""
         try:
-            playlist_entry = self._get_playlist_by_id(playlist_id)
-            self.write(playlist_entry)
+            playlist = self._get_playlist_by_id(playlist_id)
+            self.write(json.dumps(playlist))
         except:
             print "Couldn't find playlist"
             self.write(json.dumps({'status': 'Not found'}))
@@ -221,7 +231,7 @@ class PlaylistHandler(PlaylistBaseHandler):
     def get(self, playlist_alpha_id):
         playlist_id = self.base36_10(playlist_alpha_id)
         if self.get_argument('json', default=False):
-            self._render_playlist_json(playlist_id);
+            self.write(json.dumps(self._get_playlist_by_id(playlist_id)))
         else:
             playlist = self._get_playlist_by_id(playlist_id)
             self._render_playlist_view('search.html', playlist);
