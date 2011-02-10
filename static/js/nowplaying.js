@@ -19,6 +19,9 @@ function PlaylistView() {
     });
 }
 
+PlaylistView.prototype.updateOpenButtonText = function(text) {
+    $('#nowPlayingHeader .right').text(text).shorten({width: 140});  
+};
 
 // Update the currently playing song with Last.fm data
 // @t - song title

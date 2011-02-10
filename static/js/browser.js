@@ -2,6 +2,7 @@
 
 // Animated image slider code from: http://goo.gl/t3vPZ
 var MiniBrowser = function() {
+    this.viewStack = []; // A view for each page in the browser
     this.closedCSSTop; // The top position of the browser in it's closed state.
     this.isOpen = false;
     
@@ -22,121 +23,135 @@ var MiniBrowser = function() {
 };
 
 MiniBrowser.prototype.setupHandlers = function() {
-    // Link handlers for loading partials.
+    // Partial links
     $('a[rel~="partial"]').live('click', function(event) {
         event.preventDefault();
-        browser.pushPartial($(this).attr('href'), $(this).attr('rel'), $(this).attr('title'), {link: $(this)});
+        browser.pushPartial({
+            path: $(this).attr('href'),
+            type: $(this).attr('rel'),
+            title: $(this).attr('title'),
+            linkElem: $(this)
+        });
     });
     
-    // Link handlers for the back button.
+    // Mini-browser back button
     $('a[href="#back"]').live('click', function(event) {
-        event.preventDefault();
-		event.stopPropagation(); // Not sure why, but without this, clicking back causes two pops.
+        // Not sure why, but without stopPropagation(), clicking back causes two pops.
+        event.preventDefault();	event.stopPropagation();
         browser.pop();
     });
     
-    //     $('#nowPlayingHeader .right').click(function(event) {
-    //         event.preventDefault();
-    //         event.stopPropagation();
-    //  $('#browserDisplay').addClass('flip');
-    //  
-    //  if (!Modernizr.csstransforms && !Modernizr.csstransforms3d) {
-    //      log('No CSS tranform support. Using jQuery fallback.');
-    //  }
-    // });
-    // $('#browserHeader .right').click(function(event) {
-    //     event.preventDefault();
-    //         event.stopPropagation();
-    //  $('#browserDisplay').removeClass('flip');
-    //  
-    //  if (!Modernizr.csstransforms && !Modernizr.csstransforms3d) {
-    //      log('No CSS tranform support. Using jQuery fallback.');
-    //  }
-    // });
-};
-
-// Fetch a partial from the server, push it onto the minibrowser.
-MiniBrowser.prototype.pushPartial = function(path, type, title, _options) {
-    	
-	var delimeter = (path.indexOf('?') == -1) ? '?' : '&';
-	var newPath = path + delimeter + 'partial=true';
-	
-	// Push matching "view" onto minibrowser
-	var view;
-	switch(type) {
-		case 'partial search':
-			view = new SearchView();
-			break;
-		case 'partial artist':
-			view = new ArtistView(title);
-			break;
-		case 'partial album':
-		    view = new BaseView();
-			log('push album ' + title);
-			break;
-		case 'partial lyric':
-		    var $link = $(_options.link);
-		    view = new LyricView($link.attr('data-title'), $link.attr('data-artist'));
-		    break;
-		default:
-		    view = new BaseView();
-		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+_title+')');
-		    break;
-	}
-	
-	this.pushStatic(newPath, title, view);
-};
-
-// Push a static HTML file onto the browser.
-MiniBrowser.prototype.pushStatic = function(path, title, view) {
-    $.get(path, null, function(data, textStatus, xhr) {
-        var partial = $(data);
-        browser.push(partial, title, view);
+    // Open minibrowser
+    $('a[href="#open"]').live('click', function(event) {
+        event.preventDefault(); event.stopPropagation();
+        if (browser.viewStack.length > 0) {
+            browser.toggle(true);
+        } else {
+            browser.pushPartial({
+                path: '/search',
+                type: 'partial search',
+                title: 'Search',
+                linkElem: $(this)
+            });
+        }
+    });
+    
+    // Close minibrowser
+    $('a[href="#close"]').live('click', function(event) {
+        event.preventDefault(); event.stopPropagation();
+        browser.toggle(false);
     });
 };
 
-// Push a new element onto the browser. If a title is specified, then we'll show
-// a title header with a back button.
-MiniBrowser.prototype.push = function(elem, title, view) {    
-    var prevView = getTopView();
+MiniBrowser.prototype.getTopView = function() {
+  return this.viewStack[this.viewStack.length - 1];
+};
+
+// Fetch a partial from the server, push it onto the minibrowser.
+MiniBrowser.prototype.pushPartial = function(config) {
+	var delimeter = (config.path.indexOf('?') == -1) ? '?' : '&';
+	var newPath = config.path + delimeter + 'partial=true';
+	
+	// Push matching "view" onto minibrowser
+	var view;
+	switch(config.type) {
+		case 'partial search':
+			view = new SearchView(config);
+			break;
+		case 'partial artist':
+			view = new ArtistView(config);
+			break;
+		case 'partial album':
+		    view = new BaseView(config);
+			break;
+		case 'partial lyric':
+		    view = new LyricView(config);
+		    break;
+		default:
+		    view = new BaseView(config);
+		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+_title+')');
+		    break;
+	}
+	view.config = config;
+	this.pushStatic(newPath, view);
+};
+
+// Push a static HTML file onto the browser.
+MiniBrowser.prototype.pushStatic = function(path, view) {
+    // Don't push duplicate views.
+    var topPath = this.getTopView() && this.getTopView().config.path;
+    if (topPath && (topPath == path || topPath == view.config.path)) {
+        browser.toggle(true);
+        return;
+    }
+    
+    $.get(path, null, function(data, textStatus, xhr) {
+        var partial = $(data);
+        browser.push(partial, view);
+    });
+};
+
+// Push a new element onto the browser.
+MiniBrowser.prototype.push = function(elem, view) {    
+    var prevView = this.getTopView();
     prevView && prevView.willSleep();
 
     $(elem).appendTo('#FS_holder');
 
 	view.content = elem;
-	view.title = title;
-	viewStack.push(view);
+	this.viewStack.push(view);
 	view.willSlide();  // Tell the view to do anything it has to now that content is in DOM	
+    
+    this._slideTo(this.viewStack.length);
         
-    this._slideTo(viewStack.length);
-    
-    this._updateHeader();
-    
+    var slideAnimationDuration;
     if (browser.isOpen) {
-        window.setTimeout(function() {
-            view && view.didSlide();
-        }, 300);
+        slideAnimationDuration = 300;
     } else {
-        view && view.didSlide();
+        slideAnimationDuration = 1000;
+        this.toggle(true);
     }
+    window.setTimeout(function() {
+        view && view.didSlide();
+    }, slideAnimationDuration);
 };
 
 // Pop the top-most page off of the browser.
 MiniBrowser.prototype.pop = function() {
-    if (!getTopView() || viewStack.length <= 1) {
+    if (!this.getTopView() || this.viewStack.length <= 1) {
         return;
     }
     
     // Tell the view controller it's going to be popped, then pop it
-	var view = getTopView();
+	var view = this.getTopView();
     view.willSleep();
     view.willPop();
-    viewStack.pop();
+    this.viewStack.pop();
     
     // Tell the new top view that it's about to be awoken
-    getTopView().willAwake();
+    this.getTopView().willAwake();
     
-    browser._slideTo(viewStack.length);
+    this._slideTo(this.viewStack.length);
 	window.setTimeout(function() {
 		$(view.content).remove();
 	}, 300);
@@ -169,20 +184,22 @@ MiniBrowser.prototype._slideTo = function(slide) {
 };
 
 MiniBrowser.prototype._updateHeader = function() {
-    var title = getTopView().title || '';
-    $('#browserHeader h1').text(title);
+    var title = this.getTopView().config.title || '';
+    $('#browserHeader h1').text(title).shorten({width: 300});
     
     var leftButton;
-    if (viewStack.length > 1) {
-        leftButton = $('<a class="left prev" href="#back">Back</a>');
+    if (this.viewStack.length > 1) {
+        var prevTitle = this.viewStack[this.viewStack.length-2].config.title;
+        leftButton = $('<a class="left prev blue" href="#back">'+prevTitle+'</a>').shorten({width: 70});
     } else {
         leftButton = $('<span class="left"></span>');
     }
     $('#browserHeader .left').replaceWith(leftButton);
 };
 
+// Show or hide the modal browser.
 MiniBrowser.prototype.toggle = function(toggle) {
-    this.isOpen = (toggle !== undefined) ? toggle : !this.isOpen;
+    this.isOpen = (toggle === undefined) ? !this.isOpen : toggle;
     
     if (this.isOpen) {
         var pixels = 0;

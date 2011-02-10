@@ -11,7 +11,7 @@
     
     <nav>
       <a href="#new">New Playlist</a>
-      <a href="/search" rel="partial search" id="searchLink" title="Search Instant.fm">Search</a>
+      <a href="/search" rel="partial search" id="searchLink" title="Search">Search</a>
       <a href="#myLists">My Playlists</a>
       <a id="registrationLink" class="hideOnLogin" href="#signUp">Sign up</a>
       <a class="hideOnLogin" href="#login">Login</a>
@@ -49,10 +49,10 @@
       
       <div id="behind">
         
-        <header class="iPhoneHeader" id="nowPlayingHeader">
+        <header class="iPhoneHeader black" id="nowPlayingHeader">
           <span class="left"><!-- not used on now playing view --></span>
           <h1>Now Playing</h1>
-          <a class="right" href="#flip">Search</a>
+          <a class="right black" href="#open">Search</a>
         </header>
         
         <div id="nowPlayingContainer">
@@ -135,10 +135,10 @@
       
       <div class="animate" id="modal">
         
-        <header class="iPhoneHeader" id="browserHeader">
+        <header class="iPhoneHeader blue" id="browserHeader">
           <span class="left"><!-- dynamic back button --></span>
           <h1><!-- dynamic title --></h1>
-          <a class="right" href="#flip">Now Playing</a>
+          <a class="right black" href="#close">Now Playing</a>
         </header>
         
         <div id="browser">
@@ -203,10 +203,6 @@
       <section class="helpSection">
         <div class="fancyZoomSectionHeader">Playlist Editing</div>
         <dl class="clearfix shortcut">
-          <dt class="key">A</dt>
-          <dd class="action">Add songs</dd>
-        </dl>
-        <dl class="clearfix shortcut">
           <dt class="key">K</dt>
           <dd class="action">Move current song up</dd>
         </dl>
@@ -217,6 +213,10 @@
       </section>
       <section class="helpSection">
         <div class="fancyZoomSectionHeader">Navigation</div>
+        <dl class="clearfix shortcut">
+          <dt class="key">F</dt>
+          <dd class="action">Search for songs</dd>
+        </dl>
         <dl class="clearfix shortcut">
           <dt class="key">L</dt>
           <dd class="action">Go to Current Song</dd>

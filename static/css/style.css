@@ -260,7 +260,7 @@ a.awesome:hover { text-decoration: none; }
 /* Primary Styles */
 
 body {
-    background: #000 url('/images/bob-marley.jpg') top left repeat;
+    background: #000 url('/images/fullmetal.jpg') top left repeat;
     text-align: center;
 }
 
@@ -525,11 +525,8 @@ input.file {
     border-bottom-right-radius:5px;
 }
 
-.left { float: left; }
-.right { float: right; }
-
-#playlistToolbar .left a { border-right: 1px #999 solid; }
-#playlistToolbar .right a { border-left: 1px #999 solid; }
+#playlistToolbar .left a { border-right: 1px #999 solid; float: left; }
+#playlistToolbar .right a { border-left: 1px #999 solid; float: right; }
 
 #toggleRepeat span {
     background: transparent url('/images/repeat.png') left center no-repeat;
@@ -625,7 +622,7 @@ input.file {
         color-stop(0.51, rgb(127,148,176)),
         color-stop(1, rgb(109,131,161))
     ) top left no-repeat;
-    background-image: transparent -moz-linear-gradient(
+    background: transparent -moz-linear-gradient(
         top center,
         rgb(181,192,206) 0%,
         rgb(136,155,179) 50%,
@@ -642,8 +639,26 @@ input.file {
     border-top-right-radius:5px;
 }
 
+.iPhoneHeader.black {
+    background: transparent -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        color-stop(0, rgba(99,99,99,0.8)),
+        color-stop(0.5, rgba(34,36,36,0.8)),
+        color-stop(0.51, rgba(23,25,30,0.8)),
+        color-stop(1, rgba(0,0,0,0.8))
+    ) top left no-repeat;
+    background: transparent -moz-linear-gradient(
+        top center,
+        rgba(99,99,99,0.8) 0%,
+        rgba(34,36,36,0.8) 50%,
+        rgba(23,25,30,0.8) 51%,
+        rgba(0,0,0,0.8) 100%
+    ) top left no-repeat;
+}
+
 .iPhoneHeader a {
-    background: url('/images/navbutton-center.png');
     color: #fff;
     font-size: 13px;
     font-weight: 400;
@@ -652,6 +667,8 @@ input.file {
     -moz-opacity: 0.9;
     filter: alpha(opacity: 90);
     opacity: 0.9;
+    position: absolute;
+    text-decoration: none;
     text-shadow: 0 -1px 0 rgba(0,0,0,.4);
     top: 7px;
 }
@@ -659,37 +676,77 @@ input.file {
 .iPhoneHeader a.left { left: 20px; }
 .iPhoneHeader a.right { right: 20px; }
 
-.iPhoneHeader a, .iPhoneHeader a:before, .iPhoneHeader a:after {
-  position: absolute;
+.iPhoneHeader a.blue {
+    background: url('/images/navbutton-center.png');
 }
+.iPhoneHeader a.black {
+    background: transparent -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        color-stop(0, rgb(125,125,125)),
+        color-stop(0.5, rgb(50,50,50)),
+        color-stop(0.51, rgb(23,25,30)),
+        color-stop(1, rgb(0,0,0))
+    ) top left no-repeat;
+    background: transparent -moz-linear-gradient(
+        top center,
+        rgb(99,99,99) 0%,
+        rgb(34,36,36) 50%,
+        rgb(23,25,30) 51%,
+        rgb(0,0,0) 100%
+    ) top left no-repeat;
+    
+    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,0.9);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.9);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.9);
+    
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
 
-.iPhoneHeader a:before {
-  left: -10px;
-  content: url('/images/navbutton-left-side.png');
+    height: 30px;
+    padding: 0 8px;
 }
-.iPhoneHeader a:after {
-  right: -10px;
-  top: 0;
-  content: url('/images/navbutton-right-side.png');
-}
-
-.iPhoneHeader a.prev:before {
-  left: -13px;
-  content: url('/images/navbutton-left-arr.png');
-}
-.iPhoneHeader a.next:after {
-  right: -13px;
-  top: 0;
-  content: url('/images/navbutton-right-arr.png');
-}
-
 .iPhoneHeader a:active {
     -moz-opacity: 0.65;
     filter: alpha(opacity: 65);
     opacity: 0.65;
 }
-.iPhoneHeader a {
-  text-decoration: none;
+
+/*.iPhoneHeader.blue a.prev, .iPhoneHeader.blue a.prev:before, .iPhoneHeader.blue a.prev:after,
+.iPhoneHeader.blue a.next, .iPhoneHeader.blue a.next:before, .iPhoneHeader.blue a.next:after {
+    position: absolute;
+}*/
+
+.iPhoneHeader a.blue:before, .iPhoneHeader a.blue:after {
+    position: absolute;
+}
+
+.iPhoneHeader a.blue.prev:before {
+    left: -13px;
+    content: url('/images/navbutton-left-arr.png');
+}
+.iPhoneHeader a.blue.prev:after {
+    right: -10px;
+    top: 0;
+    content: url('/images/navbutton-right-side.png');
+}
+
+.iPhoneHeader a.blue.next:before {
+    left: -10px;
+    content: url('/images/navbutton-left-side.png');
+}
+.iPhoneHeader a.blue.next:after {
+    right: -13px;
+    top: 0;
+    content: url('/images/navbutton-right-arr.png');
+}
+
+#modal a.right {
+    -moz-opacity: 0.8;
+    filter: alpha(opacity: 80);
+    opacity: 0.8;
 }
 
 #browserDisplay #behind {
@@ -1159,7 +1216,9 @@ a:hover .zoomIcon {
     cursor: pointer;
 }
 
-#playlist .songListItem.odd { background-color: rgb(255,255,255); }
+#playlist .songListItem:nth-child(even) {
+    background-color: rgb(255,255,255);
+}
 
 #playlist .songListItem:hover { background-color: rgb(197,222,254); }
 

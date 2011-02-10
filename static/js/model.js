@@ -4,7 +4,7 @@ function Model(playlist) {
     playlist && this.updatePlaylist(playlist);
     
     var cache;
-    if (!Modernizr.localstorage) {
+    if (Modernizr.localstorage) {
 	    cache = new LastFMCache();
 	}
 	this.lastfm = new LastFM({
