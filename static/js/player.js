@@ -338,7 +338,6 @@ Player.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist').remove(); // clear the playlist
     $('.editLink').remove(); // remove all edit links
-    $('#addSongs').remove(); // remove the add button (if it exists)
     
     // Render Playlist
     this.songlist = new SongList({

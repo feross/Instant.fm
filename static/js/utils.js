@@ -150,7 +150,7 @@ function eraseCookie(name) {
 function loginStatusChanged() {
     var user_id = readCookie('user_id');
     var user_name = readCookie('user_name');
-    if (user_id && user_name) {
+    if (isLoggedIn()) {
         $('html').addClass('loggedIn');
         $('html').removeClass('loggedOut');
         $('.username').html(unescape(user_name));
@@ -158,12 +158,45 @@ function loginStatusChanged() {
         $('html').addClass('loggedOut');
         $('html').removeClass('loggedIn');
     }
+    ownershipStatusChanged();
+}
+
+function isLoggedIn() {
+    var user_id = readCookie('user_id');
+    var user_name = readCookie('user_name');
+    var session_num = readCookie('session_num');
+    return (user_id && user_name && session_num);
 }
 
 function logout() {
     eraseCookie('user_id');
     eraseCookie('user_name');
     eraseCookie('session_id');
+    eraseCookie('session_num');
     loginStatusChanged();
+    return false;
+}
+
+function ownershipStatusChanged() {
+    if (isOwner()) {
+        $('html').addClass('isOwner');
+        $('html').removeClass('isNotOwner');
+	    var user_name = readCookie('user_name');
+        $('.username').html(unescape(user_name));
+    } else {
+        $('html').addClass('isNotOwner');
+        $('html').removeClass('isOwner');
+    }        
+}
+
+function isOwner() {
+    var user_id = readCookie('user_id');
+    var session_num = readCookie('session_num');
+    if ((user_id && user_id == model.user_id) ||
+        (session_num && session_num == model.session_id)) {
+        
+        return true;
+    }
+    
     return false;
 }

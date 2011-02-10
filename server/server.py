@@ -112,27 +112,7 @@ class BaseHandler(tornado.web.RequestHandler):
             alpha_id = char + alpha_id
             
         return alpha_id
-    
-    def makePlaylistJSON(self, playlist_entry):
-        """Generate a playlist's JSON representation"""
-        user_cookie = self.get_secure_cookie('session_id')
-        if user_cookie is None:
-            editable = False
-        else:    
-            editable = (long(user_cookie) == playlist_entry.user_id)
-        
-        alpha_id = self.base10_36(playlist_entry.playlist_id)
-        title = playlist_entry.title
-        description = playlist_entry.description
-        songs = playlist_entry.songs
-        
-        # This is a bit of a hack to build up a JSON string that contains pre-converted
-        # JSON data (the songs array), which must not be converted again"""
-        playlist = ('{"playlist_id": ' + json.dumps(alpha_id) + ', "title": ' + json.dumps(title) +
-            ', "description": ' + json.dumps(description) + ', "songs": ' + songs +
-            ', "editable": ' + json.dumps(editable) + '}')
-        return playlist
-    
+   
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
         if status_code == 404:
@@ -143,13 +123,19 @@ class BaseHandler(tornado.web.RequestHandler):
                 
         return super(BaseHandler, self).get_error_html(status_code, **kwargs)
         
-    def set_session_cookie(self):
+    def set_secure_session_cookie(self, 
+                                   user_id=None, 
+                                   expire_on_browser_close=False,
+                                   overwrite=False):
         """Checks if a user_id cookie is set and sets one if not"""
+        expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
-        if not session_id:
+        if overwrite or not session_id:
             create_date = datetime.utcnow().isoformat(' ')
-            new_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (%s);", create_date)
-            self.set_secure_cookie('session_id', str(new_id))
+            new_id = self.db.execute("INSERT INTO sessions (create_date, user_id) VALUES (%s, %s);", 
+                                     create_date,
+                                     str(user_id) if user_id else 'NULL')
+            self.set_secure_cookie('session_id', str(new_id), expires_days=expires_days)
             return new_id
         else:
             return session_id
@@ -161,15 +147,22 @@ class BaseHandler(tornado.web.RequestHandler):
                                session_id)
         else:
             return None
+        
+    def user_owns_playlist(self, playlist):
+        session_id = self.get_secure_cookie('session_id')
+        user = self.get_current_user()
+        return ((session_id and session_id == playlist['session_id']) 
+                or (user and user.id == playlist['user_id']))
           
-    def log_user_in(self, user_id):
-        session_id = self.set_session_cookie()
+    def log_user_in(self, user_id, expire_on_browser_close=False):
+        self.set_secure_session_cookie(user_id=user_id, 
+                                       expire_on_browser_close=expire_on_browser_close,
+                                       overwrite=True)
         user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
-        self.db.execute('UPDATE sessions SET user_id=%s WHERE id=%s',
-                        user_id,
-                        session_id);
-        self.set_cookie('user_id', str(user_id))
-        self.set_cookie('user_name', urllib2.quote(user['name']))
+        expires_days = 30 if not expire_on_browser_close else None
+        self.set_cookie('user_id', str(user_id), expires_days=expires_days)
+        self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
+        self.set_cookie('session_num', str(self.get_secure_cookie('session_id')), expires_days=expires_days)
         
 class ArtistAutocompleteHandler(BaseHandler):
     def get(self):
@@ -519,7 +512,7 @@ class UploadHandler(BaseHandler):
         return playlist
     
     def post(self):
-        self.set_session_cookie()
+        self.set_secure_session_cookie()
         result = self._handle_request()
         
         if self.get_argument('redirect', 'false') == 'true':
@@ -563,7 +556,7 @@ class SignupHandler(BaseHandler):
 class FbSignupHandler(SignupHandler, 
                       tornado.auth.FacebookGraphMixin):
     def post(self):
-        self.set_session_cookie()
+        self.set_secure_session_cookie()
         errors = {}
         args = {'name': ['required'],
                 'email': ['required','email'],
@@ -612,7 +605,7 @@ class FbSignupHandler(SignupHandler,
                             user_id,
                             self.get_secure_cookie('session_id'))
             
-            self.log_user_in(str(user_id))
+            self.log_user_in(user_id)
             self.write(json.dumps(True))
             self.finish()
         else:
@@ -647,7 +640,9 @@ class LoginHandler(SignupHandler):
                 return
             
         # If we haven't failed out yet, the login is valid.
-        self.log_user_in(user.id)
+        expire_on_browser_close = not self.get_argument('passwordless', False)
+        print('Expire on browser close: ' + str(expire_on_browser_close))
+        self.log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
 class LogoutHandler(SignupHandler):

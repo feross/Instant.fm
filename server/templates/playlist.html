@@ -8,7 +8,7 @@
     <a class="ir" href="/" id="headerLogo">
       <h1>Instant.fm - Share Music Playlists Instantly</h1>
     </a>
-  
+    
     <nav>
       <a href="#new">New Playlist</a>
       <a href="/search" rel="partial search" id="searchLink" title="Search">Search</a>
@@ -39,7 +39,9 @@
           <a href="#toggleShuffle" id="toggleShuffle"><span>Shuffle</span></a>
           <a href="#toggleRepeat" id="toggleRepeat"><span>Repeat</span></a>
         </div>
-        <div class="right"></div>
+        <div class="right">
+          <a href="/search" class="mustOwn" id="addSongs" rel="partial search" title="Add Songs"><span>Add Songs</span></a>
+        </div>
       </div>
       
     </section> <!-- end of #playlistDisplay -->
@@ -244,9 +246,10 @@
           <input type="password" name="password" required="required"/>
         </div>
         <div class="formRow">
-          <input type="checkbox" name="allow_passwordless" checked="checked" />
+          <input type="checkbox" name="passwordless" checked="checked" />
           <label> Let me login without a password on this browser </label>
         </div>
+        {{ xsrf_form_html() }}
         <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
       </form>
     </div>
