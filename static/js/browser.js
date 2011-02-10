@@ -45,7 +45,7 @@ MiniBrowser.prototype.setupHandlers = function() {
     $('a[href="#open"]').live('click', function(event) {
         event.preventDefault(); event.stopPropagation();
         if (browser.viewStack.length > 0) {
-            browser.toggle(true);
+            browser.toggle(true, true);
         } else {
             browser.pushPartial({
                 path: '/search',
@@ -101,7 +101,7 @@ MiniBrowser.prototype.pushStatic = function(path, view) {
     // Don't push duplicate views.
     var topPath = this.getTopView() && this.getTopView().config.path;
     if (topPath && (topPath == path || topPath == view.config.path)) {
-        browser.toggle(true);
+        browser.toggle(true, true);
         return;
     }
     
@@ -129,7 +129,7 @@ MiniBrowser.prototype.push = function(elem, view) {
         slideAnimationDuration = 300;
     } else {
         slideAnimationDuration = 1000;
-        this.toggle(true);
+        this.toggle(true, false);
     }
     window.setTimeout(function() {
         view && view.didSlide();
@@ -198,14 +198,33 @@ MiniBrowser.prototype._updateHeader = function() {
 };
 
 // Show or hide the modal browser.
-MiniBrowser.prototype.toggle = function(toggle) {
-    this.isOpen = (toggle === undefined) ? !this.isOpen : toggle;
+// @param awaken = whether the browser is just being re-opened (nothing has been pushed)
+MiniBrowser.prototype.toggle = function(toggle, awaken) {
+    toggle = (toggle === undefined) ? !this.isOpen : toggle;
+    awaken = (awaken === undefined) ? false : awaken;
     
-    if (this.isOpen) {
+    if (toggle) {
         var pixels = 0;
+        
+        if (awaken) {
+            this.getTopView() && this.getTopView().willAwake();
+            
+            if (this.isOpen) { // was already open
+                browser.getTopView() && browser.getTopView().didAwake();
+                
+            } else { // was closed
+                window.setTimeout(function() {
+                    browser.getTopView() && browser.getTopView().didAwake();
+                }, 1000);
+            }
+        }
+        
     } else {
         var pixels = browser.closedCSSTop;
+        this.getTopView() && this.getTopView().willSleep();
     }
+    
+    this.isOpen = toggle;
         
     if (Modernizr.csstransforms3d && Modernizr.csstransforms && Modernizr.csstransitions) {
         $('#modal').css(this.vP+"transform","translate3d(0px, "+pixels+"px, 0px)");

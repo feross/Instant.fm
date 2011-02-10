@@ -57,7 +57,7 @@ function setupKeyboardShortcuts() {
             switch(k) {
                 // TODO: Remove this. For testing.
                 case 87: // w
-                    browser.toggle();
+                    browser.toggle(undefined, true);
                     break;
                 
                 // Playback control

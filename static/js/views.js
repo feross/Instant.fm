@@ -1,10 +1,10 @@
 /* ---------------------------- BASE VIEW ---------------------------- */
 
-/* All views should extend this one! */
+// All views should extend this one!
 function BaseView() {
 };
 
-/* Called after content is added to DOM but before animation. */
+// Called after content is added to DOM but before animation.
 BaseView.prototype.willSlide = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
@@ -22,19 +22,18 @@ BaseView.prototype.willSleep = function(config) {
     $('input, textarea', this.content).blur();
 };
 
-/* Called when another view gets popped and this one re-appears.
- */
+// Called when another view gets popped and before this one re-appears.
 BaseView.prototype.willAwake = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
-    // log(this.subclass.config.title);
     playlistview.updateOpenButtonText(config.title);
 };
+
+// Called when another view was popped and this one has re-appeared.
+BaseView.prototype.didAwake = function(config) {
+};
   
-/* Called immediately before the view is popped.
- * I can't think of any circumstance when we'll use this, but might as 
- * well have it. 
- */
+// Called immediately before the view is popped.
 BaseView.prototype.willPop = function(config) {
 };
 
@@ -64,6 +63,10 @@ SearchView.prototype.willSleep = function() {
 
 SearchView.prototype.willAwake = function() {
     this.BaseView.prototype.willAwake(this.config);
+};
+
+SearchView.prototype.didAwake = function() {
+    this.BaseView.prototype.didAwake(this.config);
     $('.searchBox input.search', this.content).focus();
 };
 
@@ -308,6 +311,10 @@ ArtistView.prototype.willAwake = function() {
     this.BaseView.prototype.willAwake(this.config);
 };
 
+ArtistView.prototype.didAwake = function() {
+    this.BaseView.prototype.didAwake(this.config);
+};
+
 ArtistView.prototype.willPop = function() {
     this.BaseView.prototype.willPop(this.config);
 };
@@ -503,7 +510,11 @@ LyricView.prototype.willAwake = function() {
     this.BaseView.prototype.willAwake(this.config);
 };
 
-SearchView.prototype.willPop = function() {
+LyricView.prototype.didAwake = function() {
+    this.BaseView.prototype.didAwake(this.config);
+};
+
+LyricView.prototype.willPop = function() {
     this.BaseView.prototype.willPop(this.config);
 };
 
