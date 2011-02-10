@@ -191,7 +191,7 @@ class PlaylistBaseHandler(BaseHandler):
         # Unfortunately, JSON encoding works a little funny if it's not a dictionary.
         # Maybe it's a good idea to be explicit about which fields we send anyway.
         playlist_dict = {
-            "playlist_id": playlist.playlist_id,
+            "playlist_id": self.base10_36(playlist.playlist_id),
             "title": playlist.title,
             "description": playlist.description,
             "user_id": playlist.user_id,
