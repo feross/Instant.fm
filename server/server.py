@@ -129,7 +129,6 @@ class BaseHandler(tornado.web.RequestHandler):
                                    overwrite=False):
         """Checks if a user_id cookie is set and sets one if not"""
         expires_days = None if expire_on_browser_close else 30
-        print('Secure cookie expires: ' + str(expires_days))
         session_id = self.get_secure_cookie('session_id')
         if overwrite or not session_id:
             create_date = datetime.utcnow().isoformat(' ')
@@ -148,6 +147,12 @@ class BaseHandler(tornado.web.RequestHandler):
                                session_id)
         else:
             return None
+        
+    def user_owns_playlist(self, playlist):
+        session_id = self.get_secure_cookie('session_id')
+        user = self.get_current_user()
+        return ((session_id and session_id == playlist['session_id']) 
+                or (user and user.id == playlist['user_id']))
           
     def log_user_in(self, user_id, expire_on_browser_close=False):
         self.set_secure_session_cookie(user_id=user_id, 

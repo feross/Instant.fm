@@ -155,6 +155,7 @@ function loginStatusChanged() {
         $('html').addClass('loggedOut');
         $('html').removeClass('loggedIn');
     }
+    ownershipStatusChanged();
 }
 
 function isLoggedIn() {
@@ -171,6 +172,18 @@ function logout() {
     eraseCookie('session_num');
     loginStatusChanged();
     return false;
+}
+
+function ownershipStatusChanged() {
+    if (isOwner()) {
+        $('html').addClass('isOwner');
+        $('html').removeClass('isNotOwner');
+	    var user_name = readCookie('user_name');
+        $('.username').html(unescape(user_name));
+    } else {
+        $('html').addClass('isNotOwner');
+        $('html').removeClass('isOwner');
+    }        
 }
 
 function isOwner() {
