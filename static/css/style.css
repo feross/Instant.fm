@@ -561,26 +561,32 @@ input.file {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-}
-
-#browserDisplay > div {
-    background-color: #f3f3f7;
-    background: -webkit-gradient(
-        linear,
-        left top, right top,
-        color-stop(0.3, rgba(255,255,255,0.8)),
-        color-stop(0.7, rgba(249,249,251,0.8)),
-        color-stop(1, rgba(243,243,247,0.8))
-    );
     border-left: #666 solid 1px;
-    font-size: 14px;
-    position: relative;
-    width: 519px;
 }
 
 #FS_slider, #nowPlayingContainer {
 	width: 519px;
 	position: relative; /* IE6,7 bugfix */    
+}
+
+#nowPlayingContainer {
+    background-color: #f3f3f7;
+    background: transparent -webkit-gradient(
+        linear,
+        left top, right top,
+        color-stop(0.3, rgba(255,255,255,0.8)),
+        color-stop(0.7, rgba(249,249,251,0.8)),
+        color-stop(1, rgba(243,243,247,0.8))
+    ) top left no-repeat;
+    background: transparent -moz-linear-gradient(
+        top right,
+        rgba(255,255,255,0.8) 30%,
+        rgba(249,249,251,0.8) 70%,
+        rgba(243,243,247,0.8) 100%
+    ) top left no-repeat;
+    font-size: 14px;
+    position: relative;
+    width: 519px;
 }
 
 #FS_holder {
@@ -709,9 +715,9 @@ input.file {
     padding: 0 8px;
 }
 .iPhoneHeader a:active {
-    -moz-opacity: 0.65;
-    filter: alpha(opacity: 65);
-    opacity: 0.65;
+    -moz-opacity: 0.65 !important;
+    filter: alpha(opacity: 65) !important;
+    opacity: 0.65 !important;
 }
 
 /*.iPhoneHeader.blue a.prev, .iPhoneHeader.blue a.prev:before, .iPhoneHeader.blue a.prev:after,
@@ -1027,7 +1033,7 @@ a:hover .zoomIcon {
 .artistResult, .albumResult {
     float: left;
     height: 150px;
-    margin: 0 10px 5px 0;
+    margin: 0 10px 10px 0;
     position: relative;
     width: 150px;
 }
