@@ -1,13 +1,12 @@
 var model;
 var player;
-var playlistview;
+var nowplaying;
 var browser;
 
 var songIndex; // Current position in the playlist
 var keyEvents = true; // Used to disable keyboard shortuts
 
 var appSettings = {
-    fancyZoom: {directory: '/images/fancyzoom'},
     jeditable: {
         event: 'editable', // custom jQuery event
         onblur: 'ignore',
@@ -47,7 +46,7 @@ function onloadHome() {
 function onloadPlaylist() {
     model = new Model();
     player = new Player();
-    playlistview = new PlaylistView();
+    nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
     setupAutogrowInputType();
@@ -70,7 +69,9 @@ function onloadPlaylist() {
     setupRegistration();
     setupLogin();
     setupLogout();
-    $('#helpLink').fancyZoom(appSettings.fancyZoom);
+    
+    // TODO: Fix help link
+    // $('#helpLink').fancyZoom(appSettings.fancyZoom);
    
     setupDragDropUploader('p', player.loadPlaylist);
 }

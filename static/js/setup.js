@@ -172,7 +172,7 @@ function setupFBML(playlist) {
           }, {perms:'email,publish_stream'});
         });
          
-        playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        playlist && nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {

@@ -59,31 +59,35 @@
         <div id="nowPlayingContainer">
           
           <section id="nowPlaying" class="slide">
-            <section id="curPlaylist">
+            
+            <section id="curPlaylist"></section>
+            
+            <script id="curPlaylistTemplate" type="text/x-jquery-tmpl">
               <header class="clearfix">
-                <h2 id="curPlaylistTitle">&nbsp;</h2>
+                <h2 id="curPlaylistTitle">${title}</h2>
               </header>
+            
               <article>
-                <span id="curPlaylistDesc">&nbsp;</span>
+                <span id="curPlaylistDesc">${description}</span>
               </article>
-
-              <section id="playlistActions">
-                <a href="#addComment" id="addComment" class="awesome white">
-                  Add a Comment
-                </a>
-                <a href="#fbShare" id="fbShare" class="darkblue awesome">
-                  Share on Facebook
-                </a>
-                <a href="#twShare" id="twShare" class="blue awesome">
-                  Share on Twitter
-                </a>
-              </section> <!-- end of #playlistActions -->
-
-              <!-- <a href="#TODO" id="curPlaylistAuthor">
-                <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-                <div>Feross Aboukhadijeh</div>
-              </a> -->
-            </section>
+            </script>
+            
+            <!-- <a href="#TODO" id="curPlaylistAuthor">
+              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+              <div>Feross Aboukhadijeh</div>
+            </a> -->
+            
+            <section id="playlistActions">
+              <a href="#addComment" id="addComment" class="awesome white">
+                Add a Comment
+              </a>
+              <a href="#fbShare" id="fbShare" class="darkblue awesome">
+                Share on Facebook
+              </a>
+              <a href="#twShare" id="twShare" class="blue awesome">
+                Share on Twitter
+              </a>
+            </section> <!-- end of #playlistActions -->
 
             <!-- Facebook comments are loaded with JS here -->
 
@@ -91,39 +95,51 @@
               <header>
                 <h3>Currently Playing</h3>
               </header>
-              <div class="clearfix" id="curAlbumBlock">
-                <div id="curAlbumImg">
-                  <span class="zoomIcon">&nbsp;</span>
-                </div>
+              
+              
+              <div class="clearfix" id="curAlbumBlock"></div>
+              <script id="curAlbumBlockTemplate" type="text/x-jquery-tmpl">
+                <a id="curAlbumImg" class="reflect" href="#" title="${albumTitle}">
+                  <img alt="${albumAlt}" src="${albumImg}">
+                  <span class="zoomIcon"></span>
+                </a>
                 <div id="curAlbumInfo">
+                
                   <div id="curSong">
-                    <h4>&nbsp;</h4>
+                    <h4>${trackName}</h4>
                   </div>
-                  <div id="curArtist">
-                    <span class="curLabel">by</span> 
-                    <h4>&nbsp;</h4>
-                  </div>
-                  <div id="curAlbum">
+                  
+                  {{'{{'}}if artistName && artistHref}}
+                    <div id="curArtist">
+                      <span class="curLabel">by</span> 
+                      <h4><a href="${artistHref}" title="${artistName}" rel="partial artist">${artistName}</a></h4>
+                    </div>
+                  {{'{{'}}/if}}
+                  <div id="curAlbum" style="display:none;">
                     <span class="curLabel">on</span> 
-                    <h4>&nbsp;</h4>
+                    <h4></h4>
                   </div>
+                  
                   <div id="curLyric"></div>
+                  
                 </div>
-                <!-- <fb:like href="http://dev.instant.fm/#" show_faces="false" width="300" colorscheme="dark"></fb:like> -->
-              </div> <!-- end of #curAlbumBlock -->
-
+              </script>
               <div id="curDescs">
-                <section id="curSongDesc">
-                  <h4>&nbsp;</h4> 
-                  <article>&nbsp;</article>
-                </section>
-                <section class="artistDesc">
-                  <h4>&nbsp;</h4>
-                  <span class="artistImg" id="curArtistImg">
-                    <span class="zoomIcon">&nbsp;</span>
-                  </span>
-                  <article>&nbsp;</article>
-                </section>
+                <section id="curSongDesc"></section>
+                <script id="curSongDescTemplate" type="text/x-jquery-tmpl">
+                  <h4>${trackName}</h4> 
+                  <article>${trackDescription}</article>
+                </script>
+                
+                <section class="artistDesc" id="curArtistDesc"></section>
+                <script id="curArtistDescTemplate" type="text/x-jquery-tmpl">
+                  <h4>${artistName}</h4>
+                  <a id="curArtistImg" class="artistImg reflect" href="#" title="${artistName}">
+                    <img alt="${artistName}" src="${artistImg}">
+                    <span class="zoomIcon"></span>
+                  </a>
+                  <article>${artistDescription}</article>
+                </script>
               </div> <!-- end of #curDescs -->
 
             </section> <!-- end of #curPlaying -->
@@ -253,9 +269,7 @@
         <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
       </form>
     </div>
- 
-    </div>
-    
+     
     <div id="registrationBox">
       <div class="fancyZoomHeader">Log In or Sign Up</div>
       <div class="loginForm">

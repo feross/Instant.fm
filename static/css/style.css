@@ -890,7 +890,7 @@ a:hover .zoomIcon {
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
 
-#curSong h4, #curArtist h4, #curAlbum h4, #curLyric h5 {
+#curAlbumBlock h4 {
     display: inline-block;
     font-size: 15px;
     margin: 0 0 4px 0;
@@ -899,13 +899,12 @@ a:hover .zoomIcon {
 
 #curSong h4 { font-size: 20px; }
 
-#curAlbum { display: 0; /* starting value */ }
-
 #curLyric { font-size: 12px; font-style: italic; margin-top: 15px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
 #curDescs section { margin: 25px 0 0 0; }
+#curDescs #curArtistDesc { margin-bottom: 10px; }
 
 #curSongDesc { clear: left; }
 

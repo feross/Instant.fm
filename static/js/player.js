@@ -85,7 +85,7 @@ Player.prototype.playSong = function(i) {
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
 
-    playlistview.updateCurPlaying(title, artist, songIndex);
+    nowplaying.updateCurPlaying(title, artist, songIndex);
     player.moveSongIntoView();
 };
 
@@ -309,7 +309,7 @@ Player.prototype.loadPlaylist = function(response) {
         if(Modernizr.history) {
             window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
         }
-        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
         $('#main').effect('pulsate', {times: 2});
     }
 
@@ -337,7 +337,6 @@ Player.prototype.loadPlaylistById = function(id) {
 Player.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist').remove(); // clear the playlist
-    $('.editLink').remove(); // remove all edit links
     
     // Render Playlist
     this.songlist = new SongList({
@@ -383,25 +382,14 @@ Player.prototype.renderPlaylist = function(playlist) {
             }, 4000);
         }
     });
-    
-    // TODO: START ---- This shouldn't be in Player.renderPlaylist()
-    $('#curPlaylistTitle')
-        .text(playlist.title);
-    $('#curPlaylistDesc')
-        .text(playlist.description);
-    document.title = playlist.title + ' - Instant.fm - Share Music Playlists Instantly';
-    
-    if (model.editable) {
-        playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
-        playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
-        $('<a href="/search" id="addSongs" rel="partial search" title="Search"><span>Add Songs</span></a>')
-            .appendTo('#playlistToolbar .right');
-    }
-    // TODO: END ---- This shouldn't be in Player.renderPlaylist()
-    
     $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
+    });
+    
+    nowplaying.renderPlaylistInfo({
+        title: playlist.title,
+        description: playlist.description
     });
 };
 

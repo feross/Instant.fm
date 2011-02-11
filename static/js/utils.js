@@ -36,23 +36,6 @@ function scrollTo(selectedElem, _container, options) {
     }
 }
 
-// TODO: Remove this.
-// TODO: This shouldn't use IDs.
-// TODO: This shouldn't expect an empty div in the page with the id thumbId+'Zoom'
-// Make an image that opens a fancyzoom lightbox when clicked on
-// @thumbId - id of the thumbnail image
-// @src - src of the image (is same for thumbnail and large)
-// @alt - image alt text
-function makeFancyZoomImg(thumbId, src, alt) {
-    var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
-    $('#'+thumbId+'Zoom').empty().append(imgZoom);
-    
-    return $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
-               .append('<img alt="'+alt+'" src="'+src+'">')
-               .append('<span class="zoomIcon"></span>')
-               .fancyZoom($.extend({}, appSettings.fancyZoom, {closeOnClick: true, scaleImg: true}));
-}
-
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
 function cleanSongTitle(title) {
     return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix).*?[\)\]]/gi, '');

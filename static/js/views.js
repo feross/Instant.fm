@@ -12,7 +12,7 @@ BaseView.prototype.willSlide = function(config) {
 
 /* Called after the content is slid fully into view */
 BaseView.prototype.didSlide = function(config) {
-    playlistview.updateOpenButtonText(config.title);
+    nowplaying.updateOpenButtonText(config.title);
 };
 
 /* Called before animation starts to either push a new view (hiding this 
@@ -26,7 +26,7 @@ BaseView.prototype.willSleep = function(config) {
 BaseView.prototype.willAwake = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
-    playlistview.updateOpenButtonText(config.title);
+    nowplaying.updateOpenButtonText(config.title);
 };
 
 // Called when another view was popped and this one has re-appeared.
