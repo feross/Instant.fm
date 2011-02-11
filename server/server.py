@@ -131,9 +131,9 @@ class BaseHandler(tornado.web.RequestHandler):
         expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
         if overwrite or not session_id:
-            create_date = datetime.utcnow().isoformat(' ')
-            new_id = self.db.execute("INSERT INTO sessions (create_date, user_id) VALUES (%s, %s);", 
-                                     create_date,
+            #create_date = datetime.utcnow().isoformat(' ')
+            new_id = self.db.execute("INSERT INTO sessions (create_date, user_id) VALUES (NOW(), %s);", 
+                                     #create_date,
                                      str(user_id) if user_id else 'NULL')
             self.set_secure_cookie('session_id', str(new_id), expires_days=expires_days)
             return new_id
@@ -447,19 +447,21 @@ class UploadHandler(BaseHandler):
                 
         return res_arr
         
-    def _store_playlist(self, name, description, songs, user_id):
-        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id) VALUES (%s,%s,%s,%s);",
-            name, description, songs, user_id)
+    def _store_playlist(self, name, description, songs):
+        songs_json = json.dumps(songs)
+        if not songs_json:
+            return None 
+        
+        session_id = self.set_secure_session_cookie()
+        user = self.get_current_user()
+             
+        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
+            name, description, songs_json, user.id, session_id)
 
         return self.base10_36(new_id)
                 
     def _handle_request(self):
-        user_cookie = self.get_secure_cookie('session_id')
-        if not user_cookie:
-            return {'status': 'No user cookie'}
-            
-        user_id = long(user_cookie)
-        
+           
         # If the file is directly uploaded in the POST body
         # Make a dict of the headers with all lowercase keys
         lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
@@ -497,10 +499,11 @@ class UploadHandler(BaseHandler):
         else:
             return {'status': 'Unsupported type'}
             
-        if parsed is None:
+        playlist_id = self._store_playlist(name, "Uploaded playlist", parsed)
+        
+        if not playlist_id:
             return {'status': 'Corrupted playlist file'}
-            
-        playlist_id = self._store_playlist(name, "Uploaded playlist", json.dumps(parsed), user_id)
+        
         playlist = {
             'status': 'ok',
             'title': name,
