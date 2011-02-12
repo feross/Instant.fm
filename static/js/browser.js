@@ -136,6 +136,7 @@ MiniBrowser.prototype.push = function(elem, view) {
     }
     window.setTimeout(function() {
         view && view.didSlide();
+        browser._updateLocationBar();
     }, slideAnimationDuration);
 };
 
@@ -209,6 +210,15 @@ MiniBrowser.prototype._updateHeader = function() {
         leftButton = $('<span class="left"></span>');
     }
     $('#browserHeader .left').replaceWith(leftButton);
+};
+
+MiniBrowser.prototype._updateLocationBar = function() {
+    var title = this.getTopView().config.title || '';
+    if ($.isPlainObject(title)) {
+        for (var first in title) break; // if multiple choices for title, pick any
+        title = title[first];
+    }
+    tryPushHistory({}, title, this.getTopView().config.path);  
 };
 
 // Show or hide the modal browser.

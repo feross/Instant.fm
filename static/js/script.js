@@ -59,6 +59,7 @@ function onloadPlaylist() {
     // If there is saved state, load the correct playlist.
     window.onpopstate = function(event) {
         var state = event.state;
+        log(state);
         if (state && state.playlistId != model.playlistId) {
             player.loadPlaylistById(state.playlistId);
         }

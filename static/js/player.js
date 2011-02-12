@@ -308,9 +308,9 @@ Player.prototype.loadPlaylist = function(response) {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
-        if(Modernizr.history) {
-            window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
-        }
+        
+        tryPushHistory({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+        
         nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
         $('#main').effect('pulsate', {times: 2});
     }

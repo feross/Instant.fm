@@ -771,7 +771,19 @@ input.file {
     border-radius: 5px;
 }
 #browserDisplay #modal {
-    background: #F3F3F7 url('/images/pinstripes.png') top left repeat;
+    background-color: #cdd7de;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #cdd7de),
+        color-stop(1, #f2f5f7)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #cdd7de 0%,
+        #f2f5f7 100%
+    );
 	left: 480px;
 	position: absolute;
 	top: 0;

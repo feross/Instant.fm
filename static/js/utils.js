@@ -1,7 +1,13 @@
-/* -------------------- JQUERY EXTENSIONS ----------------------- */
-
-
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
+
+// Attempt to push state onto URL history, fallback to redirect
+function tryPushHistory(stateObj, title, url) {
+    if(Modernizr.history) {
+        window.history.pushState(stateObj, title, url);
+    } else {
+        window.location = url;
+    }
+}
 
 // Show a popup window
 function showPop(url, _name, _height, _width) {
