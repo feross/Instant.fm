@@ -95,7 +95,6 @@
                 <h3>Currently Playing</h3>
               </header>
               
-              
               <div class="clearfix" id="curAlbumBlock"></div>
               <script id="curAlbumBlockTemplate" type="text/x-jquery-tmpl">
                 <a id="curAlbumImg" class="reflect" href="#" title="${albumTitle}">
@@ -117,6 +116,10 @@
                   <div id="curAlbum" style="display:none;">
                     <span class="curLabel">on</span> 
                     <h4></h4>
+                  </div>
+                  
+                  <div id="curButtons" style="display:none;">
+                    <fb:like href="${songHref}" show_faces="true" width="340"></fb:like>
                   </div>
                   
                   <div id="curLyric"></div>

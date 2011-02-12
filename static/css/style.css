@@ -889,7 +889,7 @@ header:hover .editLink, article:hover .editLink {
 .artistImg, #curArtistImg { float: right; position: relative; }
 .artistPartial .artistImg { float: left; }
 
-#curAlbumImg img { height: 160px; width: 160px; }
+#curAlbumImg img { height: 140px; width: 140px; }
 .artistImg img, #curArtistImg img { margin-left: 7px; width: 200px; }
 .artistPartial img { margin-left: 0; margin-right: 10px; }
 
@@ -916,6 +916,8 @@ a:hover .zoomIcon {
 }
 
 #curSong h4 { font-size: 20px; }
+
+#curButtons { margin-top: 10px; }
 
 #curLyric { font-size: 12px; font-style: italic; margin-top: 15px; }
 

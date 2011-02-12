@@ -61,7 +61,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
     
     if (data.artistName) {
         data.artistHref = '/'+canonicalize(data.artistName);
-        data.songHref = '/'+canonicalize(data.artistName)+'/'+canonicalize(data.trackName);
+        data.songHref = 'http://instant.fm/'+canonicalize(data.artistName)+'/'+canonicalize(data.trackName);
     }
     
     $('#curAlbumBlock').fadeOut('fast', function() {
@@ -69,7 +69,9 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         $('#curAlbumBlockTemplate')
             .tmpl(data)
             .appendTo('#curAlbumBlock');
-        
+        FB.XFBML.parse(document.getElementById('curButtons'), function(reponse) {
+            $('#curButtons').fadeIn('fast');
+        });
         $('#curAlbumBlock').fadeIn('fast');
     });
 };
