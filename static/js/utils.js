@@ -1,7 +1,13 @@
-/* -------------------- JQUERY EXTENSIONS ----------------------- */
-
-
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
+
+// Attempt to push state onto URL history, fallback to redirect
+function tryPushHistory(stateObj, title, url) {
+    if(Modernizr.history) {
+        window.history.pushState(stateObj, title, url);
+    } else {
+        window.location = url;
+    }
+}
 
 // Show a popup window
 function showPop(url, _name, _height, _width) {
@@ -34,23 +40,6 @@ function scrollTo(selectedElem, _container, options) {
     } else {
         $(container).animate({scrollTop: absScrollTop}, 500, options.callback);
     }
-}
-
-// TODO: Remove this.
-// TODO: This shouldn't use IDs.
-// TODO: This shouldn't expect an empty div in the page with the id thumbId+'Zoom'
-// Make an image that opens a fancyzoom lightbox when clicked on
-// @thumbId - id of the thumbnail image
-// @src - src of the image (is same for thumbnail and large)
-// @alt - image alt text
-function makeFancyZoomImg(thumbId, src, alt) {
-    var imgZoom = $('<img alt="'+alt+'" src="'+src+'" />');
-    $('#'+thumbId+'Zoom').empty().append(imgZoom);
-    
-    return $('<a class="reflect" href="#'+thumbId+'Zoom" id="'+thumbId+'"></a>')
-               .append('<img alt="'+alt+'" src="'+src+'">')
-               .append('<span class="zoomIcon"></span>')
-               .fancyZoom($.extend({}, appSettings.fancyZoom, {closeOnClick: true, scaleImg: true}));
 }
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
@@ -199,4 +188,22 @@ function isOwner() {
     }
     
     return false;
+}
+
+// Accepts a an object, where keys correspond to span classes,
+// and values correspond to the text within. Useful for rendering
+// text that will change based on the user's state.
+function renderConditionalText(obj, callback) {
+    var result = '';
+    if ($.isPlainObject(obj)) {
+        $.each(obj, function(key, value) {
+            result += '<span class="'+key+'">'+value+'</span>';
+        });
+    } else {
+        result = '<span>'+obj+'</span>';
+    }
+    
+    return $(result).each(function(index) {
+        callback($(this));
+    });
 }

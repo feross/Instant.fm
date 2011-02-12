@@ -79,13 +79,12 @@ Player.prototype.playSong = function(i) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
-    var q = title + ' ' + artist;
-    player.playSongBySearch(q);
+    player.playSongBySearch(title, artist);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
 
-    playlistview.updateCurPlaying(title, artist, songIndex);
+    nowplaying.updateCurPlaying(title, artist, songIndex);
     player.moveSongIntoView();
 };
 
@@ -122,8 +121,11 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(q) {
+Player.prototype.playSongBySearch = function(title, artist) {
+    var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
+    
+    document.title = title+' by '+artist+' - '+model.title+' - Instant.fm';
     
     var srcIndex = songIndex;
     $.ajax({
@@ -139,7 +141,7 @@ Player.prototype.playSongBySearch = function(q) {
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
-                    $('#song'+srcIndex)
+                    $('.playing')
                         .removeClass('paused')
                         .addClass('missing');
                     if (songIndex == srcIndex) {
@@ -306,10 +308,10 @@ Player.prototype.loadPlaylist = function(response) {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
-        if(Modernizr.history) {
-            window.history.pushState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
-        }
-        playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        
+        tryPushHistory({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+        
+        nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
         $('#main').effect('pulsate', {times: 2});
     }
 
@@ -337,7 +339,6 @@ Player.prototype.loadPlaylistById = function(id) {
 Player.prototype.renderPlaylist = function(playlist) {
     
     $('#playlist').remove(); // clear the playlist
-    $('.editLink').remove(); // remove all edit links
     
     // Render Playlist
     this.songlist = new SongList({
@@ -383,25 +384,14 @@ Player.prototype.renderPlaylist = function(playlist) {
             }, 4000);
         }
     });
-    
-    // TODO: START ---- This shouldn't be in Player.renderPlaylist()
-    $('#curPlaylistTitle')
-        .text(playlist.title);
-    $('#curPlaylistDesc')
-        .text(playlist.description);
-    document.title = playlist.title + ' - Instant.fm - Share Music Playlists Instantly';
-    
-    if (model.isEditable()) {
-        playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
-        playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
-        
-        $('<a href="/search" id="addSongs" rel="partial search" title="Search"><span>Add Songs</span></a>')
-            .appendTo('#playlistToolbar .right');
-    }
-    // TODO: END ---- This shouldn't be in Player.renderPlaylist()
-    
+       
     $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
+    });
+    
+    nowplaying.renderPlaylistInfo({
+        title: playlist.title,
+        description: playlist.description
     });
 };
 

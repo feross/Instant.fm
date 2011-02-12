@@ -47,12 +47,7 @@ MiniBrowser.prototype.setupHandlers = function() {
         if (browser.viewStack.length > 0) {
             browser.toggle(true, true);
         } else {
-            browser.pushPartial({
-                path: '/search',
-                type: 'partial search',
-                title: 'Search',
-                linkElem: $(this)
-            });
+            browser.pushSearchPartial();
         }
     });
     
@@ -60,6 +55,14 @@ MiniBrowser.prototype.setupHandlers = function() {
     $('a[href="#close"]').live('click', function(event) {
         event.preventDefault(); event.stopPropagation();
         browser.toggle(false);
+    });
+};
+
+MiniBrowser.prototype.pushSearchPartial = function() {
+    browser.pushPartial({
+        path: '/search',
+        type: 'partial search',
+        linkElem: $(this)
     });
 };
 
@@ -128,11 +131,12 @@ MiniBrowser.prototype.push = function(elem, view) {
     if (browser.isOpen) {
         slideAnimationDuration = 300;
     } else {
-        slideAnimationDuration = 1000;
+        slideAnimationDuration = 500;
         this.toggle(true, false);
     }
     window.setTimeout(function() {
         view && view.didSlide();
+        browser._updateLocationBar();
     }, slideAnimationDuration);
 };
 
@@ -185,16 +189,36 @@ MiniBrowser.prototype._slideTo = function(slide) {
 
 MiniBrowser.prototype._updateHeader = function() {
     var title = this.getTopView().config.title || '';
-    $('#browserHeader h1').text(title).shorten({width: 300});
+    
+    $('#browserHeader h1')
+        .empty()
+        .append(
+            renderConditionalText(title, function(elem) {
+                elem.shorten({width: 300})
+            })
+        );
     
     var leftButton;
     if (this.viewStack.length > 1) {
         var prevTitle = this.viewStack[this.viewStack.length-2].config.title;
-        leftButton = $('<a class="left prev blue" href="#back">'+prevTitle+'</a>').shorten({width: 70});
+        var prevTitleElem = renderConditionalText(prevTitle, function(elem) {
+            elem.shorten({width: 70});
+        });
+        leftButton =
+            $('<a class="left prev blue" href="#back"></a>').append(prevTitleElem);
     } else {
         leftButton = $('<span class="left"></span>');
     }
     $('#browserHeader .left').replaceWith(leftButton);
+};
+
+MiniBrowser.prototype._updateLocationBar = function() {
+    var title = this.getTopView().config.title || '';
+    if ($.isPlainObject(title)) {
+        for (var first in title) break; // if multiple choices for title, pick any
+        title = title[first];
+    }
+    tryPushHistory({}, title, this.getTopView().config.path);  
 };
 
 // Show or hide the modal browser.
@@ -202,6 +226,8 @@ MiniBrowser.prototype._updateHeader = function() {
 MiniBrowser.prototype.toggle = function(toggle, awaken) {
     toggle = (toggle === undefined) ? !this.isOpen : toggle;
     awaken = (awaken === undefined) ? false : awaken;
+    
+    var animationDuration = 500;
     
     if (toggle) {
         var pixels = 0;
@@ -215,7 +241,7 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
             } else { // was closed
                 window.setTimeout(function() {
                     browser.getTopView() && browser.getTopView().didAwake();
-                }, 1000);
+                }, animationDuration);
             }
         }
         
@@ -239,7 +265,7 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
         var css = {"margin-top":pixels+"px"};
 
         if ($('#FS_holder').hasClass('animate')) {
-            $('#modal').animate(css, 1000);
+            $('#modal').animate(css, animationDuration);
         } else {
             $('#modal').css(css);
         }

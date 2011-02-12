@@ -12,7 +12,7 @@ BaseView.prototype.willSlide = function(config) {
 
 /* Called after the content is slid fully into view */
 BaseView.prototype.didSlide = function(config) {
-    playlistview.updateOpenButtonText(config.title);
+    nowplaying.updateOpenButtonText(config.title);
 };
 
 /* Called before animation starts to either push a new view (hiding this 
@@ -26,7 +26,7 @@ BaseView.prototype.willSleep = function(config) {
 BaseView.prototype.willAwake = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
-    playlistview.updateOpenButtonText(config.title);
+    nowplaying.updateOpenButtonText(config.title);
 };
 
 // Called when another view was popped and this one has re-appeared.
@@ -44,6 +44,9 @@ function SearchView(config) {
     this.config = config;
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
+    
+    // Force title to change depending on user state
+    this.config.title = {mustOwn: 'Add Songs', mustNotOwn: 'Search'};
 }
 copyPrototype(SearchView, BaseView);
 
@@ -220,8 +223,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
-            var q = song.t+' '+song.a;
-            player.playSongBySearch(q);
+            player.playSongBySearch(song.t, song.a);
         },
         buttons: buttons || [],
     });
@@ -430,8 +432,7 @@ ArtistView.prototype._handleTopSongs = function(data) {
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
-            var q = song.t+' '+song.a;
-            player.playSongBySearch(q);
+            player.playSongBySearch(song.t, song.a);
         },
         buttons: [{
             action: function(event, song) {

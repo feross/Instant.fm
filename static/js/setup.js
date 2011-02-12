@@ -99,11 +99,7 @@ function setupKeyboardShortcuts() {
 
                 // Navigation
                 case 70: // f
-                    browser.pushPartial({
-                        path: '/search',
-                        type: 'partial search',
-                        title: 'Search'
-                    });
+                    browser.pushSearchPartial();
                     break;
                 case 76: // l
                     player.highlightSong('.playing');
@@ -172,7 +168,7 @@ function setupFBML(playlist) {
           }, {perms:'email,publish_stream'});
         });
          
-        playlist && playlistview.tryLoadComments(playlist.playlist_id, playlist.title);
+        playlist && nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
     };
     
     (function() {

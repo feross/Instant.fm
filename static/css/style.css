@@ -260,7 +260,7 @@ a.awesome:hover { text-decoration: none; }
 /* Primary Styles */
 
 body {
-    background: #000 url('/images/fullmetal.jpg') top left repeat;
+    background: #000 url('/images/bob-marley.jpg') top left repeat;
     text-align: center;
 }
 
@@ -349,34 +349,40 @@ input.file {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    -moz-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
-    -webkit-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
-    box-shadow: 0 6px 5px rgba(0,0,0,0.5);
+    -moz-box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 5px 5px rgba(0,0,0,0.6);
+    box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
     overflow: hidden;
     position: relative;
     width: 1000px;
 }
 
 #headerLogo {
-    background: transparent url("/images/logo3.png") 0 0 no-repeat;
+    background: transparent url("/images/logo4.png") 0 0 no-repeat;
     display: block;
     float: left;
-    height: 30px;
-    margin: 10px 0 10px 5px;
-    width: 424px;
+    height: 40px;
+    margin: 7px 0 3px 5px;
+    width: 473px;
 }
 
 #header nav {
-    color: #499bd1;
     float: right;
     font-size: 13px;
     font-weight: bold;
-    margin: 16px 15px 0 0;
-    text-shadow: #000 0 1px 1px;
+    margin: 17px 15px 0 0;
 }
 
-#header nav a { display: inline-block; margin-left: 18px; }
+#header nav a {
+    color: #fff;
+    display: inline-block;
+    font-weight: bold;
+    margin-left: 18px;
+    text-shadow: #000 0 0 3px;
+}
 
+/*#header nav a:hover { text-shadow: #499bd1 1px 1px 8px; }
+*/
 /* Scrolling */
 
 #browserDisplay {
@@ -562,6 +568,7 @@ input.file {
     -moz-border-radius: 5px;
     border-radius: 5px;
     border-left: #666 solid 1px;
+    font-size: 14px;
 }
 
 #FS_slider, #nowPlayingContainer {
@@ -584,7 +591,6 @@ input.file {
         rgba(249,249,251,0.8) 70%,
         rgba(243,243,247,0.8) 100%
     ) top left no-repeat;
-    font-size: 14px;
     position: relative;
     width: 519px;
 }
@@ -765,7 +771,19 @@ input.file {
     border-radius: 5px;
 }
 #browserDisplay #modal {
-    background: #F3F3F7 url('/images/pinstripes.png') top left repeat;
+    background-color: #cdd7de;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #cdd7de),
+        color-stop(1, #f2f5f7)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #cdd7de 0%,
+        #f2f5f7 100%
+    );
 	left: 480px;
 	position: absolute;
 	top: 0;
@@ -776,9 +794,9 @@ input.file {
     border-radius: 5px;
 }
 #browserDisplay #modal.animate {
-    transition: all 1s ease-in-out;
-	-moz-transition: all 1s ease-in-out;
-	-webkit-transition: all 1s ease-in-out;
+    transition: all 0.6s ease-in-out;
+	-moz-transition: all 0.6s ease-in-out;
+	-webkit-transition: all 0.6s ease-in-out;
 }
 
 /* Current Playlist Info */
@@ -871,7 +889,7 @@ header:hover .editLink, article:hover .editLink {
 .artistImg, #curArtistImg { float: right; position: relative; }
 .artistPartial .artistImg { float: left; }
 
-#curAlbumImg img { height: 160px; width: 160px; }
+#curAlbumImg img { height: 140px; width: 140px; }
 .artistImg img, #curArtistImg img { margin-left: 7px; width: 200px; }
 .artistPartial img { margin-left: 0; margin-right: 10px; }
 
@@ -890,7 +908,7 @@ a:hover .zoomIcon {
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
 
-#curSong h4, #curArtist h4, #curAlbum h4, #curLyric h5 {
+#curAlbumBlock h4 {
     display: inline-block;
     font-size: 15px;
     margin: 0 0 4px 0;
@@ -899,13 +917,14 @@ a:hover .zoomIcon {
 
 #curSong h4 { font-size: 20px; }
 
-#curAlbum { display: 0; /* starting value */ }
+#curButtons { margin-top: 10px; }
 
 #curLyric { font-size: 12px; font-style: italic; margin-top: 15px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
 #curDescs section { margin: 25px 0 0 0; }
+#curDescs #curArtistDesc { margin-bottom: 10px; }
 
 #curSongDesc { clear: left; }
 
@@ -1163,13 +1182,16 @@ a:hover .zoomIcon {
     width: 34px;
 }
 
-.songListItem.missing {
+.songListItem.missing { color: #aaa; }
+.songListItem.missing .num {
     background-image: url('/images/notfound.png');
     background-position: 5px center;
     background-repeat: no-repeat;
-    color: #aaa;
+    margin-top: 7px;
+    height: 22px;
+    text-indent: -999em;
 }
-.songListItem.missing .num { visibility: hidden; }
+
 .songListItem.missing img {
     -moz-opacity: 0.4;
     filter: alpha(opacity: 40);
@@ -1265,8 +1287,8 @@ a:hover .zoomIcon {
     vertical-align: top;
 }
 
-.loggedIn .hideOnLogin, 
-.loggedOut .hideOnLogout,
+.loggedIn .mustLogout, 
+.loggedOut .mustLogin,
 .isNotOwner .mustOwn,
 .isOwner .mustNotOwn {
     display: none !important;

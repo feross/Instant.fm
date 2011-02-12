@@ -2,95 +2,169 @@
 
 /* ------------------- NOW PLAYING VIEW -------------------- */
 
-function PlaylistView() {
+function NowPlaying() {
+    this.setupHandlers();
+}
+
+NowPlaying.prototype.setupHandlers = function() {
     $('#addComment').click(function(event) {
         event.preventDefault();
-        playlistview.showHideComments();
+        if (!$('#commentsDiv').data('loaded')) {
+            return;
+        }
+        if ($('#commentsDiv').is(':visible')) {
+            $('#addComment').html('Add a Comment');
+            $('#commentsDiv').slideUp('fast');
+        } else {
+            $('#addComment').html('Hide Comments');
+            $('#commentsDiv').slideDown('fast');
+        }
     });
     
     $('#fbShare').click(function(event) {
         event.preventDefault();
-        playlistview.shareOnFacebook();
+        nowplaying.shareOnFacebook();
     });
     
     $('#twShare').click(function(event) {
         event.preventDefault();
-        playlistview.shareOnTwitter();
-    });
-}
+        nowplaying.shareOnTwitter();
+    });  
+};
 
-PlaylistView.prototype.updateOpenButtonText = function(text) {
-    $('#nowPlayingHeader .right').text(text).shorten({width: 140});  
+NowPlaying.prototype.renderPlaylistInfo = function(data) {    
+    $('#curPlaylist').fadeOut('fast', function() {
+        $('#curPlaylist').empty();
+        $('#curPlaylistTemplate')
+            .tmpl(data)
+            .appendTo('#curPlaylist');
+        
+        $('.editLink').remove(); // remove all edit links
+        if (model.editable) {
+            nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+            nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
+        }
+        
+        $('#curPlaylist').fadeIn('fast');
+    });
+};
+
+NowPlaying.prototype.renderAlbumBlock = function(data) {
+    log('rendering albumblock for ' + data.trackName);
+    if (data.albumImg) {
+        var albumAlt = data.albumName;
+        data.albumAlt += data.artistName ? (' by ' + data.artistName) : '';
+    } else {
+        data.albumImg = '/images/unknown.png';
+        data.albumAlt = 'Unknown album';
+    }
+    
+    if (data.artistName) {
+        data.artistHref = '/'+canonicalize(data.artistName);
+        data.songHref = 'http://instant.fm/'+canonicalize(data.artistName)+'/'+canonicalize(data.trackName);
+    }
+    
+    $('#curAlbumBlock').fadeOut('fast', function() {
+        $('#curAlbumBlock').empty();
+        $('#curAlbumBlockTemplate')
+            .tmpl(data)
+            .appendTo('#curAlbumBlock');
+        FB.XFBML.parse(document.getElementById('curButtons'), function(reponse) {
+            $('#curButtons').fadeIn('fast');
+        });
+        $('#curAlbumBlock').fadeIn('fast');
+    });
+};
+
+NowPlaying.prototype.renderSongDesc = function(data) {    
+    $('#curSongDesc').fadeOut('fast', function() {
+        $('#curSongDesc').empty();
+        if (data) {
+            $('#curSongDescTemplate')
+                .tmpl(data)
+                .appendTo('#curSongDesc');
+            
+            data.callback();
+            $('#curSongDesc').fadeIn('fast');
+        }
+    });
+};
+
+NowPlaying.prototype.renderArtistDesc = function(data) {
+    if (data.artistName) {
+        data.artistHref = '/'+canonicalize(data.artistName);
+    }
+    
+    $('#curArtistDesc').fadeOut('fast', function() {
+        $('#curArtistDesc').empty();
+        if (data) {
+            $('#curArtistDescTemplate')
+                .tmpl(data)
+                .appendTo('#curArtistDesc');
+            
+            data.callback();
+            $('#curArtistDesc').fadeIn('fast');
+        }
+    });
+};
+
+NowPlaying.prototype.updateOpenButtonText = function(text) {
+    $('#nowPlayingHeader .right')
+        .empty()
+        .append(
+            renderConditionalText(text, function(elem) {
+                elem.shorten({width: 140});
+            })
+        );  
 };
 
 // Update the currently playing song with Last.fm data
-// @t - song title
-// @a - song artist
+// @t - song title, @a - song artist
 // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
-//              hasn't changed before we update the DOM.
-PlaylistView.prototype.updateCurPlaying = function(t, a, srcIndex) {
+//             hasn't changed before we update the DOM.
+NowPlaying.prototype.updateCurPlaying = function(t, a, srcIndex) {
+    log('searching for song ' + t);
 	model.lastfm.track.search({
 	    artist: a || '',
 	    limit: 1,
 	    track: t || ''
 	}, {
 	    success: function(data) {
-	      playlistview._handleSongResults(t, a, srcIndex, data);
+	      nowplaying._handleSongResults(t, a, srcIndex, data);
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
-	        $('#curSong h4').text(t);
-            $('#curArtist h4').text(a);
-            playlistview._updateAlbumImg(null);
-            playlistview._hideCurPlayling();
+	        this.renderAlbumBlock({
+                albumImg: undefined,
+                trackName: t,
+                artistName: a,
+            });
 		}
 	});
 };
 
-// Private method to hide the currently playing info with animation
-PlaylistView.prototype._hideCurPlayling = function() {
-    if ($('#curAlbum').css('display') != '0') {
-        $('#curAlbum').fadeOut('fast');
-    }
-    if ($('#curSongDesc').css('display') != '0') {
-        $('#curSongDesc').fadeOut('fast');
-    }
-    if ($('.artistDesc', '#curPlaying').css('display') != '0') {
-        $('.artistDesc', '#curPlaying').fadeOut('fast');
-    }
-};
-
 // Private method to handle song search results from Last.fm
-PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
+NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
     if (songIndex != srcIndex) {
+        log('too slow, discarding 1');
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+        log('no results 1');
         return;
     }
-
-    playlistview._hideCurPlayling(); 
-
+    log('first api call received');
+    
     var track = data.results.trackmatches.track;
     var trackName = track.name || t;
     var artistName = track.artist || a;
     var albumImg = track.image && track.image[track.image.length - 1]['#text'];
-
-    // Update song title, artist name
-    $('#curSong h4').text(trackName);
-    playlistview._updateArtist(artistName);
     
-    // Update album art
-    // We'll set alt text once we know album name
-    playlistview._updateAlbumImg(albumImg, '');
-    
-    if (model.songs[srcIndex].i === undefined && albumImg) {
-        var $playlistImg = $('#song'+srcIndex+' img');
-        if ($playlistImg.attr('src') == '/images/unknown.png') {
-            $playlistImg.attr('src', albumImg)
-        }
-        model.updateAlbumImg(srcIndex, albumImg);
-    }
+    this.renderAlbumBlock({
+        albumImg: albumImg,
+        trackName: trackName,
+        artistName: artistName,
+    });
 
     // Get detailed track info
     trackName && artistName && model.lastfm.track.getInfo({
@@ -98,13 +172,12 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
 	    autocorrect: 1,
 	    track: trackName || ''
 	}, {
-    
 	    success: function(data){
-	        playlistview._handleSongInfo(trackName, artistName, srcIndex, data);
+	        nowplaying._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
 	    },
-
 	    error: function(code, message) {
 	        log(code + ' ' + message);
+	        nowplaying.renderSongDesc(false);
 		}
 	});
 
@@ -113,69 +186,72 @@ PlaylistView.prototype._handleSongResults = function(t, a, srcIndex, data) {
 	    artist: artistName || '',
 	    autocorrect: 1
 	}, {
-    
 	    success: function(data){
-	        playlistview._handleArtistInfo(artistName, srcIndex, data);
+	        nowplaying._handleArtistInfo(artistName, srcIndex, data);
 	    },
 	    error: function(code, message) {
+	        this.renderArtistDesc(false);
 	        log(code + ' ' + message);
 		}
 	});
 };
 
 // Private method to handle song information from Last.fm
-PlaylistView.prototype._handleSongInfo = function(trackName, artistName, srcIndex, data) {
+NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg, srcIndex, data) {
     if (songIndex != srcIndex) {
+        log('too slow, discarding 2');
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.track) {
+        log('no results 2');
         return;
     }
+    log('second api call received');
                     
     var track = data.track;
-    var artistName = track.artist && track.artist.name;
     var albumName = track.album && track.album.title;
     var trackSummary = track.wiki && track.wiki.summary;
     var trackLongDesc = track.wiki && track.wiki.content;
-                    
-    // Update album name
+    
     if (albumName) {
-        playlistview._updateAlbum(albumName, artistName);
+        var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
+        $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" rel="partial album">'+albumName+'</a>');
         $('#curAlbum').fadeIn('fast');
     }
 
-    // Update album image alt text
-    var albumAlt = albumName;
-    albumAlt += artistName ? (' by ' + artistName) : '';
-    albumName && $('#curAlbumImg').attr('alt', albumAlt);
-
     // Update song summary
     var shortContent;
-    if (trackSummary) {       
-        shortContent = cleanHTML(trackSummary);                 
+    if (trackSummary) {
+        shortContent = cleanHTML(trackSummary);
         $('#curSongDesc article').html(shortContent);
-        $('#curSongDesc h4').text(track.name);
-        $('#curSongDesc').fadeIn('fast');
-    }
+        
+        this.renderSongDesc({
+            trackName: track.name,
+            trackDescription: shortContent,
+            callback: function() {
+                // Add link to longer description
+                if (trackLongDesc) {
+                    var longContent = cleanHTML(trackLongDesc);
 
-    // Add link to longer description
-    if (trackSummary && trackLongDesc) {
-        var longContent = cleanHTML(trackLongDesc);
-        
-        $('#curSongDesc article')
-            .data('longContent', longContent)
-            .data('shortContent', shortContent);
-        
-        var link = makeSeeMoreLink(onShowMoreText);
-        $('#curSongDesc article').append(' ').append(link);
+                    $('#curSongDesc article')
+                        .data('longContent', longContent)
+                        .data('shortContent', shortContent);
+
+                    var link = makeSeeMoreLink(onShowMoreText);
+                    $('#curSongDesc article').append(' ').append(link);
+                }
+            }
+        });
+    } else {
+        this.renderSongDesc(false);
     }
     
-    // Add link to lyric
-    playlistview._updateLyricsLink(trackName, artistName);
+    // // Add link to lyric
+    // nowplaying._updateLyricsLink(trackName, artistName);
 };
 
 // Private method to handle artist information from Last.fm
-PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
+NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
     if (songIndex != srcIndex) {
         return; // The request was too slow. We don't need it anymore.
     }
@@ -188,52 +264,35 @@ PlaylistView.prototype._handleArtistInfo = function(artistName, srcIndex, data) 
     var artistLongDesc = artist.bio && artist.bio.content;
     var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
 
-    // Update artist image
-    playlistview._updateArtistImg(artistImg, artistName);
-
     // Update artist summary
     var shortContent;
     if (artistSummary) {                  
         shortContent = cleanHTML(artistSummary);
-        $('.artistDesc article', '#curPlaying').html(shortContent);
-        $('.artistDesc h4', '#curPlaying').text(artistName);
-        $('.artistDesc', '#curPlaying').fadeIn('fast');
-    }
-
-    // Add link to longer description
-    if (artistSummary && artistLongDesc) {
-        var longContent = cleanHTML(artistLongDesc); 
         
-        $('.artistDesc article', '#curPlaying')
-            .data('longContent', longContent)
-            .data('shortContent', shortContent);
-                                                       
-        var link = makeSeeMoreLink(onShowMoreText);
-        $('.artistDesc article', '#curPlaying').append(' ').append(link);
+        this.renderArtistDesc({
+            artistName: artistName,
+            artistImg: artistImg,
+            artistDescription: shortContent,
+            callback: function() {
+                // Add link to longer description
+                if (artistLongDesc) {
+                    var longContent = cleanHTML(artistLongDesc); 
+
+                    $('#curArtistDesc article')
+                        .data('longContent', longContent)
+                        .data('shortContent', shortContent);
+
+                    var link = makeSeeMoreLink(onShowMoreText);
+                    $('#curArtistDesc article').append(' ').append(link);
+                }
+            }
+        });
+    } else {
+        this.renderArtistDesc(false);
     }
 };
 
-PlaylistView.prototype._updateArtist = function(artist) {
-    var link = $('<a></a>', {
-            href: '/'+canonicalize(artist),
-            rel: 'partial artist',
-            title: artist,
-        })
-        .html(artist);
-    $('#curArtist h4').html(link);
-};
-
-PlaylistView.prototype._updateAlbum = function(album, artist) {
-    var link = $('<a></a>', {
-            href: '/'+canonicalize(artist)+'/'+canonicalize(album),
-            rel: 'partial album',
-            title: album
-        })
-        .html(album);
-    $('#curAlbum h4').html(link);
-};
-
-PlaylistView.prototype._updateLyricsLink = function(title, artist) {
+NowPlaying.prototype._updateLyricsLink = function(title, artist) {
     var link = $('<a></a>', {
         'data-artist': artist,
         'data-title': title,
@@ -246,44 +305,19 @@ PlaylistView.prototype._updateLyricsLink = function(title, artist) {
     $('#curLyric').html(link);
 };
 
-// Private method to update album art to point to given src url
-// @src - Image src url. Pass null to show the Unknown Album image.
-// @alt - Image alt text. (required, when src != null)
-PlaylistView.prototype._updateAlbumImg = function(src, alt) {
-    if (!src) {
-        src = '/images/unknown.png';
-        alt = 'Unknown album';
-    }
-    var imgBlock = makeFancyZoomImg('curAlbumImg', src, alt);
-    $('#curAlbumImg').replaceWith(imgBlock);
-};
-
-// Private method to update artist img to point to given src url
-// @src - Image src url. Pass null to show nothing.
-// @alt - Image alt text. (required, when src != null)
-PlaylistView.prototype._updateArtistImg = function(src, alt) {    
-    if (src) {
-        var imgBlock = makeFancyZoomImg('curArtistImg', src, alt);  
-        $('#curArtistImg').replaceWith(imgBlock);
-    
-    } else {
-        $('#curArtistImg').replaceWith($('<span id="curArtistImg"></span>'));
-    }
-};
-
 // Optimization: Don't load Facebook comments until video is playing
-PlaylistView.prototype.tryLoadComments = function(playlist_id, title) {
+NowPlaying.prototype.tryLoadComments = function(playlist_id, title) {
     if (player.isPlaying()) {
-        playlistview._loadComments(playlist_id, title);
+        nowplaying._loadComments(playlist_id, title);
     } else {
         window.setTimeout(function() {
-            playlistview.tryLoadComments(playlist_id, title);
+            nowplaying.tryLoadComments(playlist_id, title);
         }, 2000);
     }
 };
 
 // Private method to load playlist's comments
-PlaylistView.prototype._loadComments = function(playlist_id, title) {
+NowPlaying.prototype._loadComments = function(playlist_id, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
@@ -294,7 +328,7 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
         .html('<fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/css/fbcomments.css?58" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
     FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
         $('#commentsDiv')
-            .appendTo('#curPlaylist')
+            .appendTo('#playlistActions')
             .hide()
             .data('loaded', true);
     });
@@ -305,24 +339,10 @@ PlaylistView.prototype._loadComments = function(playlist_id, title) {
     });
 };
 
-PlaylistView.prototype.showHideComments = function() {
-    if (!$('#commentsDiv').data('loaded')) {
-        return;
-    }
-    
-    if ($('#commentsDiv').is(':visible')) {
-        $('#addComment').html('Add a Comment');
-        $('#commentsDiv').slideUp();
-    } else {
-        $('#addComment').html('Hide Comments');
-        $('#commentsDiv').slideDown();
-    }
-};
-
 // Makes the given element editable by adding an edit link.
 // @elem - the element to make editable
 // @updateCallback - the function to call when the value is modified
-PlaylistView.prototype._makeEditable = function(elem, updateCallback) {    
+NowPlaying.prototype._makeEditable = function(elem, updateCallback) {    
     var elemId = elem.attr('id');
     var buttonClass, autogrowSettings;
     switch (elemId) {
@@ -352,16 +372,9 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
             $(this).prev().trigger('editable');
             $(this).hide();
             
-            if($(this).prev().attr('id') == 'curPlaylistTitle') {
-                $('#addSongs').hide();
-            }
         }))
         .editable(function(value, settings) {
             $(this).next().show();
-            
-            if($(this).attr('id') == 'curPlaylistTitle') {
-                $('#addSongs').show();
-            }
             
             updateCallback(value);
             return value;
@@ -369,7 +382,9 @@ PlaylistView.prototype._makeEditable = function(elem, updateCallback) {
 };
 
 
-PlaylistView.prototype.shareOnFacebook = function() {
+/* ------------------- SHARING -------------------- */
+
+NowPlaying.prototype.shareOnFacebook = function() {
     // Use first non-blank album as share image
     var bestAlbumImg;
     for (var i = 0; i < model.songs.length; i++) {
@@ -414,7 +429,7 @@ PlaylistView.prototype.shareOnFacebook = function() {
     );
 };
 
-PlaylistView.prototype.shareOnTwitter = function() {
+NowPlaying.prototype.shareOnTwitter = function() {
     var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm/p/'+model.playlistId+
@@ -422,7 +437,7 @@ PlaylistView.prototype.shareOnTwitter = function() {
     showPop(url, 'instantfmTwitterShare');
 };
 
-PlaylistView.prototype.shareOnBuzz = function() {
+NowPlaying.prototype.shareOnBuzz = function() {
     var url = 'http://www.google.com/buzz/post?url=http://instant.fm/p/'+model.playlistId;
     showPop(url, 'instantfmBuzzShare', 420, 700);
 };
