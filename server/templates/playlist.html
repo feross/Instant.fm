@@ -11,11 +11,11 @@
     
     <nav>
       <a href="#new">New Playlist</a>
-      <a href="/search" rel="partial search" id="searchLink" title="Search">Search</a>
-      <a id="registrationLink" class="hideOnLogin" href="#signUp">Sign up</a>
-      <a class="hideOnLogin" href="#login">Login</a>
-      <a id="profileLink" href="#profile" class="hideOnLogout"> {{ handler.render_user_name() }} </a>
-      <a class="hideOnLogout" href="#logout">Logout</a>
+      <a href="/search" rel="partial search" title="Search">Search</a>
+      <a class="mustLogout" href="#login">Login</a>
+      <a class="mustLogout" id="registrationLink"href="#signUp">Sign up</a>
+      <a class="mustLogin" href="#profile" id="profileLink"> {{ handler.render_user_name() }} </a>
+      <a class="mustLogin" href="#logout">Logout</a>
     </nav>
   </header>
   <div class="clearfix" id="main"> 

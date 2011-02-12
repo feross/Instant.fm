@@ -44,6 +44,9 @@ function SearchView(config) {
     this.config = config;
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
+    
+    // Force title to change depending on user state
+    this.config.title = {mustOwn: 'Add Songs', mustNotOwn: 'Search'};
 }
 copyPrototype(SearchView, BaseView);
 

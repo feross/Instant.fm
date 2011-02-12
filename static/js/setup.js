@@ -99,11 +99,7 @@ function setupKeyboardShortcuts() {
 
                 // Navigation
                 case 70: // f
-                    browser.pushPartial({
-                        path: '/search',
-                        type: 'partial search',
-                        title: 'Search'
-                    });
+                    browser.pushSearchPartial();
                     break;
                 case 76: // l
                     player.highlightSong('.playing');

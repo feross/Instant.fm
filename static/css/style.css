@@ -568,6 +568,7 @@ input.file {
     -moz-border-radius: 5px;
     border-radius: 5px;
     border-left: #666 solid 1px;
+    font-size: 14px;
 }
 
 #FS_slider, #nowPlayingContainer {
@@ -590,7 +591,6 @@ input.file {
         rgba(249,249,251,0.8) 70%,
         rgba(243,243,247,0.8) 100%
     ) top left no-repeat;
-    font-size: 14px;
     position: relative;
     width: 519px;
 }
@@ -1168,13 +1168,16 @@ a:hover .zoomIcon {
     width: 34px;
 }
 
-.songListItem.missing {
+.songListItem.missing { color: #aaa; }
+.songListItem.missing .num {
     background-image: url('/images/notfound.png');
     background-position: 5px center;
     background-repeat: no-repeat;
-    color: #aaa;
+    margin-top: 7px;
+    height: 22px;
+    text-indent: -999em;
 }
-.songListItem.missing .num { visibility: hidden; }
+
 .songListItem.missing img {
     -moz-opacity: 0.4;
     filter: alpha(opacity: 40);
@@ -1270,8 +1273,8 @@ a:hover .zoomIcon {
     vertical-align: top;
 }
 
-.loggedIn .hideOnLogin, 
-.loggedOut .hideOnLogout,
+.loggedIn .mustLogout, 
+.loggedOut .mustLogin,
 .isNotOwner .mustOwn,
 .isOwner .mustNotOwn {
     display: none !important;

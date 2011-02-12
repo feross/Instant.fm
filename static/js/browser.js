@@ -47,12 +47,7 @@ MiniBrowser.prototype.setupHandlers = function() {
         if (browser.viewStack.length > 0) {
             browser.toggle(true, true);
         } else {
-            browser.pushPartial({
-                path: '/search',
-                type: 'partial search',
-                title: 'Search',
-                linkElem: $(this)
-            });
+            browser.pushSearchPartial();
         }
     });
     
@@ -60,6 +55,14 @@ MiniBrowser.prototype.setupHandlers = function() {
     $('a[href="#close"]').live('click', function(event) {
         event.preventDefault(); event.stopPropagation();
         browser.toggle(false);
+    });
+};
+
+MiniBrowser.prototype.pushSearchPartial = function() {
+    browser.pushPartial({
+        path: '/search',
+        type: 'partial search',
+        linkElem: $(this)
     });
 };
 
@@ -185,12 +188,23 @@ MiniBrowser.prototype._slideTo = function(slide) {
 
 MiniBrowser.prototype._updateHeader = function() {
     var title = this.getTopView().config.title || '';
-    $('#browserHeader h1').text(title).shorten({width: 300});
+    
+    $('#browserHeader h1')
+        .empty()
+        .append(
+            renderConditionalText(title, function(elem) {
+                elem.shorten({width: 300})
+            })
+        );
     
     var leftButton;
     if (this.viewStack.length > 1) {
         var prevTitle = this.viewStack[this.viewStack.length-2].config.title;
-        leftButton = $('<a class="left prev blue" href="#back">'+prevTitle+'</a>').shorten({width: 70});
+        var prevTitleElem = renderConditionalText(prevTitle, function(elem) {
+            elem.shorten({width: 70});
+        });
+        leftButton =
+            $('<a class="left prev blue" href="#back"></a>').append(prevTitleElem);
     } else {
         leftButton = $('<span class="left"></span>');
     }

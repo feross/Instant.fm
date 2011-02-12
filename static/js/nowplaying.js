@@ -107,7 +107,13 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
 };
 
 NowPlaying.prototype.updateOpenButtonText = function(text) {
-    $('#nowPlayingHeader .right').text(text).shorten({width: 140});  
+    $('#nowPlayingHeader .right')
+        .empty()
+        .append(
+            renderConditionalText(text, function(elem) {
+                elem.shorten({width: 140});
+            })
+        );  
 };
 
 // Update the currently playing song with Last.fm data
@@ -126,10 +132,11 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, srcIndex) {
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
-	        // TODO - use template
-	        $('#curSong h4').text(t);
-            $('#curArtist h4').text(a);
-            $('#curAlbumBlock').fadeOut('fast');
+	        this.renderAlbumBlock({
+                albumImg: undefined,
+                trackName: t,
+                artistName: a,
+            });
 		}
 	});
 };
@@ -156,15 +163,6 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         trackName: trackName,
         artistName: artistName,
     });
-    
-    // TODO: Remove this?
-    // if (model.songs[srcIndex].i === undefined && albumImg) {
-    //     var $playlistImg = $('#song'+srcIndex+' img');
-    //     if ($playlistImg.attr('src') == '/images/unknown.png') {
-    //         $playlistImg.attr('src', albumImg)
-    //     }
-    //     model.updateAlbumImg(srcIndex, albumImg);
-    // }
 
     // Get detailed track info
     trackName && artistName && model.lastfm.track.getInfo({
@@ -177,6 +175,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
+	        nowplaying.renderSongDesc(false);
 		}
 	});
 
@@ -189,6 +188,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
 	        nowplaying._handleArtistInfo(artistName, srcIndex, data);
 	    },
 	    error: function(code, message) {
+	        this.renderArtistDesc(false);
 	        log(code + ' ' + message);
 		}
 	});
@@ -244,9 +244,6 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
         this.renderSongDesc(false);
     }
     
-
-    
-    // 
     // // Add link to lyric
     // nowplaying._updateLyricsLink(trackName, artistName);
 };

@@ -141,7 +141,7 @@ Player.prototype.playSongBySearch = function(title, artist) {
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
-                    $('#song'+srcIndex)
+                    $('.playing')
                         .removeClass('paused')
                         .addClass('missing');
                     if (songIndex == srcIndex) {
