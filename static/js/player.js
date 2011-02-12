@@ -366,7 +366,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     });
     
     this.songlist.render('#playlistDiv', function() {
-        if (model.editable) {
+        if (model.isEditable()) {
             $('body').addClass('editable');
             $('#playlist')
                 .sortable($.extend({}, appSettings.sortable, {
@@ -391,7 +391,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         .text(playlist.description);
     document.title = playlist.title + ' - Instant.fm - Share Music Playlists Instantly';
     
-    if (model.editable) {
+    if (model.isEditable()) {
         playlistview._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         playlistview._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         

@@ -148,13 +148,13 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return None
         
-    def user_owns_playlist(self, playlist):
+    def owns_playlist(self, playlist):
         session_id = self.get_secure_cookie('session_id')
         user = self.get_current_user()
         return ((session_id and session_id == playlist['session_id']) 
                 or (user and user.id == playlist['user_id']))
           
-    def log_user_in(self, user_id, expire_on_browser_close=False):
+    def _log_user_in(self, user_id, expire_on_browser_close=False):
         self.set_secure_session_cookie(user_id=user_id, 
                                        expire_on_browser_close=expire_on_browser_close,
                                        overwrite=True)
@@ -300,24 +300,24 @@ class AlbumHandler(PlaylistBaseHandler):
             print(e)
             self._render_playlist_view('album.html', album=None)
        
-class PlaylistEditHandler(BaseHandler):
+class PlaylistEditHandler(PlaylistBaseHandler):
     """Handles updates to playlists in the database"""
     
     # SECURITY WARNING: Do NOT user user-input for col_name, that would be BAD!
-    def _update_playlist(self, playlist_id, col_name, col_value, user_id):
+    #                   Also, authenticate the user before calling this.
+    def _update_playlist(self, playlist_id, col_name, col_value):
         print "Updating playlist ID: " + str(playlist_id)
-        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s AND user_id = %s;", col_value, playlist_id, user_id) == 1
+        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
     
     def post(self, playlist_alpha_id):
-        user_cookie = self.get_secure_cookie('session_id')
-        if not user_cookie:
-            self.write(json.dumps({'status': 'No user cookie'}))
-            return
-            
-        user_id = long(user_cookie)
-        
         playlist_id = self.base36_10(playlist_alpha_id)
+        playlist = self._get_playlist_by_id(playlist_id)
         
+        if not self.owns_playlist(playlist):
+            self.write(json.dumps({'status': 'User doesn\'t own playlist'}))
+            return
+        
+            
         updatableColumns = ['songs', 'title', 'description']
         for col_name in updatableColumns:
             col_value = self.get_argument(col_name, None)
@@ -340,7 +340,7 @@ class PlaylistEditHandler(BaseHandler):
                         self.write(json.dumps({'status': 'Malformed edit request'}))
                         return
                                     
-                if self._update_playlist(playlist_id, col_name, col_value, user_id):
+                if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))
                 else:
                     self.write(json.dumps({'status': 'Playlist not editable'}))
@@ -608,7 +608,7 @@ class FbSignupHandler(SignupHandler,
                             user_id,
                             self.get_secure_cookie('session_id'))
             
-            self.log_user_in(user_id)
+            self._log_user_in(user_id)
             self.write(json.dumps(True))
             self.finish()
         else:
@@ -645,7 +645,7 @@ class LoginHandler(SignupHandler):
         # If we haven't failed out yet, the login is valid.
         expire_on_browser_close = not self.get_argument('passwordless', False)
         print('Expire on browser close: ' + str(expire_on_browser_close))
-        self.log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
+        self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
 class LogoutHandler(SignupHandler):
