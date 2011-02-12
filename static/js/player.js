@@ -79,8 +79,7 @@ Player.prototype.playSong = function(i) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
-    var q = title + ' ' + artist;
-    player.playSongBySearch(q);
+    player.playSongBySearch(title, artist);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
@@ -122,8 +121,11 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(q) {
+Player.prototype.playSongBySearch = function(title, artist) {
+    var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
+    
+    document.title = title+' by '+artist+' - '+model.title+' - Instant.fm';
     
     var srcIndex = songIndex;
     $.ajax({

@@ -32,9 +32,7 @@ NowPlaying.prototype.setupHandlers = function() {
     });  
 };
 
-NowPlaying.prototype.renderPlaylistInfo = function(data) {
-    document.title = data.title + ' - Instant.fm - Share Music Playlists Instantly';
-    
+NowPlaying.prototype.renderPlaylistInfo = function(data) {    
     $('#curPlaylist').fadeOut('fast', function() {
         $('#curPlaylist').empty();
         $('#curPlaylistTemplate')

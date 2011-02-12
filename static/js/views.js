@@ -220,8 +220,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
-            var q = song.t+' '+song.a;
-            player.playSongBySearch(q);
+            player.playSongBySearch(song.t, song.a);
         },
         buttons: buttons || [],
     });
@@ -430,8 +429,7 @@ ArtistView.prototype._handleTopSongs = function(data) {
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
-            var q = song.t+' '+song.a;
-            player.playSongBySearch(q);
+            player.playSongBySearch(song.t, song.a);
         },
         buttons: [{
             action: function(event, song) {
