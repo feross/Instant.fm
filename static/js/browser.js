@@ -128,7 +128,7 @@ MiniBrowser.prototype.push = function(elem, view) {
     if (browser.isOpen) {
         slideAnimationDuration = 300;
     } else {
-        slideAnimationDuration = 1000;
+        slideAnimationDuration = 500;
         this.toggle(true, false);
     }
     window.setTimeout(function() {
@@ -203,6 +203,8 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
     toggle = (toggle === undefined) ? !this.isOpen : toggle;
     awaken = (awaken === undefined) ? false : awaken;
     
+    var animationDuration = 500;
+    
     if (toggle) {
         var pixels = 0;
         
@@ -215,7 +217,7 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
             } else { // was closed
                 window.setTimeout(function() {
                     browser.getTopView() && browser.getTopView().didAwake();
-                }, 1000);
+                }, animationDuration);
             }
         }
         
@@ -239,7 +241,7 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
         var css = {"margin-top":pixels+"px"};
 
         if ($('#FS_holder').hasClass('animate')) {
-            $('#modal').animate(css, 1000);
+            $('#modal').animate(css, animationDuration);
         } else {
             $('#modal').css(css);
         }

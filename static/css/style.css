@@ -260,7 +260,7 @@ a.awesome:hover { text-decoration: none; }
 /* Primary Styles */
 
 body {
-    background: #000 url('/images/fullmetal.jpg') top left repeat;
+    background: #000 url('/images/bob-marley.jpg') top left repeat;
     text-align: center;
 }
 
@@ -349,34 +349,40 @@ input.file {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    -moz-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
-    -webkit-box-shadow: 0 6px 5px rgba(0,0,0,0.5);
-    box-shadow: 0 6px 5px rgba(0,0,0,0.5);
+    -moz-box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 5px 5px rgba(0,0,0,0.6);
+    box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
     overflow: hidden;
     position: relative;
     width: 1000px;
 }
 
 #headerLogo {
-    background: transparent url("/images/logo3.png") 0 0 no-repeat;
+    background: transparent url("/images/logo4.png") 0 0 no-repeat;
     display: block;
     float: left;
-    height: 30px;
-    margin: 10px 0 10px 5px;
-    width: 424px;
+    height: 40px;
+    margin: 7px 0 3px 5px;
+    width: 473px;
 }
 
 #header nav {
-    color: #499bd1;
     float: right;
     font-size: 13px;
     font-weight: bold;
-    margin: 16px 15px 0 0;
-    text-shadow: #000 0 1px 1px;
+    margin: 17px 15px 0 0;
 }
 
-#header nav a { display: inline-block; margin-left: 18px; }
+#header nav a {
+    color: #fff;
+    display: inline-block;
+    font-weight: bold;
+    margin-left: 18px;
+    text-shadow: #000 0 0 3px;
+}
 
+/*#header nav a:hover { text-shadow: #499bd1 1px 1px 8px; }
+*/
 /* Scrolling */
 
 #browserDisplay {
@@ -776,9 +782,9 @@ input.file {
     border-radius: 5px;
 }
 #browserDisplay #modal.animate {
-    transition: all 1s ease-in-out;
-	-moz-transition: all 1s ease-in-out;
-	-webkit-transition: all 1s ease-in-out;
+    transition: all 0.6s ease-in-out;
+	-moz-transition: all 0.6s ease-in-out;
+	-webkit-transition: all 0.6s ease-in-out;
 }
 
 /* Current Playlist Info */
