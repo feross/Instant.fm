@@ -339,6 +339,7 @@ ArtistView.prototype._fetchData = function() {
     model.lastfm.artist.getTopTracks({
         artist: this.name,
         autocorrect: 1,
+        limit: 10
     },
     {
         success: function(data) {
@@ -351,6 +352,7 @@ ArtistView.prototype._fetchData = function() {
     model.lastfm.artist.getTopAlbums({
         artist: this.name,
         autocorrect: 1,
+        limit: 6
     },
     {
         success: function(data) {
