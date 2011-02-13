@@ -66,8 +66,11 @@
         
         <header class="iPhoneHeader black" id="nowPlayingHeader">
           <span class="left"><!-- not used on now playing view --></span>
-          <h1>Now Playing</h1>
-          <a class="right black" href="#open">Search</a>
+          <div class="title"><h1>Now Playing</h1></div>
+          <a class="right black" href="#open">
+            <span class="mustNotOwn">Search</span>
+            <span class="mustOwn">Add Songs</span>
+          </a>
         </header>
         
         <div id="nowPlayingContainer">
@@ -171,7 +174,7 @@
         
         <header class="iPhoneHeader blue" id="browserHeader">
           <span class="left"><!-- dynamic back button --></span>
-          <h1><!-- dynamic title --></h1>
+          <div class="title"><!-- dynamic title --></div>
           <a class="right black" href="#close">Now Playing</a>
         </header>
         

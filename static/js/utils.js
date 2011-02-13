@@ -184,17 +184,24 @@ function isOwner() {
 // Accepts a an object, where keys correspond to span classes,
 // and values correspond to the text within. Useful for rendering
 // text that will change based on the user's state.
-function renderConditionalText(obj, callback) {
-    var result = '';
+function renderConditionalText(obj, tagType, callback) {
+    var result = $('<div></div>');
     if ($.isPlainObject(obj)) {
         $.each(obj, function(key, value) {
-            result += '<span class="'+key+'">'+value+'</span>';
+            result.append('<'+tagType+' class="'+key+'">'+value+'</'+tagType+'>');
         });
     } else {
-        result = '<span>'+obj+'</span>';
+        result.append('<'+tagType+'>'+obj+'</'+tagType+'>');
     }
     
-    return $(result).each(function(index) {
-        callback($(this));
-    });
+    result = result.children();
+    result.hide();
+    window.setTimeout(function() {
+        result.each(function(index, elem) {
+             callback($(elem));
+             $(elem).fadeIn();
+        });
+    }, 0);
+
+    return result;
 }

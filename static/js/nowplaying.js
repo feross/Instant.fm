@@ -112,8 +112,8 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
     $('#nowPlayingHeader .right')
         .empty()
         .append(
-            renderConditionalText(text, function(elem) {
-                elem.shorten({width: 140});
+            renderConditionalText(text, 'span', function(elem) {
+                elem.shorten({width: 125});
             })
         );  
 };

@@ -26,11 +26,11 @@ BaseView.prototype.willSleep = function(config) {
 BaseView.prototype.willAwake = function(config) {
     $('#browser').scrollTop(0);
     browser._updateHeader();
-    nowplaying.updateOpenButtonText(config.title);
 };
 
 // Called when another view was popped and this one has re-appeared.
 BaseView.prototype.didAwake = function(config) {
+    nowplaying.updateOpenButtonText(config.title);
 };
   
 // Called immediately before the view is popped.
