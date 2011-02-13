@@ -299,7 +299,11 @@ Player.prototype.loadPlaylist = function(response) {
     } else if ($.isPlainObject(response)) { // playlist is embedded in html
         var playlist = response;
         if(Modernizr.history) {
-            window.history.replaceState({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+            window.history.replaceState(
+                {playlistId: playlist.playlist_id},
+                playlist.title,
+                '/p/'+playlist.playlist_id
+            );
         }
 
     } else { // playlist is from xhr response      
@@ -309,7 +313,17 @@ Player.prototype.loadPlaylist = function(response) {
             return;
         }
         
-        tryPushHistory({playlistId: playlist.playlist_id}, playlist.title, '/p/'+playlist.playlist_id);
+        // Attempt to push state onto URL history, fallback to redirect
+        var url = '/p/'+playlist.playlist_id;
+        if(Modernizr.history) {        
+            window.history.pushState(
+                {playlistId: playlist.playlist_id},
+                playlist.title,
+                url
+            );
+        } else {
+            window.location = url;
+        }
         
         nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
         $('#main').effect('pulsate', {times: 2});

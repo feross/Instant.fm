@@ -1,14 +1,5 @@
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
-// Attempt to push state onto URL history, fallback to redirect
-function tryPushHistory(stateObj, title, url) {
-    if(Modernizr.history) {
-        window.history.pushState(stateObj, title, url);
-    } else {
-        window.location = url;
-    }
-}
-
 // Show a popup window
 function showPop(url, _name, _height, _width) {
     var name = _name || 'name';
@@ -80,7 +71,7 @@ function htmlDecode(value){
 
 function canonicalize(name) {
     // Copied and modified from the canonicalize() function on the server-side.
-    var r = new RegExp('[^a-z0-9]', 'gi');
+    var r = new RegExp('[^a-z0-9]+', 'gi');
     return name
         .replace(r, '-')
         .toLowerCase();
