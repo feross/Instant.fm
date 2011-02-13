@@ -151,16 +151,31 @@ function setupFBML(playlist) {
               // user successfully logged in
               log('FB login succesful.');
               FB.api('/me', function(response) {
-                $('#fbConnectButton').hide();
                 var form = $('#fbAccountCreation');
-                log(response);
+                
+                // Check that they're not already registered
+                $.ajax({
+                  'url': '/fb-check',
+                  'dataType': 'json',
+                  'data': {'fb_id': response.id},
+                  'success': function(is_registered) {
+                    if (is_registered) {
+                      form.hide();
+                      $('alreadyRegistered').show();
+                    }
+                  }
+                })
                 $('input[name=name]', form).val(response.name);
                 $('input[name=email]', form).val(response.email);
                 $('input[name=fb_user_id]', form).val(response.id);
                 $('input[name=auth_token]', form).val(login_response.session.access_token);
                 $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
+                
+                $('#fbConnectButton').hide();
                 form.show();
               });
+              
+
             } else {
               // user cancelled login
               log('FB login failed.');
@@ -251,7 +266,7 @@ function setupRegistration() {
 
 function setupLogin() {
     $('a[href="#login"]').colorbox({inline: true, href: "#loginBox"});
-        $("form#login").validator({
+    $("form#login").validator({
         effect: 'wall', 
         container: '#loginErrors',
    
@@ -293,12 +308,16 @@ function setupLogin() {
 }
 
 function setupLogout() {
-  $('a[href="#logout"]').click(function(event) {
-      $.post('/logout', function() {
-              loginStatusChanged();
-              log('Logged out.');
-      });
-  });
+	$('a[href="#logout"]').click(function(event) {
+    	$.post('/logout', function() {
+        	loginStatusChanged();
+            log('Logged out.');
+        });
+    });
+}
+
+function setupNewPlaylist() {
+    $('a[href="#new"]').colorbox({inline: true, href: "#newPlaylistBox"});
 }
 
 function setupDragDropUploader(dropId, callback) {
