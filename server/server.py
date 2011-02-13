@@ -169,7 +169,11 @@ class BaseHandler(tornado.web.RequestHandler):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
         
         # Associate session with user
-        self.db.execute('UPDATE sessions SET user_id = %s WHERE session_id = %s', user_id, session_id)
+        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
+        
+        # Promote playlists to be owned by user
+        self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
+                        user_id, session_id)
         
         # Set cookies for user_id and user_name
         user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
@@ -563,8 +567,8 @@ class SignupHandler(BaseHandler):
          
 class FbSignupHandler(SignupHandler, 
                       tornado.auth.FacebookGraphMixin):
+    @tornado.web.asynchronous
     def post(self):
-        self._set_session_cookie()
         errors = {}
         args = {'name': ['required'],
                 'email': ['required','email'],
@@ -600,18 +604,12 @@ class FbSignupHandler(SignupHandler,
             hashed_pass = self._hash_password(self.get_argument('password'), salt)
             
             # Write the user to DB
-            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s, %s)',
+            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s, NOW())',
                                       self.get_argument('fb_user_id'),
                                       self.get_argument('name'),
                                       self.get_argument('email'),
                                       hashed_pass,
-                                      salt,
-                                      datetime.utcnow().isoformat(' '))
-            
-            # Associate the user's session with the user
-            self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s',
-                            user_id,
-                            self.get_secure_cookie('session_id'))
+                                      salt)
             
             self._log_user_in(user_id)
             self.write(json.dumps(True))
