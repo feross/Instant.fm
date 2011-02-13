@@ -1,5 +1,20 @@
-{% import template_utils %}
 {% extends "base.html" %}
+
+{% block html-classes %}
+
+  {% if current_user %}
+    {{ 'loggedIn' }}
+  {% else %}
+    {{ 'loggedOut' }}
+  {% end %}
+
+  {% if handler.owns_playlist(playlist) %}
+    isOwner
+  {% else %}
+    isNotOwner
+  {% end %}
+
+{% end %}
 
 {% block bodyId %}p{% end %}
 

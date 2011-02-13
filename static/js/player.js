@@ -381,7 +381,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     });
     
     this.songlist.render('#playlistDiv', function() {
-        if (model.editable) {
+        if (model.isEditable()) {
             $('body').addClass('editable');
             $('#playlist')
                 .sortable($.extend({}, appSettings.sortable, {
@@ -398,7 +398,7 @@ Player.prototype.renderPlaylist = function(playlist) {
             }, 4000);
         }
     });
-        
+       
     $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
     });

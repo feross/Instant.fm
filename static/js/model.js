@@ -18,10 +18,13 @@ Model.prototype.updatePlaylist = function(playlist) {
     this.title       = playlist.title;
     this.description = playlist.description;
     this.songs       = playlist.songs || [];
-    this.editable    = playlist.editable || false;
     this.session_id  = playlist.session_id || -1;
     this.user_id     = playlist.user_id || -1;
 };
+
+Model.prototype.isEditable = function() {
+	return isOwner();
+}
 
 // Move song in the playlist
 // @oldIndex - old playlist position
@@ -60,7 +63,7 @@ Model.prototype.updateAlbumImg = function(index, albumImg) {
 };
 
 Model.prototype.savePlaylist = function(data) {
-    if (!model.editable) {
+    if (!model.isEditable()) {
         log('Playlist not saved. Playlist is uneditable.');
         return;
     }
