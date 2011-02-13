@@ -891,16 +891,16 @@ a:hover .zoomIcon {
     bottom: 16px;
 }
 
-#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
+#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 330px; }
 
 #curAlbumBlock h4 {
     display: inline-block;
     font-size: 15px;
     margin: 0 0 4px 0;
-    width: 285px;
+    width: 300px;
 }
 
-#curSong h4 { font-size: 20px; }
+#curSong h4 { font-size: 20px; width: 320px; }
 
 #curButtons { margin-top: 10px; }
 
