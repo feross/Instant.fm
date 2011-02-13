@@ -436,9 +436,10 @@ ArtistView.prototype._handleTopSongs = function(data) {
             action: function(event, song) {
                 player.addSongToPlaylist(song);
             },
-            className: 'awesome small white',
+            className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
         }],
+        isNumbered: true
     });
     
     var $songResults = $('.songResults', this.content)

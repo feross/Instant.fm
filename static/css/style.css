@@ -1205,6 +1205,9 @@ a:hover .zoomIcon {
     margin: 0 10px 0 10px;
     width: 34px;
 }
+.isNumbered .songListItem img {
+    margin: 0 10px 0 0;
+}
 
 .songListItem.missing { color: #aaa; }
 .songListItem.missing .num {
@@ -1282,8 +1285,6 @@ a:hover .zoomIcon {
 }
 
 #playlist .songActions { height: 15px; margin: 10px 5px 0 0; }
-
-#playlist .songListItem img { margin-left: 0; }
 
 #playlist .songInfo .title { font-size: 14px; }
 

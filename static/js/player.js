@@ -378,7 +378,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         }],
         id: 'playlist',
         listItemIdPrefix: 'song',
-        numberList: true,
+        isNumbered: true,
     });
     
     this.songlist.render('#playlistDiv', function() {

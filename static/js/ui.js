@@ -77,7 +77,7 @@ function SongList(options) {
     this.buttons = options.buttons;
     this.id = options.id
     this.listItemIdPrefix = options.listItemIdPrefix;
-    this.numberList = !!options.numberList;
+    this.isNumbered = !!options.isNumbered;
     
     var that = this;
     this.buttonHelper = function(i, song, _songNum) {
@@ -96,6 +96,10 @@ SongList.prototype.render = function(addToElem, _callback) {
         
     if (this.id) {
         this.elem.attr('id', this.id);
+    }
+
+    if (this.isNumbered) {
+        this.elem.addClass('isNumbered');
     }
     
     this._renderHelper(0, _callback);
@@ -133,7 +137,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     var that = this;
     var imgSrc = song.i ? song.i : '/images/unknown.png';
     var $songListItem = $('<li class="songListItem clearfix"></li>')
-        .append(this.numberList ? '<div class="num">'+(_songNum+1)+'</div>' : '')
+        .append(this.isNumbered ? '<div class="num">'+(_songNum+1)+'</div>' : '')
         .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
         .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
         .append($buttonActions)
