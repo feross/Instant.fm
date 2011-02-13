@@ -208,16 +208,6 @@ SearchView.prototype._handleSongSearchResults = function(data) {
 
     $('.songResults ul', this.content).remove();
     
-    var buttons;
-    if (model.editable) {
-        buttons = [{
-            action: function(event, song) {
-                player.addSongToPlaylist(song);
-            },
-            className: 'awesome small white',
-            text: 'Add to Playlist'
-        }];
-    }
     var songlist = new SongList({
         songs: tracks,
         onClick: function(song) {
@@ -225,7 +215,13 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             $(this).addClass('playing');
             player.playSongBySearch(song.t, song.a);
         },
-        buttons: buttons || [],
+        buttons: [{
+            action: function(event, song) {
+                player.addSongToPlaylist(song);
+            },
+            className: 'awesome small white mustOwn',
+            text: 'Add to Playlist'
+        }],
     });
     
     var $songResults = $('.songResults', this.content);
@@ -484,51 +480,4 @@ ArtistView.prototype._updateArtistImg = function(src, alt) {
     } else {
         $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
     }
-};
-
-
-/* ------------------- LYRIC VIEW -------------------- */
-
-function LyricView(config) {
-    this.config = config;
-	this.title = config.linkElem.attr('data-title');
-	this.artist = config.linkElem.attr('data-artist');
-}
-copyPrototype(LyricView, BaseView);
-
-LyricView.prototype.willSlide = function() {
-    this.BaseView.prototype.willSlide(this.config);
-    this._fetchData();
-};
-
-LyricView.prototype.didSlide = function() {
-    this.BaseView.prototype.didSlide(this.config);
-};
-
-LyricView.prototype.willSleep = function() {
-    this.BaseView.prototype.willSleep(this.config);
-};
-
-LyricView.prototype.willAwake = function() {
-    this.BaseView.prototype.willAwake(this.config);
-};
-
-LyricView.prototype.didAwake = function() {
-    this.BaseView.prototype.didAwake(this.config);
-};
-
-LyricView.prototype.willPop = function() {
-    this.BaseView.prototype.willPop(this.config);
-};
-
-LyricView.prototype._fetchData = function() {
-    var url = '/lyric/?a='+encodeURIComponent(this.artist)+'&t='+encodeURIComponent(this.title);
-    $.ajax({
-       type: 'GET',
-       url: url,
-       dataType: 'xml',
-       success: function(data, textStatus, xhr) {
-           alert(data);
-       }
-     });
 };
