@@ -243,9 +243,10 @@ function setupRegistration() {
                 dataType: 'json',
                 success: function(json) {
                     // everything is ok. (server returned true)
-                    if (json && json.success && json.success === true)  {
+                    if (json === true)  {
                       log("Registration posted successfully.")
                       $('#registrationErrors').html('Registration postd succesfully.');
+                      loginStatusChanged();
               
                     // server-side validation failed. use invalidate() to show errors
                     } else {

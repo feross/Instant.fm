@@ -155,10 +155,16 @@ function ownershipStatusChanged() {
         $('html').removeClass('isNotOwner');
   	    var user_name = readCookie('user_name');
         $('.username').html(unescape(user_name));
+        
+        // If we own the playlist, make sure user_id is set
+        var user_id = readCookie('user_id');
+        if (user_id) {
+          model.user_id = user_id;
+        }
     } else {
         $('html').addClass('isNotOwner');
         $('html').removeClass('isOwner');
-    }        
+    }
 }
 
 function isOwner() {
