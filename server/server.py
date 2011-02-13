@@ -160,10 +160,14 @@ class BaseHandler(tornado.web.RequestHandler):
             return None
         
     def owns_playlist(self, playlist):
+        if playlist is None:
+            return False
+        
         session_id = self.get_secure_cookie('session_id')
         user = self.get_current_user()
-        return ((session_id and str(session_id) == str(playlist['session_id'])) 
-                or (user and str(user.id) == str(playlist['user_id'])))
+        
+        return ((session_id is not None and str(session_id) == str(playlist['session_id'])) 
+                or (user is not None and str(user.id) == str(playlist['user_id'])))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
@@ -225,6 +229,10 @@ class PlaylistBaseHandler(BaseHandler):
     def _is_partial(self):
         return self.get_argument('partial', default=False)
         
+    def render_user_name(self):
+        user = self.get_current_user()
+        name = user.name if user else ''
+        return '<span class="username">' + name + '</span>'
        
 class PlaylistHandler(PlaylistBaseHandler):
     def _render_playlist_json(self, playlist_id):
@@ -240,17 +248,17 @@ class PlaylistHandler(PlaylistBaseHandler):
     """Landing page for a playlist"""
     def get(self, playlist_alpha_id):
         playlist_id = self.base36_10(playlist_alpha_id)
+        playlist = self._get_playlist_by_id(playlist_id)
+        
+        if playlist is None:
+            self.send_error(404)
+            return
+        
         if self.get_argument('json', default=False):
-            self.write(json.dumps(self._get_playlist_by_id(playlist_id)))
+            self.write(json.dumps(playlist))
         else:
-            playlist = self._get_playlist_by_id(playlist_id)
             self.render('playlist.html', playlist=playlist);
    
-    def render_user_name(self):
-        user = self.get_current_user()
-        name = user.name if user else ''
-        return '<span class="username">' + name + '</span>'
-    
 class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
