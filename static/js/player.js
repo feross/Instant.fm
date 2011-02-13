@@ -319,6 +319,7 @@ Player.prototype.loadPlaylist = function(response) {
     player.renderPlaylist(playlist);
 
     player.playSong(0);
+    ownershipStatusChanged();
     log('Loaded playlist: ' + playlist.playlist_id);
 };
 
