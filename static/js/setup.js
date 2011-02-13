@@ -138,14 +138,14 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          appId: '114871205247916', // 'Instant.fm' API Key
-          // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          //appId: '114871205247916', // 'Instant.fm' API Key
+          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
         });
         
-        $('#loginButton').click(function(event) {
+        $('#fbConnectButton').click(function(event) {
           FB.login(function(login_response) {
             if (login_response.session) {
               // user successfully logged in
@@ -155,13 +155,13 @@ function setupFBML(playlist) {
                 
                 // Check that they're not already registered
                 $.ajax({
-                  'url': '/fb-check',
+                  'url': '/signup/fb-check',
                   'dataType': 'json',
                   'data': {'fb_id': response.id},
                   'success': function(is_registered) {
                     if (is_registered) {
                       form.hide();
-                      $('alreadyRegistered').show();
+                      $('#alreadyRegistered').show();
                     }
                   }
                 })
@@ -197,7 +197,7 @@ function setupFBML(playlist) {
 }
 
 function setupRegistration() {
-    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
+    $('#navSignup').colorbox({inline: true, href: "#registrationBox"});
      
     // adds an effect called "wall" to the validator
     // TODO: Feross, I just copied and pasted this from JQuery Tools's page.
@@ -309,6 +309,7 @@ function setupLogin() {
 
 function setupLogout() {
 	$('a[href="#logout"]').click(function(event) {
+      event.preventDefault();
     	$.post('/logout', function() {
         	loginStatusChanged();
             log('Logged out.');

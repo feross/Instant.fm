@@ -189,18 +189,18 @@ MiniBrowser.prototype._slideTo = function(slide) {
 MiniBrowser.prototype._updateHeader = function() {
     var title = this.getTopView().config.title || '';
     
-    $('#browserHeader h1')
+    $('#browserHeader .title')
         .empty()
         .append(
-            renderConditionalText(title, function(elem) {
-                elem.shorten({width: 300})
+            renderConditionalText(title, 'h1', function(elem) {
+                elem.shorten({width: 275});
             })
         );
     
     var leftButton;
     if (this.viewStack.length > 1) {
         var prevTitle = this.viewStack[this.viewStack.length-2].config.title;
-        var prevTitleElem = renderConditionalText(prevTitle, function(elem) {
+        var prevTitleElem = renderConditionalText(prevTitle, 'span', function(elem) {
             elem.shorten({width: 70});
         });
         leftButton =

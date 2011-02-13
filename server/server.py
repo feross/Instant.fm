@@ -163,8 +163,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def owns_playlist(self, playlist):
         session_id = self.get_secure_cookie('session_id')
         user = self.get_current_user()
-        return ((session_id and session_id == playlist['session_id']) 
-                or (user and user.id == playlist['user_id']))
+        return ((session_id and str(session_id) == str(playlist['session_id'])) 
+                or (user and str(user.id) == str(playlist['user_id'])))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
