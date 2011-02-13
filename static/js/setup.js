@@ -145,7 +145,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
         
-        $('#loginButton').click(function(event) {
+        $('#fbConnectButton').click(function(event) {
           FB.login(function(login_response) {
             if (login_response.session) {
               // user successfully logged in
@@ -182,7 +182,7 @@ function setupFBML(playlist) {
 }
 
 function setupRegistration() {
-    $('#registrationLink').colorbox({inline: true, href: "#registrationBox"});
+    $('#navSignup').colorbox({inline: true, href: "#registrationBox"});
      
     // adds an effect called "wall" to the validator
     // TODO: Feross, I just copied and pasted this from JQuery Tools's page.
@@ -294,6 +294,7 @@ function setupLogin() {
 
 function setupLogout() {
   $('a[href="#logout"]').click(function(event) {
+      event.preventDefault();
       $.post('/logout', function() {
               loginStatusChanged();
               log('Logged out.');
