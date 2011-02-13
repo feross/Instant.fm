@@ -903,8 +903,6 @@ a:hover .zoomIcon {
 
 #curButtons { margin-top: 10px; }
 
-#curLyric { font-size: 12px; font-style: italic; margin-top: 15px; }
-
 #curDescs { margin: 10px 0 0 0; }
 
 #curDescs section { margin: 25px 0 0 0; }
@@ -1290,14 +1288,14 @@ a:hover .zoomIcon {
 #playlist .songInfo .title { font-size: 14px; }
 
 #playlist .songListItem .moveToTop { height: 15px; width: 11px; }
-.editable #playlist .songListItem:hover .moveToTop {
+.isOwner #playlist .songListItem:hover .moveToTop {
     background: transparent url("/images/top.png") left top no-repeat;
     cursor: pointer;
 }
-.editable #playlist li.songListItem:first-child .moveToTop { background: none; }
+.isOwner #playlist li.songListItem:first-child .moveToTop { background: none; }
 
 #playlist .songListItem .drag { height: 15px; width: 15px; }
-.editable #playlist .songListItem:hover .drag {
+.isOwner #playlist .songListItem:hover .drag {
     background: transparent url("/images/drag.png") left top no-repeat;
     cursor: url('/images/cursors/move.cur'), move !important;
 }

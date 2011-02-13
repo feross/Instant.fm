@@ -36,7 +36,6 @@ class Application(tornado.web.Application):
             (r"/upload/?$", UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
-            (r"/lyric/?$", LyricHandler), # TODO: This is a temp hack
             (r"/terms/?$", TermsHandler),
             (r"/suggest/?$", ArtistAutocompleteHandler),
             (r"/search/?$", SearchHandler),
@@ -252,16 +251,6 @@ class SearchHandler(PlaylistBaseHandler):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
         self._render_playlist_view('search.html')
-        
-class LyricHandler(PlaylistBaseHandler):
-    @tornado.web.asynchronous
-    def get(self):
-        http = tornado.httpclient.AsyncHTTPClient()
-        http.fetch("http://api.lyricsfly.com/api/api.php?i=730ed9883b40839ab-temporary.API.access&a=five+iron+frenzy&t=every+new+day", callback=self.on_response)
-    
-    def on_response(self, response):
-        if response.error: raise tornado.web.HTTPError(500)
-        self._render_playlist_view('lyric.html', playlist=None, lyric=response.body)
 
 class ArtistHandler(PlaylistBaseHandler):
     def get(self, requested_artist_name):

@@ -40,10 +40,10 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
             .appendTo('#curPlaylist');
         
         $('.editLink').remove(); // remove all edit links
-        if (model.editable) {
-            nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
-            nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
-        }
+
+        // TODO: Hide the editableness when we're not owner
+        nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+        nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
         $('#curPlaylist').fadeIn('fast');
     });
@@ -245,9 +245,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
     } else {
         this.renderSongDesc(false);
     }
-    
-    // // Add link to lyric
-    // nowplaying._updateLyricsLink(trackName, artistName);
+
 };
 
 // Private method to handle artist information from Last.fm
@@ -290,19 +288,6 @@ NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
     } else {
         this.renderArtistDesc(false);
     }
-};
-
-NowPlaying.prototype._updateLyricsLink = function(title, artist) {
-    var link = $('<a></a>', {
-        'data-artist': artist,
-        'data-title': title,
-        href: '/lyric/', // TODO: This is a hack.
-        rel: 'partial lyric',
-        title: title+' by '+artist
-    })
-        .html('Get Lyrics');
-
-    $('#curLyric').html(link);
 };
 
 // Optimization: Don't load Facebook comments until video is playing
@@ -364,7 +349,7 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
             break;
     }
     
-    elem.after($('<a class="editLink" href="#edit">Edit</a>')
+    elem.after($('<a class="editLink mustOwn" href="#edit">Edit</a>')
         .click(function(event) {
             event.preventDefault();
             $.extend(appSettings.jeditable.autogrow, autogrowSettings);

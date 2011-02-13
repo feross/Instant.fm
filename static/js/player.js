@@ -383,7 +383,6 @@ Player.prototype.renderPlaylist = function(playlist) {
     
     this.songlist.render('#playlistDiv', function() {
         if (model.isEditable()) {
-            $('body').addClass('editable');
             $('#playlist')
                 .sortable($.extend({}, appSettings.sortable, {
                     start: function(event, ui) {
