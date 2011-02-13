@@ -54,12 +54,7 @@ function setupKeyboardShortcuts() {
 
         // Disablable events
         if (keyEvents && !event.altKey && !event.ctrlKey && !event.metaKey) {
-            switch(k) {
-                // TODO: Remove this. For testing.
-                case 87: // w
-                    browser.toggle(undefined, true);
-                    break;
-                
+            switch(k) {                
                 // Playback control
                 case 39: case 40: // down, right
                     player.playNextSong();
@@ -103,6 +98,15 @@ function setupKeyboardShortcuts() {
                     break;
                 case 76: // l
                     player.highlightSong('.playing');
+                    break;
+                case 66: // b
+                    var container = $('#container');
+                    var duration = 1000;
+                    if (container.css('opacity') == 0) {
+                        $('#container').animate({opacity: 1}, duration);
+                    } else if (container.css('opacity') == 1) {
+                        $('#container').animate({opacity: 0}, duration);
+                    }
                     break;
                 case 191: // ?
                     $('#helpLink').trigger('click');

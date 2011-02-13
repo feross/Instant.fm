@@ -71,9 +71,6 @@ function onloadPlaylist() {
     setupLogin();
     setupLogout();
     setupNewPlaylist();
-    
-    // TODO: Fix help link
-    // $('#helpLink').fancyZoom(appSettings.fancyZoom);
    
     setupDragDropUploader('p', player.loadPlaylist);
 }
