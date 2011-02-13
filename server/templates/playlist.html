@@ -272,18 +272,34 @@
         <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
       </form>
     </div>
+    
+    <div id="newPlaylistBox">
+      <div class="fancyZoomHeader"> New Playlist </div>
+      <form id="newPlaylistForm">
+        <div class="formRow">
+    	    <label> Playlist name: </label>
+    	    <input type="text" required="required" />
+        </div>
+        <div class="formRow">
+    	    <label> Description: </label>
+    	    <input type="textarea" required="required" />
+        </div>
+        {{ xsrf_form_html() }}
+        <a class="small grey awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
+      </form>
+  	</div>
      
     <div id="registrationBox">
       <div class="fancyZoomHeader">Log In or Sign Up</div>
       <div class="loginForm">
         <div class="fancyZoomSectionHeader"> Create an Account </div>
         <a id="fbConnectButton" class="small darkblue awesome"> Connect your Facebook Account </a>
-        <div id="fbAccountCreation" style="display:none;">
+          <div id="alreadyRegistered" style="display:none;">
+            This Facebook user is already registered on Instant.fm. Try logging in instead.
+          </div>        
+          <div id="fbAccountCreation" style="display:none;">
           <form id="fbRegistration" method="post">
             <div class="loginForm">
-              <div id="alreadyRegistered">
-                This Facebook user is already registered on Instant.fm. Try logging in instead.
-              </div>
               <div id="registrationErrors"></div>
               <div class="formRow">
                 <label for="fbName"> Display Name: </label>
@@ -295,7 +311,7 @@
               </div>          
               <div class="formRow">
                 <label for="fbPassword"> Password: </label>
-                <input id="fbPassword" type="password" name="password" pattern=".{4}" title="Passwords must be at least 4 characters" required="required"/>
+                <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
               </div>          
             </div>
             <div>

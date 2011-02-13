@@ -166,10 +166,10 @@ class BaseHandler(tornado.web.RequestHandler):
                 or (user and str(user.id) == str(playlist['user_id'])))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
-        self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
+        session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
         
         # Associate session with user
-        self.db.execute('UPDATE sessions SET user_id = %s', user_id)
+        self.db.execute('UPDATE sessions SET user_id = %s WHERE session_id = %s', user_id, session_id)
         
         # Set cookies for user_id and user_name
         user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)

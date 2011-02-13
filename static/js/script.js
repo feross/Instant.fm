@@ -70,6 +70,7 @@ function onloadPlaylist() {
     setupRegistration();
     setupLogin();
     setupLogout();
+    setupNewPlaylist();
     
     // TODO: Fix help link
     // $('#helpLink').fancyZoom(appSettings.fancyZoom);
