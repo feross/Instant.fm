@@ -65,12 +65,10 @@ function setupKeyboardShortcuts() {
                 case 32: // space
                     player.playPause();
                     break;
-                case 187: // +
-                case 61: // + on Fx
+                case 187: case 61: // +, + on Fx
                     player.increaseVolume();
                     break;
-                case 189: // -
-                case 109: // - on Fx
+                case 189: case 109: // -, - on Fx
                     player.decreaseVolume();
                     break;
                 case 86: // v
@@ -78,7 +76,6 @@ function setupKeyboardShortcuts() {
                     break;
                 case 83: // s
                     player.toggleShuffle();
-                    
                     break;
                 case 82: // r
                     player.toggleRepeat();
@@ -101,11 +98,22 @@ function setupKeyboardShortcuts() {
                     break;
                 case 66: // b
                     var container = $('#container');
-                    var duration = 1000;
+                    var duration = 750;
+                    
                     if (container.css('opacity') == 0) {
-                        $('#container').animate({opacity: 1}, duration);
+                        $('#container').css({
+                            position: 'inherit',
+                            left: 0
+                        })
+                        .animate({opacity: 1}, duration);
+                    
                     } else if (container.css('opacity') == 1) {
-                        $('#container').animate({opacity: 0}, duration);
+                        $('#container').animate({opacity: 0}, duration, function() {
+                            $('#container').css({
+                                position: 'absolute',
+                                left: -9999
+                            });
+                        });
                     }
                     break;
                 case 191: // ?
