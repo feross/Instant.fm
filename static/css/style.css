@@ -1236,6 +1236,10 @@ a:hover .zoomIcon {
     width: 290px;
 }
 
+.isNumbered .songListItem .songInfo {
+    width: 270px;
+}
+
 .songListItem .songInfo .title {
     font-size: 15px;
     font-weight: bold;
