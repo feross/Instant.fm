@@ -248,7 +248,8 @@ Player.prototype.toggleRepeat = function(force) {
 
 // Manually move the current song up
 Player.prototype.moveSongUp = function(oldId) {
-    if (oldId <= 0) {
+    if (!model.isEditable() ||
+        oldId <= 0) {
         return;
     }
     var songItem = $('#song'+oldId);
@@ -259,7 +260,8 @@ Player.prototype.moveSongUp = function(oldId) {
 
 // Manually move the current dong down
 Player.prototype.moveSongDown = function(oldId) {
-    if (oldId >= model.songs.length - 1) {
+    if (!model.isEditable() ||
+        oldId >= model.songs.length - 1) {
         return;
     }
     var songItem = $('#song'+oldId);
