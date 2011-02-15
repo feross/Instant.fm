@@ -259,8 +259,12 @@ a.awesome:hover { text-decoration: none; }
 /* Primary Styles */
 
 body {
-    background: #000 url('/images/fullmetal.jpg') top left repeat;
+    background: #080808 url('/images/bg2.jpg') no-repeat fixed center top;
     text-align: center;
+}
+
+body#p {
+    background: #000 url('/images/fullmetal.jpg') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
