@@ -185,9 +185,14 @@ function ownershipStatusChanged() {
         if (user_id) {
           model.user_id = user_id;
         }
+        
+        $('#playlist').sortable('enable');
+        
     } else {
         $('html').addClass('isNotOwner');
         $('html').removeClass('isOwner');
+        
+        $('#playlist').sortable('disable');
     }
 }
 

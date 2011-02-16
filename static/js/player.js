@@ -384,17 +384,21 @@ Player.prototype.renderPlaylist = function(playlist) {
     });
     
     this.songlist.render('#playlistDiv', function() {
+        $('#playlist')
+            .sortable($.extend({}, appSettings.sortable, {
+                start: function(event, ui) {
+                    $('body').toggleClass('sorting', true);
+                },
+                stop: function(event, ui) {
+                    player.onPlaylistReorder(event, ui);
+                    $('body').toggleClass('sorting', false);
+                },
+                disabled: true
+            }));
+        
         if (model.isEditable()) {
-            $('#playlist')
-                .sortable($.extend({}, appSettings.sortable, {
-                    start: function(event, ui) {
-                        $('body').toggleClass('sorting', true);
-                    },
-                    stop: function(event, ui) {
-                        player.onPlaylistReorder(event, ui);
-                        $('body').toggleClass('sorting', false);
-                    }
-                }));
+            $('#playlist').sortable('enable');
+            
             window.setTimeout(function() {
                 player.songlist.fetchAlbumImgs.apply(player.songlist);
             }, 4000);
