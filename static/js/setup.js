@@ -98,23 +98,16 @@ function setupKeyboardShortcuts() {
                     break;
                 case 66: // b
                     var container = $('#container');
-                    var duration = 750;
+                    var message = $('#backgroundMsg');
                     
                     if (container.css('opacity') == 0) {
-                        $('#container').css({
-                            position: 'inherit',
-                            left: 0
-                        })
-                        .animate({opacity: 1}, duration);
-                    
+                        showElement(container);
+                        hideElement(message);
                     } else if (container.css('opacity') == 1) {
-                        $('#container').animate({opacity: 0}, duration, function() {
-                            $('#container').css({
-                                position: 'absolute',
-                                left: -9999
-                            });
-                        });
+                        hideElement(container);
+                        showElement(message);
                     }
+                    
                     break;
                 case 191: // ?
                     $('#helpLink').trigger('click');

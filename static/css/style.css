@@ -385,6 +385,18 @@ input.file {
     overflow-y: auto; 
 }
 
+#backgroundMsg {
+    display: none; /* Removed in JS */
+    left: 0;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
+    margin: 20px 0;
+    opacity: 0;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
+}
 
 /* Player */
 
@@ -974,10 +986,18 @@ a:hover .zoomIcon {
     margin: 17px 15px 0 0;
 }
 
-#header nav a {
-    display: inline-block;
-    margin-left: 25px;
+nav, #backgroundMsg {
+    color: #fff;
+    font-weight: bold;
+    text-shadow: #000 0 0 3px;
 }
+
+nav a,
+nav a:active,
+nav a:visited { color: #fff; display: inline-block; text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+#header a { margin-left: 25px; }
+#footer a { padding-right: 25px; }
 
 #navNewPlaylist {
     background: transparent url('/images/add-on.png') left center no-repeat;
@@ -1004,11 +1024,6 @@ a:hover .zoomIcon {
     padding-left: 19px;
 }
 
-#header nav a, #footer a {
-    color: #fff;
-    font-weight: bold;
-    text-shadow: #000 0 0 3px;
-}
 
 #footer {
     font-size: 12px;
@@ -1025,12 +1040,6 @@ a:hover .zoomIcon {
     padding: 0 25px 0 0;
     margin-right: 10px;
 }
-
-#footer a,
-#footer a:active,
-#footer a:visited { color: #ddd; display: inline-block; padding-right: 25px; text-decoration: none; }
-
-#footer a:hover { color: #fff; text-decoration: underline; }
 
 
 /* Search partial */
