@@ -195,11 +195,11 @@
   <div id="curAlbumImgZoom">&nbsp;</div>
   <div id="curArtistImgZoom">&nbsp;</div>
 
-  <div id="helpBox">
-    <div class="fancyZoomHeader">Keyboard shortcuts</div>
+  <div class="colorbox" id="helpBox">
+    <header>Keyboard shortcuts</header>
     
-    <section class="helpSection">
-      <div class="fancyZoomSectionHeader">Playback Control</div>
+    <section>
+      <header>Playback Control</header>
       <dl class="clearfix">
         <dt>space</dt>
         <dd>Play/pause</dd>
@@ -227,8 +227,8 @@
         <dd>Toggle video display</dd>
       </dl>
     </section>
-    <section class="helpSection">
-      <div class="fancyZoomSectionHeader">Playlist Editing</div>
+    <section>
+      <header>Playlist Editing</header>
       <dl class="clearfix">
         <dt>K</dt>
         <dd>Move current song up</dd>
@@ -238,8 +238,8 @@
         <dd>Move current song down</dd>
       </dl>
     </section>
-    <section class="helpSection">
-      <div class="fancyZoomSectionHeader">Navigation</div>
+    <section>
+      <header>Navigation</header>
       <dl class="clearfix">
         <dt>F</dt>
         <dd>Search for songs</dd>
@@ -263,51 +263,58 @@
     </section>
   </div> <!-- end of #helpBox -->
   
-  <div id="loginBox">
+  <div class="colorbox" id="loginBox">
+    <header>Login to Instant.fm</header>
     <form id="login">
-      <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
       <div id="loginErrors"></div>
       <div class="formRow">
-        <label> Email Address: </label>
+        <label>Email Address:</label>
         <input type="email" name="email" required="required"/>
       </div>
       <div class="formRow">
-        <label> Password: </label>
+        <label>Password:</label>
         <input type="password" name="password" required="required"/>
       </div>
       <div class="formRow">
         <input type="checkbox" name="passwordless" checked="checked" />
-        <label> Let me login without a password on this browser </label>
+        <label>Remember me</label>
       </div>
       {{ xsrf_form_html() }}
-      <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
+      <a class="small red awesome" onclick="$('form#login').submit();"> Login </a>
     </form>
   </div>
   
-  <div id="newPlaylistBox">
-    <div class="fancyZoomHeader"> New Playlist </div>
+  <!-- <div class="colorbox" id="newPlaylistBox">
+    <header>New Playlist</header>
     <form id="newPlaylistForm">
       <div class="formRow">
-  	    <label> Playlist name: </label>
-  	    <input type="text" required="required" />
+        <label> Playlist name: </label>
+        <input type="text" required="required" />
       </div>
       <div class="formRow">
-  	    <label> Description: </label>
-  	    <input type="textarea" required="required" />
+        <label> Description: </label>
+        <input type="textarea" required="required" />
       </div>
       {{ xsrf_form_html() }}
-      <a class="small grey awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
+      <a class="small red awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
     </form>
-	</div>
+  </div> -->
    
-  <div id="signupBox">
-    <div class="fancyZoomHeader">Log In or Sign Up</div>
+  <div class="colorbox" id="signupBox">
+    <header>Create an Account <span class="subtitle">(1 of 2)</span></header>
     <div class="loginForm">
-      <a id="fbConnectButton" class="large darkblue awesome"> Connect your Facebook Account </a>
-      <fb:facepile width="200" max_rows="1"></fb:facepile>
+      <div id="fbSignupPitch">
+        <strong>Share music <em>instantly.</em></strong> Sign in with Facebook - it's <strong>fast</strong> and <strong>easy</strong>.
+      </div>
+      
+      <a id="fbConnectButton" class="large darkblue awesome">Sign in with Facebook</a>
+      
+      <div id="fbFacepile">
+      </div>
+      
       <div id="alreadyRegistered" style="display:none;">
         This Facebook user is already registered on Instant.fm. Try logging in instead.
-      </div>        
+      </div>
       <div id="fbAccountCreation" style="display:none;">
         <form id="fbRegistration" method="post">
           <div class="loginForm">
@@ -334,7 +341,7 @@
           <div>
             <img id="fbProfileImage"></img>
           </div>          
-          <a id="submitFbRegistration" class="grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
+          <a id="submitFbRegistration" class="red awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
         
           <input type="hidden" name="auth_token"></input>
           <input type="hidden" name="fb_user_id"></input>

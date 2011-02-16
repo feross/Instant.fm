@@ -927,9 +927,9 @@ a:hover .zoomIcon {
 .seeMore { font-size: 12px; }
 
 
-/* Help Box */
+/* Help Colorbox */
 
-.fancyZoomHeader {
+.colorbox > header {
     border-bottom: #ddd 1px solid;
     color: #000;
     font-size: 16px;
@@ -939,18 +939,21 @@ a:hover .zoomIcon {
     text-align: left;
 }
 
-.helpSection {
+.colorbox section {
     display: inline-block;
     margin-right: 25px;
 }
 
-.fancyZoomSectionHeader {
+.colorbox section header {
     color: #000;
     font-size: 14px;
     font-weight: bold;
     margin: 0 0 10px 0;
     text-align: left;
 }
+
+.colorbox .subtitle { color: #999; padding-left: 5px; }
+
 
 #helpBox dl {
     height: 25px;
@@ -973,6 +976,13 @@ a:hover .zoomIcon {
 }
 
 #helpBox dd { color: #555; float: left; font-size: 12px; padding-top: 5px; }
+
+
+/* Signup Colorbox */
+
+#fbSignupPitch { font-size: 15px; margin: 5px 3px; }
+
+#fbConnectButton { font-size: 22px; margin: 12px 0; padding: 8px 15px; }
 
 
 /* Header and Footer Links */

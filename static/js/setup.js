@@ -168,12 +168,14 @@ function setupFBML(playlist) {
 function setupSignup() {
     $('#navSignup').colorbox({
         inline: true,
+        height: 265,
         href: '#signupBox',
+        scrolling: false,
         onLoad: function() {
-            FB.XFBML.parse(document.getElementById('signupBox'), function(reponse) {
-                log('TODO: show facepile');
-                //$('#curButtons').fadeIn('fast');
-            });
+            $('#fbFacepile')
+                .empty()
+                .append('<fb:facepile width="400" max_rows="1"></fb:facepile>');
+            FB.XFBML.parse(document.getElementById('fbFacepile'));
         }
     });
     
@@ -196,15 +198,17 @@ function setupSignup() {
                   $('#alreadyRegistered').show();
                 }
               }
-            })
+            });
             $('input[name=name]', form).val(response.name);
             $('input[name=email]', form).val(response.email);
             $('input[name=fb_user_id]', form).val(response.id);
             $('input[name=auth_token]', form).val(login_response.session.access_token);
             $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
             
-            $('#fbConnectButton').hide();
-            form.show();
+            $('#fbSignupPitch, #fbConnectButton, #fbFacepile').fadeOut(function() {
+                $('#signupBox > header > .subtitle').text('(2 of 2)');
+                form.fadeIn();
+            });
           });
           
 
@@ -212,7 +216,7 @@ function setupSignup() {
           // user cancelled login
           log('FB login failed.');
         }
-      }, {perms:'email,publish_stream'});
+      }, {perms:'email'});
     });
      
     // adds an effect called "wall" to the validator
