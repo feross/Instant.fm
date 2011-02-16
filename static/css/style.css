@@ -952,12 +952,12 @@ a:hover .zoomIcon {
     text-align: left;
 }
 
-.shortcut {
+#helpBox dl {
     height: 25px;
     margin: 5px 0;
 }
 
-.key {
+#helpBox dt {
     background-color: #333;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
@@ -972,7 +972,7 @@ a:hover .zoomIcon {
     text-shadow: #000 0 1px 1px;
 }
 
-.action { color: #555; float: left; font-size: 12px; padding-top: 5px; }
+#helpBox dd { color: #555; float: left; font-size: 12px; padding-top: 5px; }
 
 
 /* Header and Footer Links */
@@ -980,19 +980,21 @@ a:hover .zoomIcon {
 #header nav {
     float: right;
     font-size: 13px;
-    font-weight: bold;
     margin: 17px 15px 0 0;
 }
 
 nav, #backgroundMsg {
     color: #fff;
-    font-weight: bold;
     text-shadow: #000 0 1px 5px;
+}
+
+nav span {
+    font-style: italic;
 }
 
 nav a,
 nav a:active,
-nav a:visited { color: #fff; display: inline-block; text-decoration: none; }
+nav a:visited { color: #fff; display: inline-block; font-weight: bold; text-decoration: none; }
 nav a:hover { text-decoration: underline; }
 #header a { margin-left: 25px; }
 #footer a { padding-right: 25px; }

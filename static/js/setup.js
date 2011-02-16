@@ -40,6 +40,8 @@ function setupAutogrowInputType() {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
+    $('#helpLink').colorbox({inline: true, href: '#helpBox'});
+    
     $('input, textarea').live('focus', function(event) {
         keyEvents = false; 
     });
@@ -149,44 +151,6 @@ function setupFBML(playlist) {
           cookie: true,
           xfbml: true
         });
-        
-        $('#fbConnectButton').click(function(event) {
-          FB.login(function(login_response) {
-            if (login_response.session) {
-              // user successfully logged in
-              log('FB login succesful.');
-              FB.api('/me', function(response) {
-                var form = $('#fbAccountCreation');
-                
-                // Check that they're not already registered
-                $.ajax({
-                  'url': '/signup/fb-check',
-                  'dataType': 'json',
-                  'data': {'fb_id': response.id},
-                  'success': function(is_registered) {
-                    if (is_registered) {
-                      form.hide();
-                      $('#alreadyRegistered').show();
-                    }
-                  }
-                })
-                $('input[name=name]', form).val(response.name);
-                $('input[name=email]', form).val(response.email);
-                $('input[name=fb_user_id]', form).val(response.id);
-                $('input[name=auth_token]', form).val(login_response.session.access_token);
-                $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
-                
-                $('#fbConnectButton').hide();
-                form.show();
-              });
-              
-
-            } else {
-              // user cancelled login
-              log('FB login failed.');
-            }
-          }, {perms:'email,publish_stream'});
-        });
          
         playlist && nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
     };
@@ -201,8 +165,55 @@ function setupFBML(playlist) {
     }());
 }
 
-function setupRegistration() {
-    $('#navSignup').colorbox({inline: true, href: "#registrationBox"});
+function setupSignup() {
+    $('#navSignup').colorbox({
+        inline: true,
+        href: '#signupBox',
+        onLoad: function() {
+            FB.XFBML.parse(document.getElementById('signupBox'), function(reponse) {
+                log('TODO: show facepile');
+                //$('#curButtons').fadeIn('fast');
+            });
+        }
+    });
+    
+    $('#fbConnectButton').click(function(event) {
+      FB.login(function(login_response) {
+        if (login_response.session) {
+          // user successfully logged in
+          log('FB login successful.');
+          FB.api('/me', function(response) {
+            var form = $('#fbAccountCreation');
+            
+            // Check that they're not already registered
+            $.ajax({
+              'url': '/signup/fb-check',
+              'dataType': 'json',
+              'data': {'fb_id': response.id},
+              'success': function(is_registered) {
+                if (is_registered) {
+                  form.hide();
+                  $('#alreadyRegistered').show();
+                }
+              }
+            })
+            $('input[name=name]', form).val(response.name);
+            $('input[name=email]', form).val(response.email);
+            $('input[name=fb_user_id]', form).val(response.id);
+            $('input[name=auth_token]', form).val(login_response.session.access_token);
+            $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
+            
+            $('#fbConnectButton').hide();
+            form.show();
+          });
+          
+
+        } else {
+          // user cancelled login
+          log('FB login failed.');
+        }
+      }, {perms:'email,publish_stream'});
+    });
      
     // adds an effect called "wall" to the validator
     // TODO: Feross, I just copied and pasted this from JQuery Tools's page.

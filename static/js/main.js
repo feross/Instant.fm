@@ -68,7 +68,7 @@ function onloadPlaylist() {
     
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
-    setupRegistration();
+    setupSignup();
     setupLogin();
     setupLogout();
     setupNewPlaylist();
