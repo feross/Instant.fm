@@ -369,8 +369,6 @@ input.file {
     width: 473px;
 }
 
-/*#header nav a:hover { text-shadow: #499bd1 1px 1px 8px; }
-*/
 /* Scrolling */
 
 #browserDisplay {
@@ -989,7 +987,7 @@ a:hover .zoomIcon {
 nav, #backgroundMsg {
     color: #fff;
     font-weight: bold;
-    text-shadow: #000 0 0 3px;
+    text-shadow: #000 0 1px 5px;
 }
 
 nav a,
@@ -1035,7 +1033,7 @@ nav a:hover { text-decoration: underline; }
 }
 
 #footer #helpLink {
-    background: transparent url("/images/keyboard.png") top right no-repeat;
+    background: transparent url("/images/keyboard.png") center right no-repeat;
     float: right;
     padding: 0 25px 0 0;
     margin-right: 10px;
