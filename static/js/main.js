@@ -21,7 +21,8 @@ var appSettings = {
         axis: 'y',
         scrollSensitivity: 25,
         tolerance: 'pointer'
-    }
+    },
+    fbAppId: '114871205247916'
 };
 
 function onloadHome() {

@@ -143,7 +143,7 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          appId: '114871205247916', // 'Instant.fm' API Key
+          appId: appSettings.fbAppId, // 'Instant.fm' API Key
           // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
@@ -195,7 +195,7 @@ function setupFBML(playlist) {
       var e = document.createElement('script');
       e.type = 'text/javascript';
       e.src = document.location.protocol +
-        '//connect.facebook.net/en_US/all.js';
+        '//connect.facebook.net/en_US/all.js#appId='+appSettings.fbAppId+'&amp;xfbml=1';
       e.async = true;
       document.getElementById('fb-root').appendChild(e);
     }());

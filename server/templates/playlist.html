@@ -189,7 +189,7 @@
 </div> <!-- end of #container -->
 
 <div id="backgroundMsg">
-  Push the 'B' key to bring back the controls.
+  Push the 'B' key again to bring back the controls.
 </div>
 
 <div class="invisible" id="devNull">
@@ -304,40 +304,47 @@
   <div id="registrationBox">
     <div class="fancyZoomHeader">Log In or Sign Up</div>
     <div class="loginForm">
-      <div class="fancyZoomSectionHeader"> Create an Account </div>
-      <a id="fbConnectButton" class="small darkblue awesome"> Connect your Facebook Account </a>
-        <div id="alreadyRegistered" style="display:none;">
-          This Facebook user is already registered on Instant.fm. Try logging in instead.
-        </div>        
-        <div id="fbAccountCreation" style="display:none;">
+      <a id="fbConnectButton" class="large darkblue awesome"> Connect your Facebook Account </a>
+      <fb:facepile width="200" max_rows="1"></fb:facepile>
+      <div id="alreadyRegistered" style="display:none;">
+        This Facebook user is already registered on Instant.fm. Try logging in instead.
+      </div>        
+      <div id="fbAccountCreation" style="display:none;">
         <form id="fbRegistration" method="post">
           <div class="loginForm">
+          
             <div id="registrationErrors"></div>
+          
             <div class="formRow">
               <label for="fbName"> Display Name: </label>
               <input id="fbName" type="text" name="name" value="" maxlength="32" required="required"/>
-            </div>         
+            </div>
+          
             <div class="formRow">
               <label for="fbEmail"> E-mail: </label>
               <input id="fbEmail" type="email" name="email" required="required"/>
-            </div>          
+            </div>   
+                 
             <div class="formRow">
               <label for="fbPassword"> Password: </label>
               <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
-            </div>          
+            </div>
+                  
           </div>
+        
           <div>
             <img id="fbProfileImage"></img>
-          </div>
+          </div>          
+          <a id="submitFbRegistration" class="grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
+        
           <input type="hidden" name="auth_token"></input>
           <input type="hidden" name="fb_user_id"></input>
           {{ xsrf_form_html() }}
-          <a id="submitFbRegistration" class="small grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
-        </div>
-     </form>
-    </div>
-  </div>
         
+        </form>
+      </div>
+    </div>
+  </div> <!-- end of #registrationBox -->    
 </div> <!-- end of #devNull -->
 
 {% end %}
