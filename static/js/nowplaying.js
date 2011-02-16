@@ -32,6 +32,178 @@ NowPlaying.prototype.setupHandlers = function() {
     });  
 };
 
+// Update the currently playing song with Last.fm data
+// @t - song title, @a - song artist
+// @srcIndex - Song index that generated this Last.fm request. We'll check that the song
+//             hasn't changed before we update the DOM.
+NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
+    log('searching for song ' + t);
+	model.lastfm.track.search({
+	    artist: a || '',
+	    limit: 1,
+	    track: t || ''
+	}, {
+	    success: function(data) {
+	      nowplaying._handleSongResults(t, a, _srcIndex, data);
+	    },
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+	        this.renderAlbumBlock({
+                albumImg: undefined,
+                trackName: t,
+                artistName: a,
+            });
+		}
+	});
+};
+
+// Private method to handle song search results from Last.fm
+NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
+    if (srcIndex && srcIndex != songIndex) {
+        log('too slow, discarding 1');
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+        log('no results 1');
+        return;
+    }
+    log('first api call received');
+    
+    var track = data.results.trackmatches.track;
+    var trackName = track.name || t;
+    var artistName = track.artist || a;
+    var albumImg = track.image && track.image[track.image.length - 1]['#text'];
+    
+    this.renderAlbumBlock({
+        albumImg: albumImg,
+        trackName: trackName,
+        artistName: artistName,
+    });
+
+    // Get detailed track info
+    trackName && artistName && model.lastfm.track.getInfo({
+	    artist: artistName || '',
+	    autocorrect: 1,
+	    track: trackName || ''
+	}, {
+	    success: function(data){
+	        nowplaying._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
+	    },
+	    error: function(code, message) {
+	        log(code + ' ' + message);
+	        nowplaying.renderSongDesc(false);
+		}
+	});
+
+	// Get detailed artist info (proceeds simultaneously with previous req)
+	artistName && model.lastfm.artist.getInfo({
+	    artist: artistName || '',
+	    autocorrect: 1
+	}, {
+	    success: function(data){
+	        nowplaying._handleArtistInfo(artistName, srcIndex, data);
+	    },
+	    error: function(code, message) {
+	        this.renderArtistDesc(false);
+	        log(code + ' ' + message);
+		}
+	});
+};
+
+// Private method to handle song information from Last.fm
+NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg, srcIndex, data) {
+    if (srcIndex && srcIndex != songIndex) {
+        log('too slow, discarding 2');
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.track) {
+        log('no results 2');
+        return;
+    }
+    log('second api call received');
+                    
+    var track = data.track;
+    var albumName = track.album && track.album.title;
+    var trackSummary = track.wiki && track.wiki.summary;
+    var trackLongDesc = track.wiki && track.wiki.content;
+    
+    if (albumName) {
+        var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
+        $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" rel="partial album">'+albumName+'</a>');
+        $('#curAlbum').fadeIn('fast');
+    }
+
+    // Update song summary
+    var shortContent;
+    if (trackSummary) {
+        shortContent = cleanHTML(trackSummary);
+        $('#curSongDesc article').html(shortContent);
+        
+        this.renderSongDesc({
+            trackName: track.name,
+            trackDescription: shortContent,
+            callback: function() {
+                // Add link to longer description
+                if (trackLongDesc) {
+                    var longContent = cleanHTML(trackLongDesc);
+
+                    $('#curSongDesc article')
+                        .data('longContent', longContent)
+                        .data('shortContent', shortContent);
+
+                    var link = makeSeeMoreLink(onShowMoreText);
+                    $('#curSongDesc article').append(' ').append(link);
+                }
+            }
+        });
+    } else {
+        this.renderSongDesc(false);
+    }
+
+};
+
+// Private method to handle artist information from Last.fm
+NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
+    if (srcIndex && srcIndex != songIndex) {
+        return; // The request was too slow. We don't need it anymore.
+    }
+    if (!data.artist) {
+        return;
+    }
+                    
+    var artist = data.artist;
+    var artistSummary = artist.bio && artist.bio.summary;
+    var artistLongDesc = artist.bio && artist.bio.content;
+    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
+
+    // Update artist summary
+    var shortContent;
+    if (artistSummary) {                  
+        shortContent = cleanHTML(artistSummary);
+        
+        this.renderArtistDesc({
+            artistName: artistName,
+            artistImg: artistImg,
+            artistDescription: shortContent,
+            callback: function() {
+                // Add link to longer description
+                if (artistLongDesc) {
+                    var longContent = cleanHTML(artistLongDesc); 
+
+                    $('#curArtistDesc article')
+                        .data('longContent', longContent)
+                        .data('shortContent', shortContent);
+
+                    var link = makeSeeMoreLink(onShowMoreText);
+                    $('#curArtistDesc article').append(' ').append(link);
+                }
+            }
+        });
+    } else {
+        this.renderArtistDesc(false);
+    }
+};
+
 NowPlaying.prototype.renderPlaylistInfo = function(data) {    
     $('#curPlaylist').fadeOut('fast', function() {
         $('#curPlaylist').empty();
@@ -116,178 +288,6 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
                 elem.shorten({width: 125});
             })
         );  
-};
-
-// Update the currently playing song with Last.fm data
-// @t - song title, @a - song artist
-// @srcIndex - Song index that generated this Last.fm request. We'll check that the song
-//             hasn't changed before we update the DOM.
-NowPlaying.prototype.updateCurPlaying = function(t, a, srcIndex) {
-    log('searching for song ' + t);
-	model.lastfm.track.search({
-	    artist: a || '',
-	    limit: 1,
-	    track: t || ''
-	}, {
-	    success: function(data) {
-	      nowplaying._handleSongResults(t, a, srcIndex, data);
-	    },
-	    error: function(code, message) {
-	        log(code + ' ' + message);
-	        this.renderAlbumBlock({
-                albumImg: undefined,
-                trackName: t,
-                artistName: a,
-            });
-		}
-	});
-};
-
-// Private method to handle song search results from Last.fm
-NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
-    if (songIndex != srcIndex) {
-        log('too slow, discarding 1');
-        return; // The request was too slow. We don't need it anymore.
-    }
-    if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
-        log('no results 1');
-        return;
-    }
-    log('first api call received');
-    
-    var track = data.results.trackmatches.track;
-    var trackName = track.name || t;
-    var artistName = track.artist || a;
-    var albumImg = track.image && track.image[track.image.length - 1]['#text'];
-    
-    this.renderAlbumBlock({
-        albumImg: albumImg,
-        trackName: trackName,
-        artistName: artistName,
-    });
-
-    // Get detailed track info
-    trackName && artistName && model.lastfm.track.getInfo({
-	    artist: artistName || '',
-	    autocorrect: 1,
-	    track: trackName || ''
-	}, {
-	    success: function(data){
-	        nowplaying._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
-	    },
-	    error: function(code, message) {
-	        log(code + ' ' + message);
-	        nowplaying.renderSongDesc(false);
-		}
-	});
-
-	// Get detailed artist info (proceeds simultaneously with previous req)
-	artistName && model.lastfm.artist.getInfo({
-	    artist: artistName || '',
-	    autocorrect: 1
-	}, {
-	    success: function(data){
-	        nowplaying._handleArtistInfo(artistName, srcIndex, data);
-	    },
-	    error: function(code, message) {
-	        this.renderArtistDesc(false);
-	        log(code + ' ' + message);
-		}
-	});
-};
-
-// Private method to handle song information from Last.fm
-NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg, srcIndex, data) {
-    if (songIndex != srcIndex) {
-        log('too slow, discarding 2');
-        return; // The request was too slow. We don't need it anymore.
-    }
-    if (!data.track) {
-        log('no results 2');
-        return;
-    }
-    log('second api call received');
-                    
-    var track = data.track;
-    var albumName = track.album && track.album.title;
-    var trackSummary = track.wiki && track.wiki.summary;
-    var trackLongDesc = track.wiki && track.wiki.content;
-    
-    if (albumName) {
-        var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
-        $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" rel="partial album">'+albumName+'</a>');
-        $('#curAlbum').fadeIn('fast');
-    }
-
-    // Update song summary
-    var shortContent;
-    if (trackSummary) {
-        shortContent = cleanHTML(trackSummary);
-        $('#curSongDesc article').html(shortContent);
-        
-        this.renderSongDesc({
-            trackName: track.name,
-            trackDescription: shortContent,
-            callback: function() {
-                // Add link to longer description
-                if (trackLongDesc) {
-                    var longContent = cleanHTML(trackLongDesc);
-
-                    $('#curSongDesc article')
-                        .data('longContent', longContent)
-                        .data('shortContent', shortContent);
-
-                    var link = makeSeeMoreLink(onShowMoreText);
-                    $('#curSongDesc article').append(' ').append(link);
-                }
-            }
-        });
-    } else {
-        this.renderSongDesc(false);
-    }
-
-};
-
-// Private method to handle artist information from Last.fm
-NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
-    if (songIndex != srcIndex) {
-        return; // The request was too slow. We don't need it anymore.
-    }
-    if (!data.artist) {
-        return;
-    }
-                    
-    var artist = data.artist;
-    var artistSummary = artist.bio && artist.bio.summary;
-    var artistLongDesc = artist.bio && artist.bio.content;
-    var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
-
-    // Update artist summary
-    var shortContent;
-    if (artistSummary) {                  
-        shortContent = cleanHTML(artistSummary);
-        
-        this.renderArtistDesc({
-            artistName: artistName,
-            artistImg: artistImg,
-            artistDescription: shortContent,
-            callback: function() {
-                // Add link to longer description
-                if (artistLongDesc) {
-                    var longContent = cleanHTML(artistLongDesc); 
-
-                    $('#curArtistDesc article')
-                        .data('longContent', longContent)
-                        .data('shortContent', shortContent);
-
-                    var link = makeSeeMoreLink(onShowMoreText);
-                    $('#curArtistDesc article').append(' ').append(link);
-                }
-            }
-        });
-    } else {
-        this.renderArtistDesc(false);
-    }
 };
 
 // Optimization: Don't load Facebook comments until video is playing

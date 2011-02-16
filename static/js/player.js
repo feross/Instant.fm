@@ -79,12 +79,11 @@ Player.prototype.playSong = function(i) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
-    player.playSongBySearch(title, artist);
+    player.playSongBySearch(title, artist, songIndex);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
 
-    nowplaying.updateCurPlaying(title, artist, songIndex);
     player.moveSongIntoView();
 };
 
@@ -121,7 +120,7 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist) {
+Player.prototype.playSongBySearch = function(title, artist, _songIndex) {
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
     
@@ -152,6 +151,8 @@ Player.prototype.playSongBySearch = function(title, artist) {
             }
         }
     });
+    
+    nowplaying.updateCurPlaying(title, artist, _songIndex);
 };
 
 // Attempts to play the video with the given ID. If the player is in a loading state,
