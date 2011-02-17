@@ -350,8 +350,6 @@ class PlaylistEditHandler(PlaylistBaseHandler):
                             print 'Invalid image art save attempted: ' + song['i']
                             song['i'] = None
                     
-                    return
-                                    
                 if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))
                 else:
