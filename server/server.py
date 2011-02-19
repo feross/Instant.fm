@@ -342,19 +342,14 @@ class PlaylistEditHandler(PlaylistBaseHandler):
                 if col_name == 'songs':
                     songs = json.loads(col_value)
                     
-                    images = ((song.get('i', None)) for song in songs)
                     url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
-                    fail = False
-                    for image in images:
-                        if image is not None and url_re.match(image) == None:
-                            print 'Invalid image art save attempted: ' + image
-                            fail = True
+                    for song in songs:
+                        # Change empty string to NULL
+                        song['i'] = None if song['i'] == 'i' else song['i']
+                        if song['i'] is not None and url_re.match(song['i']) == None:
+                            print 'Invalid image art save attempted: ' + song['i']
+                            song['i'] = None
                     
-                    if fail:
-                        print 'Playlist update failed.'
-                        self.write(json.dumps({'status': 'Malformed edit request'}))
-                        return
-                                    
                 if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))
                 else:
