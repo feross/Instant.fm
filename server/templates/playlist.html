@@ -14,7 +14,7 @@
       <a id="navNewPlaylist" href="#new">New Playlist</a>
       <a id="navSearch" href="/search" rel="partial search" title="Search">Search</a>
       <a class="mustLogout" id="navLogin" href="#login">Login</a>
-      <a class="mustLogout" id="navSignup" href="#signUp">Sign up</a>
+      <a class="mustLogout" id="navSignup" href="#signUp">Sign Up</a>
       <a class="mustLogin" id="navProfile" href="#profile"> {{ handler.render_user_name() }} </a>
       <a class="mustLogin" id="navLogout" href="#logout">Logout</a>
     </nav>
@@ -181,7 +181,7 @@
     <nav>
       <a href="/">Instant.fm</a>
       <a href="#">Meet The Team</a>
-      <span>Designed by Feross, Jake, and John from Stanford.</span>
+      <span class="byline">Designed by Feross, Jake, and John from Stanford.</span>
       <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
     </nav>
   </footer>
@@ -268,11 +268,11 @@
     <form id="login">
       <div id="loginErrors"></div>
       <div class="formRow">
-        <label>Email Address:</label>
+        <label>E-mail</label>
         <input type="email" name="email" required="required"/>
       </div>
       <div class="formRow">
-        <label>Password:</label>
+        <label>Password</label>
         <input type="password" name="password" required="required"/>
       </div>
       <div class="formRow">
@@ -302,53 +302,52 @@
    
   <div class="colorbox" id="signupBox">
     <header>Create an Account <span class="subtitle">(1 of 2)</span></header>
-    <div class="loginForm">
+      
+    <div id="signupStep1">
       <div id="fbSignupPitch">
-        <strong>Share music <em>instantly.</em></strong> Sign in with Facebook - it's <strong>fast</strong> and <strong>easy</strong>.
+        Share and discover <strong>amazing music playlists</strong>.
       </div>
+    
+      <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
+    
+      <div id="fbFacepile"></div>
+    </div>
+    
+    <div id="signupStep2" style="display: none;">
       
-      <a id="fbConnectButton" class="large darkblue awesome">Sign in with Facebook</a>
+      <div id="registrationMsg"></div>
+      <div id="registrationErrors"></div>
+                        
+      <form id="fbSignupForm" method="post">
+            
+        <div class="clearfix formRow">
+          <div id="fbProfileImage"></div>
+          <label for="fbName">Full Name</label>
+          <input id="fbName" type="text" name="name" value="" maxlength="32" required="required"/>
+          <span>Use your real name.</span>
+        </div>
+  
+        <div class="formRow">
+          <label for="fbEmail">E-mail</label>
+          <input id="fbEmail" type="email" name="email" required="required"/>
+        </div>   
+         
+        <div class="formRow">
+          <label for="fbPassword">Password</label>
+          <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
+        </div>
       
-      <div id="fbFacepile">
-      </div>
+        <div>
+          <div id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
+          <a class="darkblue awesome large" href="#createAccount" id="submitFbSignupForm">Create Account</a>
+        </div>
       
-      <div id="alreadyRegistered" style="display:none;">
-        This Facebook user is already registered on Instant.fm. Try logging in instead.
-      </div>
-      <div id="fbAccountCreation" style="display:none;">
-        <form id="fbRegistration" method="post">
-          <div class="loginForm">
-          
-            <div id="registrationErrors"></div>
-          
-            <div class="formRow">
-              <label for="fbName"> Display Name: </label>
-              <input id="fbName" type="text" name="name" value="" maxlength="32" required="required"/>
-            </div>
-          
-            <div class="formRow">
-              <label for="fbEmail"> E-mail: </label>
-              <input id="fbEmail" type="email" name="email" required="required"/>
-            </div>   
-                 
-            <div class="formRow">
-              <label for="fbPassword"> Password: </label>
-              <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
-            </div>
-                  
-          </div>
-        
-          <div>
-            <img id="fbProfileImage"></img>
-          </div>          
-          <a id="submitFbRegistration" class="red awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
-        
-          <input type="hidden" name="auth_token"></input>
-          <input type="hidden" name="fb_user_id"></input>
-          {{ xsrf_form_html() }}
-        
-        </form>
-      </div>
+        <input type="hidden" name="auth_token"></input>
+        <input type="hidden" name="fb_user_id"></input>
+        {{ xsrf_form_html() }}
+
+      </form>
+              
     </div>
   </div> <!-- end of #signupBox -->    
 </div> <!-- end of #devNull -->

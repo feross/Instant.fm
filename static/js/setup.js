@@ -168,55 +168,71 @@ function setupFBML(playlist) {
 function setupSignup() {
     $('#navSignup').colorbox({
         inline: true,
-        height: 265,
         href: '#signupBox',
-        scrolling: false,
+        onOpen: function() {
+            // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
+            if (!$('#fbSignupForm').is(':visible')) {
+                $('#fbSignupForm').show();
+                $('#signupStep1').show();
+                $('#signupStep2').hide();
+            }
+        },
         onLoad: function() {
             $('#fbFacepile')
                 .empty()
-                .append('<fb:facepile width="400" max_rows="1"></fb:facepile>');
+                .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
             FB.XFBML.parse(document.getElementById('fbFacepile'));
-        }
+        },
+        scrolling: false,
+        width: 450
     });
     
     $('#fbConnectButton').click(function(event) {
-      FB.login(function(login_response) {
-        if (login_response.session) {
-          // user successfully logged in
-          log('FB login successful.');
-          FB.api('/me', function(response) {
-            var form = $('#fbAccountCreation');
-            
-            // Check that they're not already registered
-            $.ajax({
-              'url': '/signup/fb-check',
-              'dataType': 'json',
-              'data': {'fb_id': response.id},
-              'success': function(is_registered) {
-                if (is_registered) {
-                  form.hide();
-                  $('#alreadyRegistered').show();
-                }
-              }
-            });
-            $('input[name=name]', form).val(response.name);
-            $('input[name=email]', form).val(response.email);
-            $('input[name=fb_user_id]', form).val(response.id);
-            $('input[name=auth_token]', form).val(login_response.session.access_token);
-            $('img#fbProfileImage').attr('src', 'http://graph.facebook.com/' + response.id + '/picture?type=square');
-            
-            $('#fbSignupPitch, #fbConnectButton, #fbFacepile').fadeOut(function() {
-                $('#signupBox > header > .subtitle').text('(2 of 2)');
-                form.fadeIn();
-            });
-          });
-          
 
-        } else {
-          // user cancelled login
-          log('FB login failed.');
-        }
-      }, {perms:'email'});
+        // remove old form errors and message
+        $('#registrationErrors').empty();
+        $('#registrationMsg').empty();
+
+        FB.login(function(login_response) {
+            if (!login_response.session) {
+                log('FB login failed.'); // user cancelled login
+            }
+          
+            FB.api('/me', function(response) {
+                var form = $('#fbSignupForm');
+                
+                // Check that they're not already registered
+                $.ajax({
+                    url: '/signup/fb-check',
+                    dataType: 'json',
+                    data: {'fb_id': response.id},
+                    success: function(is_registered) {
+                        if (is_registered) {
+                            form.hide();
+                            $('#registrationMsg').text('This Facebook user is already registered on Instant.fm. Try logging in instead.');
+                        }
+                    }
+                });
+                $('input[name=name]', form).val(response.name);
+                $('input[name=email]', form).val(response.email);
+                $('input[name=fb_user_id]', form).val(response.id);
+                $('input[name=auth_token]', form).val(login_response.session.access_token);
+                $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
+                $('#submitFbSignupForm').click(function(event) {
+                    event.preventDefault();
+                    $('#fbSignupForm').submit();
+                });
+                
+                $('#signupStep1').fadeOut(function() {
+                    $('#signupBox > header > .subtitle').text('(2 of 2)');
+                    
+                    $('#signupStep2').fadeIn(function() {
+                        $.colorbox.resize();
+                        $('input[name=password]', form).focus();
+                    });
+                });
+            });  
+        }, {perms:'email'});
     });
      
     // adds an effect called "wall" to the validator
@@ -242,7 +258,7 @@ function setupSignup() {
     });
     
     // initialize validator and add a custom form submission logic
-    $("form#fbRegistration").validator({
+    $("#fbSignupForm").validator({
         effect: 'wall', 
         container: '#registrationErrors',
    
@@ -265,14 +281,19 @@ function setupSignup() {
                     // everything is ok. (server returned true)
                     if (json === true)  {
                       log("Registration posted successfully.")
-                      $('#registrationErrors').html('Registration postd succesfully.');
                       loginStatusChanged();
+                      $.colorbox.close();
+                      $('#signupStep2').fadeOut(function() {
+                          $('#signupStep1').fadeIn();
+                      });
+                      
               
                     // server-side validation failed. use invalidate() to show errors
                     } else {
                         if (json && json.success === false && json.errors) {
                             form.data("validator").invalidate(json.errors);
                             log('Registration failt.');
+                            $.colorbox.resize();
                         }
                     }
                 },
@@ -281,6 +302,8 @@ function setupSignup() {
             
             // prevent default form submission logic
             e.preventDefault();
+        } else {
+            $.colorbox.resize();
         }
     });
 }
