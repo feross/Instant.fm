@@ -122,7 +122,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
     
     if (albumName) {
         var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
-        $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" rel="partial album">'+albumName+'</a>');
+        $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="partial album">'+albumName+'</a>');
         $('#curAlbum').fadeIn('fast');
     }
 
@@ -216,8 +216,7 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
 
 NowPlaying.prototype.renderAlbumBlock = function(data) {
     if (data.albumImg) {
-        var albumAlt = data.albumName;
-        data.albumAlt += data.artistName ? (' by ' + data.artistName) : '';
+        data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
     } else {
         data.albumImg = '/images/unknown.png';
         data.albumAlt = 'Unknown album';

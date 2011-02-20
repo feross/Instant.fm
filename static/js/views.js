@@ -384,9 +384,6 @@ ArtistView.prototype._handleInfo = function(data) {
             .show();
         return;
     }
-    
-	var name = artist.name;
-	$('.name', this.content).text(name);
 	
     var artistSummary = artist.bio && artist.bio.summary;
     var artistLongDesc = artist.bio && artist.bio.content;
@@ -500,9 +497,11 @@ ArtistView.prototype._updateArtistImg = function(src, alt) {
 function AlbumView(config) {
     this.config = config;
     this.BaseView.prototype.constructor(this);
-	this.name = config.title;
+    
+    this.albumName = config.title;
+	this.artistName = config.linkElem.attr('data-artist');
 }
-copyPrototype(ArtistView, BaseView);
+copyPrototype(AlbumView, BaseView);
 
 AlbumView.prototype.willSlide = function() {
     this.BaseView.prototype.willSlide(this.config);
@@ -532,7 +531,8 @@ AlbumView.prototype.willPop = function() {
 AlbumView.prototype._fetchData = function() {
 	that = this;
     model.lastfm.album.getInfo({
-        album: this.name,
+        album: this.albumName,
+        artist: this.artistName,
         autocorrect: 1,
         limit: 1,
     },
@@ -547,58 +547,86 @@ AlbumView.prototype._fetchData = function() {
 };
 
 AlbumView.prototype._handleInfo = function(data) {
-    log(data);
-    var artist = data && data.artist;
-	
-    // log(artist);
-	// TODO: show similar artists
-	// TODO: show tags
+    var album = data && data.album;
     
-	if (!artist) {
-        $('.artistDesc article', this.content)
-            .html('<p>No artist named "' + this.name + '" were found.</p>')
-            .show();
+	if (!album) {
+        $('.albumDesc article', this.content)
+            .html('<p>No album named "' + this.name + '" were found.</p>')
+            .fadeIn();
         return;
     }
-    
-	var name = artist.name;
-	$('.name', this.content).text(name);
 	
-    var artistSummary = artist.bio && artist.bio.summary;
-    var artistLongDesc = artist.bio && artist.bio.content;
+    var albumSummary = album.wiki && album.wiki.summary;
+    var albumLongDesc = album.wiki && album.wiki.content;
 	
-	// Update artist summary
+	// Update album summary
     var shortContent;
-    if (artistSummary) {                  
-        shortContent = cleanHTML(artistSummary);
-        $('.artistDesc article', this.content)
+    if (albumSummary) {                  
+        shortContent = cleanHTML(albumSummary);
+        $('.albumDesc article', this.content)
             .html(shortContent);
     }
 
     // Add link to longer description
-    if (artistSummary && artistLongDesc) {
-        var longContent = cleanHTML(artistLongDesc); 
+    if (albumSummary && albumLongDesc) {
+        var longContent = cleanHTML(albumLongDesc); 
         
-        $('.artistDesc article', this.content)
+        $('.albumDesc article', this.content)
             .data('longContent', longContent)
             .data('shortContent', shortContent);
                                                        
         var link = makeSeeMoreLink(onShowMoreText);
-        $('.artistDesc article', this.content).append(' ').append(link);
+        $('.albumDesc article', this.content).append(' ').append(link);
     }
 	
-    var image = artist.image[artist.image.length - 1]['#text'];
- 	this._updateArtistImg(image, name);
+    var image = album.image[album.image.length - 1]['#text'];
+ 	this._updateAlbumImg(image, name);
  	
- 	$('.artistDesc', this.content).show();
+ 	$('.albumDesc', this.content).fadeIn();
+ 	
+ 	// Update song list
+ 	var songs = [];
+ 	if (album.tracks && album.tracks.track) {
+ 	    $.each(album.tracks.track, function(index, track) {
+     	    songs.push({
+     	        t: track.name,
+     	        a: track.artist.name,
+     	        i: image
+     	    });
+     	});
+
+     	var songlist = new SongList({
+            songs: songs,
+            onClick: function(song) {
+                $('.playing').removeClass('playing');
+                $(this).addClass('playing');
+                player.playSongBySearch(song.t, song.a);
+            },
+            buttons: [{
+                action: function(event, song) {
+                    player.addSongToPlaylist(song);
+                },
+                className: 'awesome small white mustOwn',
+                text: 'Add to Playlist'
+            }],
+            isNumbered: true
+        });
+        log(songs);
+        var $songResults = $('.songResults', this.content)
+        $songResults.find('div').remove();
+        songlist.render($songResults);
+
+        $songResults.show();
+ 	}
+
 };
 
 AlbumView.prototype._updateAlbumImg = function(src, alt) {
 	if (src) {
         var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
-        $('.artistImg', this.content).empty().append(imgBlock);
+        $('.albumImg', this.content).empty().append(imgBlock);
     
     } else {
-        $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
+        $('.albumImg', this.content).replaceWith($('<span class="albumImg reflect"></span>'));
     }
 };

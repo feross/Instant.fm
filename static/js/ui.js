@@ -288,7 +288,8 @@ function makeAlbumList(albums) {
 
         $('<a></a>', {
 			'class': 'albumResult',
-			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
+			'data-artist': album.artist,
+			href: '/'+canonicalize(album.artist)+'/album/'+canonicalize(album.name),
 			rel: 'partial album',
 			title: album.name
 		})

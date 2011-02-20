@@ -44,7 +44,7 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/new_list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
-            (r"/([^/]+)/([^/]+)/?", AlbumHandler),
+            (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
         ]
