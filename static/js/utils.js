@@ -1,5 +1,29 @@
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
+// Hide element without removing it from the DOM.
+function hideElement(elem, duration) {
+    duration = (duration == null) ? 500 : duration;
+
+    elem.data('original-position', elem.css('position')); // save position
+    elem.animate({opacity: 0}, duration, function() {
+        elem.css({
+            position: 'absolute',
+            left: -9999
+        });
+    });
+}
+
+// Show element that's been hidden offscreen.
+function showElement(elem, duration) {
+    duration = (duration == null) ? 500 : duration;
+
+    elem.show().css({
+        position: elem.data('original-position'),
+        left: 0
+    })
+    .animate({opacity: 1}, duration);
+}
+
 // Show a popup window
 function showPop(url, _name, _height, _width) {
     var name = _name || 'name';
@@ -163,9 +187,14 @@ function ownershipStatusChanged() {
         if (user_id) {
           model.playlist.user_id = user_id;
         }
+        
+        $('#playlist').sortable('enable');
+        
     } else {
         $('html').addClass('isNotOwner');
         $('html').removeClass('isOwner');
+        
+        $('#playlist').sortable('disable');
     }
 }
 

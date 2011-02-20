@@ -3,6 +3,7 @@
 {% block bodyId %}home{% end %}
 
 {% block body %}
+<div id="container">
   <div id="main">
     <header id="header">
       <img alt="Instant.fm - Share Music Playlists Instantly" src="/images/logo-large.png" />
@@ -29,11 +30,15 @@
     
   </div>
   <footer id="footer">
-    <strong><a href="#">Instant.fm</a></strong> |
-    <a href="#">FAQ</a> |
-    <a href="#">Blog</a> |
-    <a href="#">Contact</a>
+    <nav>
+      <a href="/">Instant.fm</a>
+      <a href="#">FAQ</a>
+      <a href="#">Blog</a>
+      <a href="#">Contact</a>
+    </nav>
   </footer>
+</div> <!-- end of #container -->
+
 {% end %}
 
 {% block scripts %}

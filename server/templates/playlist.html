@@ -5,6 +5,7 @@
 {% block bodyId %}p{% end %}
 
 {% block body %}
+<div id="container">
   <header class="clearfix" id="header">
     <a class="ir" href="/" id="headerLogo">
       <h1>Instant.fm - Share Music Playlists Instantly</h1>
@@ -13,7 +14,7 @@
       <a id="navNewPlaylist" href="#new">New Playlist</a>
       <a id="navSearch" href="/search" rel="partial search" title="Search">Search</a>
       <a class="mustLogout" id="navLogin" href="#login">Login</a>
-      <a class="mustLogout" id="navSignup" href="#signUp">Sign up</a>
+      <a class="mustLogout" id="navSignup" href="#signUp">Sign Up</a>
       <a class="mustLogin" id="navProfile" href="#profile"> {{ handler.render_user_name() }} </a>
       <a class="mustLogin" id="navLogout" href="#logout">Logout</a>
     </nav>
@@ -177,160 +178,180 @@
   </div> <!-- end of #main -->
   
   <footer id="footer">
-    <a href="#">Instant.fm</a>
-    <a href="#">FAQ</a>
-    <a href="#">Blog</a>
-    <a href="#">Contact</a>
-    <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
+    <nav>
+      <a href="/">Instant.fm</a>
+      <a href="#">Meet The Team</a>
+      <span class="byline">Designed by Feross, Jake, and John from Stanford.</span>
+      <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
+    </nav>
   </footer>
+</div> <!-- end of #container -->
 
-  <div class="invisible" id="devNull">
-    <div id="curAlbumImgZoom">&nbsp;</div>
-    <div id="curArtistImgZoom">&nbsp;</div>
+<div id="backgroundMsg">
+  Push the 'B' key again to bring back the controls.
+</div>
+
+<div class="invisible" id="devNull">
+  <div id="curAlbumImgZoom">&nbsp;</div>
+  <div id="curArtistImgZoom">&nbsp;</div>
+
+  <div class="colorbox" id="helpBox">
+    <header>Keyboard shortcuts</header>
+    
+    <section>
+      <header>Playback Control</header>
+      <dl class="clearfix">
+        <dt>space</dt>
+        <dd>Play/pause</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>&larr;</dt>
+        <dt>&rarr;</dt>
+        <dd>Previous/next song</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>+</dt>
+        <dt>-</dt>
+        <dd>Increase/decrease volume</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>S</dt>
+        <dd>Toggle shuffle</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>R</dt>
+        <dd>Toggle repeat song</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>V</dt>
+        <dd>Toggle video display</dd>
+      </dl>
+    </section>
+    <section>
+      <header>Playlist Editing</header>
+      <dl class="clearfix">
+        <dt>K</dt>
+        <dd>Move current song up</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>J</dt>
+        <dd>Move current song down</dd>
+      </dl>
+    </section>
+    <section>
+      <header>Navigation</header>
+      <dl class="clearfix">
+        <dt>F</dt>
+        <dd>Search for songs</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>L</dt>
+        <dd>Go to Current Song</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>B</dt>
+        <dd>Show background image</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>ESC</dt>
+        <dd>Go back one page</dd>
+      </dl>
+      <dl class="clearfix">
+        <dt>?</dt>
+        <dd>Bring up this help dialog</dd>
+      </dl>
+    </section>
+  </div> <!-- end of #helpBox -->
   
-    <div id="helpBox">
-      <div class="fancyZoomHeader">Keyboard shortcuts</div>
-      
-      <section class="helpSection">
-        <div class="fancyZoomSectionHeader">Playback Control</div>
-        <dl class="clearfix shortcut">
-          <dt class="key">space</dt>
-          <dd class="action">Play/pause</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">&larr;</dt>
-          <dt class="key">&rarr;</dt>
-          <dd class="action">Previous/next song</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">+</dt>
-          <dt class="key">-</dt>
-          <dd class="action">Increase/decrease volume</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">S</dt>
-          <dd class="action">Toggle shuffle</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">R</dt>
-          <dd class="action">Toggle repeat song</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">V</dt>
-          <dd class="action">Toggle video display</dd>
-        </dl>
-      </section>
-      <section class="helpSection">
-        <div class="fancyZoomSectionHeader">Playlist Editing</div>
-        <dl class="clearfix shortcut">
-          <dt class="key">K</dt>
-          <dd class="action">Move current song up</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">J</dt>
-          <dd class="action">Move current song down</dd>
-        </dl>
-      </section>
-      <section class="helpSection">
-        <div class="fancyZoomSectionHeader">Navigation</div>
-        <dl class="clearfix shortcut">
-          <dt class="key">F</dt>
-          <dd class="action">Search for songs</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">L</dt>
-          <dd class="action">Go to Current Song</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">B</dt>
-          <dd class="action">Show background image</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">ESC</dt>
-          <dd class="action">Go back one page</dd>
-        </dl>
-        <dl class="clearfix shortcut">
-          <dt class="key">?</dt>
-          <dd class="action">Bring up this help dialog</dd>
-        </dl>
-      </section>
-    </div> <!-- end of #helpBox -->
-    
-    <div id="loginBox">
-      <form id="login">
-        <div class="fancyZoomSectionHeader"> Login to Instant.fm </div>
-        <div id="loginErrors"></div>
-        <div class="formRow">
-          <label> Email Address: </label>
-          <input type="email" name="email" required="required"/>
-        </div>
-        <div class="formRow">
-          <label> Password: </label>
-          <input type="password" name="password" required="required"/>
-        </div>
-        <div class="formRow">
-          <input type="checkbox" name="passwordless" checked="checked" />
-          <label> Let me login without a password on this browser </label>
-        </div>
-        {{ xsrf_form_html() }}
-        <a class="small grey awesome" onclick="$('form#login').submit();"> Login </a>
-      </form>
-    </div>
-    
-    <div id="newPlaylistBox">
-      <div class="fancyZoomHeader"> New Playlist </div>
-      <form id="newPlaylistForm">
-        <div class="formRow">
-    	    <label> Playlist name: </label>
-    	    <input type="text" required="required" />
-        </div>
-        <div class="formRow">
-    	    <label> Description: </label>
-    	    <input type="textarea" required="required" />
-        </div>
-        {{ xsrf_form_html() }}
-        <a class="small grey awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
-      </form>
-  	</div>
-     
-    <div id="registrationBox">
-      <div class="fancyZoomHeader">Log In or Sign Up</div>
-      <div class="loginForm">
-        <div class="fancyZoomSectionHeader"> Create an Account </div>
-        <a id="fbConnectButton" class="small darkblue awesome"> Connect your Facebook Account </a>
-          <div id="alreadyRegistered" style="display:none;">
-            This Facebook user is already registered on Instant.fm. Try logging in instead.
-          </div>        
-          <div id="fbAccountCreation" style="display:none;">
-          <form id="fbRegistration" method="post">
-            <div class="loginForm">
-              <div id="registrationErrors"></div>
-              <div class="formRow">
-                <label for="fbName"> Display Name: </label>
-                <input id="fbName" type="text" name="name" value="" maxlength="32" required="required"/>
-              </div>         
-              <div class="formRow">
-                <label for="fbEmail"> E-mail: </label>
-                <input id="fbEmail" type="email" name="email" required="required"/>
-              </div>          
-              <div class="formRow">
-                <label for="fbPassword"> Password: </label>
-                <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
-              </div>          
-            </div>
-            <div>
-              <img id="fbProfileImage"></img>
-            </div>
-            <input type="hidden" name="auth_token"></input>
-            <input type="hidden" name="fb_user_id"></input>
-            {{ xsrf_form_html() }}
-            <a id="submitFbRegistration" class="small grey awesome" onclick="$('form#fbRegistration').submit();">Finish</a>
-          </div>
-       </form>
+  <div class="colorbox" id="loginBox">
+    <header>Login to Instant.fm</header>
+    <form id="login">
+      <div id="loginErrors"></div>
+      <div class="formRow">
+        <label>E-mail</label>
+        <input type="email" name="email" required="required"/>
       </div>
+      <div class="formRow">
+        <label>Password</label>
+        <input type="password" name="password" required="required"/>
+      </div>
+      <div class="formRow">
+        <input type="checkbox" name="passwordless" checked="checked" />
+        <label>Remember me</label>
+      </div>
+      {{ xsrf_form_html() }}
+      <a class="small red awesome" onclick="$('form#login').submit();"> Login </a>
+    </form>
+  </div>
+  
+  <!-- <div class="colorbox" id="newPlaylistBox">
+    <header>New Playlist</header>
+    <form id="newPlaylistForm">
+      <div class="formRow">
+        <label> Playlist name: </label>
+        <input type="text" required="required" />
+      </div>
+      <div class="formRow">
+        <label> Description: </label>
+        <input type="textarea" required="required" />
+      </div>
+      {{ xsrf_form_html() }}
+      <a class="small red awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
+    </form>
+  </div> -->
+   
+  <div class="colorbox" id="signupBox">
+    <header>Create an Account <span class="subtitle">(1 of 2)</span></header>
+      
+    <div id="signupStep1">
+      <div id="fbSignupPitch">
+        Share and discover <strong>amazing music playlists</strong>.
+      </div>
+    
+      <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
+    
+      <div id="fbFacepile"></div>
     </div>
-          
-  </div> <!-- end of #devNull -->
+    
+    <div id="signupStep2" style="display: none;">
+      
+      <div id="registrationMsg"></div>
+      <div id="registrationErrors"></div>
+                        
+      <form id="fbSignupForm" method="post">
+            
+        <div class="clearfix formRow">
+          <div id="fbProfileImage"></div>
+          <label for="fbName">Full Name</label>
+          <input id="fbName" type="text" name="name" value="" maxlength="32" required="required"/>
+          <span>Use your real name.</span>
+        </div>
+  
+        <div class="formRow">
+          <label for="fbEmail">E-mail</label>
+          <input id="fbEmail" type="email" name="email" required="required"/>
+        </div>   
+         
+        <div class="formRow">
+          <label for="fbPassword">Password</label>
+          <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
+        </div>
+      
+        <div>
+          <div id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
+          <a class="darkblue awesome large" href="#createAccount" id="submitFbSignupForm">Create Account</a>
+        </div>
+      
+        <input type="hidden" name="auth_token"></input>
+        <input type="hidden" name="fb_user_id"></input>
+        {{ xsrf_form_html() }}
+
+      </form>
+              
+    </div>
+  </div> <!-- end of #signupBox -->    
+</div> <!-- end of #devNull -->
+
 {% end %}
 
 {% block scripts %}

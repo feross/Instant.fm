@@ -21,7 +21,8 @@ var appSettings = {
         axis: 'y',
         scrollSensitivity: 25,
         tolerance: 'pointer'
-    }
+    },
+    fbAppId: '114871205247916'
 };
 
 function onloadHome() {
@@ -66,7 +67,7 @@ function onloadPlaylist() {
     
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
-    setupRegistration();
+    setupSignup();
     setupLogin();
     setupLogout();
     setupNewPlaylist();

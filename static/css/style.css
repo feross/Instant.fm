@@ -64,7 +64,7 @@ input[type="checkbox"] { vertical-align: bottom; }
 label, input[type=button], input[type=submit], button, .pointer { cursor: pointer; }
 button, input, select, textarea { margin: 0; }
 input:valid, textarea:valid   {  }
-input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }
+/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }*/
 .no-boxshadow input:invalid, 
 .no-boxshadow textarea:invalid { background-color: #f0dddd; }
 
@@ -259,8 +259,12 @@ a.awesome:hover { text-decoration: none; }
 /* Primary Styles */
 
 body {
-    background: #000 url('/images/fullmetal.jpg') top left repeat;
+    background: #080808 url('/images/bg2.jpg') no-repeat fixed center top;
     text-align: center;
+}
+
+body#p {
+    background: #000 url('/images/bob-marley.jpg') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
@@ -365,8 +369,6 @@ input.file {
     width: 473px;
 }
 
-/*#header nav a:hover { text-shadow: #499bd1 1px 1px 8px; }
-*/
 /* Scrolling */
 
 #browserDisplay {
@@ -381,6 +383,18 @@ input.file {
     overflow-y: auto; 
 }
 
+#backgroundMsg {
+    display: none; /* Removed in JS */
+    left: 0;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
+    margin: 20px 0;
+    opacity: 0;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
+}
 
 /* Player */
 
@@ -548,9 +562,12 @@ input.file {
 /* Mini Browser (right) */
 
 #browser, #nowPlayingContainer {
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
     border-left: #666 solid 1px;
     font-size: 14px;
 }
@@ -851,7 +868,6 @@ header:hover .editLink, article:hover .editLink {
 #curAlbumBlock { margin: 10px 0 0 0; }
 
 .curLabel {
-    color: #999;
     display: inline-block;
     font-size: 12px;
     font-style: italic;
@@ -913,9 +929,9 @@ a:hover .zoomIcon {
 .seeMore { font-size: 12px; }
 
 
-/* Help Box */
+/* Help Colorbox */
 
-.fancyZoomHeader {
+.colorbox > header {
     border-bottom: #ddd 1px solid;
     color: #000;
     font-size: 16px;
@@ -925,12 +941,12 @@ a:hover .zoomIcon {
     text-align: left;
 }
 
-.helpSection {
+.colorbox section {
     display: inline-block;
     margin-right: 25px;
 }
 
-.fancyZoomSectionHeader {
+.colorbox section header {
     color: #000;
     font-size: 14px;
     font-weight: bold;
@@ -938,12 +954,15 @@ a:hover .zoomIcon {
     text-align: left;
 }
 
-.shortcut {
+.colorbox .subtitle { color: #999; padding-left: 5px; }
+
+
+#helpBox dl {
     height: 25px;
     margin: 5px 0;
 }
 
-.key {
+#helpBox dt {
     background-color: #333;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
@@ -958,22 +977,119 @@ a:hover .zoomIcon {
     text-shadow: #000 0 1px 1px;
 }
 
-.action { color: #555; float: left; font-size: 12px; padding-top: 5px; }
+#helpBox dd { color: #555; float: left; font-size: 12px; padding-top: 5px; }
 
+
+/* Signup Colorbox - Step 1 */
+
+#fbSignupPitch { font-size: 15px; margin: 12px 3px 0 3px; }
+
+#fbConnectButton { font-size: 20px; margin: 12px 0; padding: 8px 15px;}
+
+
+/* Signup Colorbox - Step 2 */
+
+#signupStep2 { text-align: left; }
+
+#fbProfileImage {
+    background-repeat: no-repeat;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius: 5px;
+	float: right;
+	height: 50px;
+	margin-bottom: 1px;
+	width: 50px;
+}
+
+#fbSignupForm { display: inline-block; }
+
+.formRow { margin: 7px 0; }
+
+.formRow label, .formRow input { font-size: 16px; }
+
+.formRow label {
+    color: #555;
+    display: inline-block;
+    font-weight: bold;
+    padding-right: 8px;
+    padding-bottom: 3px;
+    text-align: right;
+    width: 90px;
+    vertical-align: middle;
+}
+
+.formRow input {
+    background-image:
+        -webkit-gradient(
+            linear,
+            0% 0%,
+            0% 15%,
+            from(#efefef),
+            to(#fff)
+        );
+    background-image: 
+        -moz-linear-gradient(
+            center top,
+            #efefef 0%,
+            #fff 100%
+        );
+    
+    border: 1px solid #ccc;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    
+    -moz-box-shadow: inset 0 2px 2px #EFEFEF;
+    -webkit-box-shadow: inset 0 2px 2px #EFEFEF;
+    box-shadow: inset 0 2px 2px #EFEFEF;
+    
+    display: inline-block;
+    padding: 5px 4px;
+    width: 270px;
+}
+
+#fbName { width: 210px; }
+
+.formRow span {
+    color: #888;
+    display: block;
+    font-size: 11px;
+    margin: 4px 0 0 103px;
+}
+
+#agreeToTerms {
+    color: #888;
+    float: left;
+    font-size: 11px;
+    margin: 18px 0 0 13px;
+}
+
+#submitFbSignupForm { float: right; margin-top: 8px; }
 
 /* Header and Footer Links */
 
 #header nav {
     float: right;
     font-size: 13px;
-    font-weight: bold;
     margin: 17px 15px 0 0;
 }
 
-#header nav a {
-    display: inline-block;
-    margin-left: 25px;
+nav, #backgroundMsg {
+    color: #fff;
+    text-shadow: #000 0 1px 5px;
 }
+
+.byline {
+    font-style: italic;
+}
+
+nav a,
+nav a:active,
+nav a:visited { color: #fff; display: inline-block; font-weight: bold; text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+#header a { margin-left: 25px; }
+#footer a { padding-right: 25px; }
 
 #navNewPlaylist {
     background: transparent url('/images/add-on.png') left center no-repeat;
@@ -1000,11 +1116,6 @@ a:hover .zoomIcon {
     padding-left: 19px;
 }
 
-#header nav a, #footer a {
-    color: #fff;
-    font-weight: bold;
-    text-shadow: #000 0 0 3px;
-}
 
 #footer {
     font-size: 12px;
@@ -1016,17 +1127,11 @@ a:hover .zoomIcon {
 }
 
 #footer #helpLink {
-    background: transparent url("/images/keyboard.png") top right no-repeat;
+    background: transparent url("/images/keyboard.png") center right no-repeat;
     float: right;
     padding: 0 25px 0 0;
     margin-right: 10px;
 }
-
-#footer a,
-#footer a:active,
-#footer a:visited { color: #ddd; display: inline-block; padding-right: 25px; text-decoration: none; }
-
-#footer a:hover { color: #fff; text-decoration: underline; }
 
 
 /* Search partial */
@@ -1232,6 +1337,10 @@ a:hover .zoomIcon {
     width: 290px;
 }
 
+.isNumbered .songListItem .songInfo {
+    width: 270px;
+}
+
 .songListItem .songInfo .title {
     font-size: 15px;
     font-weight: bold;
@@ -1306,11 +1415,6 @@ a:hover .zoomIcon {
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
 
-/* Registration and Login */
-.loginForm {
-    display: inline-block;
-    vertical-align: top;
-}
 
 .loggedIn .mustLogout, 
 .loggedOut .mustLogin,

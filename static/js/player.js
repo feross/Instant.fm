@@ -79,12 +79,11 @@ Player.prototype.playSong = function(i) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
-    player.playSongBySearch(title, artist);
+    player.playSongBySearch(title, artist, songIndex);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
 
-    nowplaying.updateCurPlaying(title, artist, songIndex);
     player.moveSongIntoView();
 };
 
@@ -121,7 +120,7 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist) {
+Player.prototype.playSongBySearch = function(title, artist, _songIndex) {
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
     
@@ -152,6 +151,8 @@ Player.prototype.playSongBySearch = function(title, artist) {
             }
         }
     });
+    
+    nowplaying.updateCurPlaying(title, artist, _songIndex);
 };
 
 // Attempts to play the video with the given ID. If the player is in a loading state,
@@ -248,7 +249,8 @@ Player.prototype.toggleRepeat = function(force) {
 
 // Manually move the current song up
 Player.prototype.moveSongUp = function(oldId) {
-    if (oldId <= 0) {
+    if (!model.isEditable() ||
+        oldId <= 0) {
         return;
     }
     var songItem = $('#song'+oldId);
@@ -259,7 +261,8 @@ Player.prototype.moveSongUp = function(oldId) {
 
 // Manually move the current dong down
 Player.prototype.moveSongDown = function(oldId) {
-    if (oldId >= model.playlist.songs.length - 1) {
+    if (!model.isEditable() ||
+        oldId >= model.playlist.songs.length - 1) {
         return;
     }
     var songItem = $('#song'+oldId);
@@ -381,17 +384,21 @@ Player.prototype.renderPlaylist = function(playlist) {
     });
     
     this.songlist.render('#playlistDiv', function() {
+        $('#playlist')
+            .sortable($.extend({}, appSettings.sortable, {
+                start: function(event, ui) {
+                    $('body').toggleClass('sorting', true);
+                },
+                stop: function(event, ui) {
+                    player.onPlaylistReorder(event, ui);
+                    $('body').toggleClass('sorting', false);
+                },
+                disabled: true
+            }));
+        
         if (model.isEditable()) {
-            $('#playlist')
-                .sortable($.extend({}, appSettings.sortable, {
-                    start: function(event, ui) {
-                        $('body').toggleClass('sorting', true);
-                    },
-                    stop: function(event, ui) {
-                        player.onPlaylistReorder(event, ui);
-                        $('body').toggleClass('sorting', false);
-                    }
-                }));
+            $('#playlist').sortable('enable');
+            
             window.setTimeout(function() {
                 player.songlist.fetchAlbumImgs.apply(player.songlist);
             }, 4000);
