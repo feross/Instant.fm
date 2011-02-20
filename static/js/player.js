@@ -77,6 +77,12 @@ Player.prototype.decreaseVolume = function() {
 Player.prototype.playSong = function(i) {
     player.songIndex = i;
     var song = model.playlist.songs[i];
+    
+    // Empty playlist?
+    if (!song) {
+        return;
+    }
+    
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 

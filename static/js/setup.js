@@ -364,6 +364,47 @@ function setupLogout() {
 
 function setupNewPlaylist() {
     $('a[href="#new"]').colorbox({inline: true, href: "#newPlaylistBox"});
+    
+    // initialize validator and add a custom form submission logic
+    $("form#newPlaylistForm").validator({
+        effect: 'wall', 
+        container: '#newPlaylistErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+        var form = $(this);
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/new-list',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    if (json && json.status && json.status == "ok")  {
+                        $.colorbox.close();
+                        player.loadPlaylist(json)
+                    } else {
+                        // server-side validation failed. use invalidate() to show errors
+                        if (json && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            $.colorbox.resize();
+                        }
+                    }
+                },
+                error: function() { log('Error posting new playlist form ;_;'); },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        } else {
+            $.colorbox.resize();
+        }
+    });
 }
 
 function setupDragDropUploader(dropId, callback) {

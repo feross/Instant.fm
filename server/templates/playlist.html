@@ -284,21 +284,22 @@
     </form>
   </div>
   
-  <!-- <div class="colorbox" id="newPlaylistBox">
+  <div class="colorbox" id="newPlaylistBox">
     <header>New Playlist</header>
+    <div id="newPlaylistErrors"></div>
     <form id="newPlaylistForm">
       <div class="formRow">
-        <label> Playlist name: </label>
-        <input type="text" required="required" />
+        <label> Playlist title: </label>
+        <input name="title" type="text" required="required" />
       </div>
       <div class="formRow">
         <label> Description: </label>
-        <input type="textarea" required="required" />
+        <input name="description" type="textarea"/>
       </div>
       {{ xsrf_form_html() }}
       <a class="small red awesome" onclick="$('form#newPlaylistForm').submit();">Create</a>
     </form>
-  </div> -->
+  </div>
    
   <div class="colorbox" id="signupBox">
     <header>Create an Account <span class="subtitle">(1 of 2)</span></header>
