@@ -1399,7 +1399,7 @@ nav a:hover { text-decoration: underline; }
 
 #playlist .songListItem .moveToTop { display: none; }
 .isOwner #playlist .songListItem:hover .moveToTop {
-    background: transparent url('/images/top2.png') left bottom no-repeat;
+    background: transparent url('/images/top.png') left bottom no-repeat;
     cursor: pointer;
     display: inline-block;
     height: 17px;
@@ -1409,7 +1409,7 @@ nav a:hover { text-decoration: underline; }
 
 #playlist .songListItem .drag { display: none; }
 .isOwner #playlist .songListItem:hover .drag {
-    background: transparent url('/images/drag2.png') right bottom no-repeat;
+    background: transparent url('/images/drag.png') right bottom no-repeat;
     cursor: url('/images/cursors/move.cur'), move !important;
     display: inline-block;
     height: 17px;
