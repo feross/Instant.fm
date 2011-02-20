@@ -705,15 +705,6 @@ def main():
 
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
-    
-""" Used for generating a playlist programatically. Sort of a hack. """
-class Playlist:
-    def __init__(self, songs, user_id=-1, title='', description='', playlist_id=-1):
-        self.songs = json.dumps(songs)
-        self.user_id=user_id
-        self.title=title
-        self.description=description
-        self.playlist_id=playlist_id
 
 if __name__ == "__main__":    
     main()
