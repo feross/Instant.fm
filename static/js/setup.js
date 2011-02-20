@@ -177,8 +177,7 @@ function setupSignup() {
                 $('#signupStep2').hide();
                 $('#signupBox > header > .subtitle').text('(1 of 2)');
             }
-        },
-        onLoad: function() {
+
             $('#fbFacepile')
                 .empty()
                 .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
@@ -219,11 +218,6 @@ function setupSignup() {
                 $('input[name=fb_user_id]', form).val(response.id);
                 $('input[name=auth_token]', form).val(login_response.session.access_token);
                 $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
-                
-                $('#submitFbSignupForm').click(function(event) {
-                    event.preventDefault();
-                    $('#fbSignupForm').submit();
-                });
                 
                 $('#signupStep1').fadeOut(function() {
                     $('#signupBox > header > .subtitle').text('(2 of 2)');
@@ -310,7 +304,13 @@ function setupSignup() {
 }
 
 function setupLogin() {
-    $('a[href="#login"]').colorbox({inline: true, href: "#loginBox"});
+    $('a[href="#login"]').colorbox({
+        inline: true,
+        href: "#loginBox",
+        onComplete: function() {
+            $('input[name=email]', '#login').focus();
+        }
+    });
     $("form#login").validator({
         effect: 'wall', 
         container: '#loginErrors',
@@ -363,7 +363,13 @@ function setupLogout() {
 }
 
 function setupNewPlaylist() {
-    $('a[href="#new"]').colorbox({inline: true, href: "#newPlaylistBox"});
+    $('a[href="#new"]').colorbox({
+        inline: true,
+        href: "#newPlaylistBox",
+        onComplete: function() {
+            $('input[name=title]', '#newPlaylistForm').focus();
+        }
+    });
     
     // initialize validator and add a custom form submission logic
     $("form#newPlaylistForm").validator({

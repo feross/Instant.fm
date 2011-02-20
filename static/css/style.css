@@ -62,6 +62,7 @@ input[type="checkbox"] { vertical-align: bottom; }
 .ie7 input[type="checkbox"] { vertical-align: baseline; }
 .ie6 input { vertical-align: text-bottom; }
 label, input[type=button], input[type=submit], button, .pointer { cursor: pointer; }
+input[type=button], input[type=submit], button { border: 0; }
 button, input, select, textarea { margin: 0; }
 input:valid, textarea:valid   {  }
 /*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }*/
@@ -1074,10 +1075,33 @@ a:hover .zoomIcon {
     color: #888;
     float: left;
     font-size: 11px;
-    margin: 18px 0 0 13px;
+    margin: 17px 0 0 13px;
 }
 
-#submitFbSignupForm { float: right; margin-top: 8px; }
+#submitFbSignupForm,
+#submitNewPlaylist,
+#submitLogin {
+    float: right;
+    margin-top: 8px;
+}
+
+
+/* Login Colorbox */
+
+#loginBox,
+#newPlaylistBox { padding-right: 10px; }
+
+#rememberMe {
+    color: #666;
+    float: right;
+    font-size: 12px;
+    margin: 17px 20px 0 0;
+}
+
+#rememberMe label {
+    margin-left: 3px;
+}
+
 
 /* Header and Footer Links */
 
