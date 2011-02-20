@@ -105,7 +105,9 @@
               <script id="curAlbumBlockTemplate" type="text/x-jquery-tmpl">
                 <a id="curAlbumImg" class="albumImg reflect" href="#" title="${albumTitle}">
                   <img alt="${albumAlt}" src="${albumImg}">
-                  <span class="zoomIcon"></span>
+                  {{'{{'}}if albumImg != '/images/unknown.png'}}
+                    <span class="zoomIcon"></span>
+                  {{'{{'}}/if}}
                 </a>
                 <div id="curAlbumInfo">
                 

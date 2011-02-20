@@ -83,6 +83,10 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
                     returnFocus: false,
                     title: '&nbsp;' // don't show a title
                 });
+            } else {
+                $('#curAlbumImg').click(function(event) {
+                    event.preventDefault();
+                });
             }
         }
     });
@@ -287,7 +291,7 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
                 .tmpl(data)
                 .appendTo('#curArtistDesc');
             
-            data.callback && data.callback();
+                data.callback && data.callback();
             $('#curArtistDesc').fadeIn('fast');
         }
     });
