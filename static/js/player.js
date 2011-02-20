@@ -337,26 +337,25 @@ Player.prototype.loadPlaylist = function(playlist) {
         return;
     }
     
-    var initial_pageload = (model.playlist == null);
+    if(!Modernizr.history) {
+        window.location = playlist.url;
+    }
     
-    if(Modernizr.history) {
-        if (initial_pageload) {
-            window.history.replaceState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );
-        } else {
-            window.history.pushState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );           
-            
-            $('#main').effect('pulsate', {times: 1});
-        }
+    // Replace history if initial page load, otherwise push.
+    if (model.playlist == null) {
+        window.history.replaceState(
+            playlist,
+            playlist.title,
+            playlist.url
+        );
     } else {
-        window.location = url;
+        window.history.pushState(
+            playlist,
+            playlist.title,
+            playlist.url
+        );           
+        
+        $('#main').effect('pulsate', {times: 1});
     }
         
     model.updatePlaylist(playlist);
