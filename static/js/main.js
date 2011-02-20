@@ -71,5 +71,8 @@ function onloadPlaylist() {
     setupLogout();
     setupNewPlaylist();
    
-    setupDragDropUploader('p', player.loadPlaylist);
+    setupDragDropUploader('p', function(response) {
+        playlist = $.parseJSON(response);
+        player.loadPlaylist(playlist);
+    });
 }

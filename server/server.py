@@ -355,11 +355,9 @@ class PlaylistEditHandler(PlaylistBaseHandler):
                     
                     url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
                     for song in songs:
-                        # Change empty string to NULL
-                        song['i'] = None if song['i'] == 'i' else song['i']
-                        if song['i'] is not None and url_re.match(song['i']) == None:
-                            print 'Invalid image art save attempted: ' + song['i']
-                            song['i'] = None
+                        if song.has_key('i') and song['i'] is not None:
+                            if song['i'] == '' or url_re.match(song['i']) == None:
+                                song['i'] = None
                     
                 if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))

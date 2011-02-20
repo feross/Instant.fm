@@ -326,56 +326,55 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
-Player.prototype.loadPlaylist = function(response) {
-    if (response == null) {
-      return;
-    } else if ($.isPlainObject(response)) { // playlist is embedded in html
-        var playlist = response;
-        if(Modernizr.history) {
+Player.prototype.loadPlaylist = function(playlist) {
+    if (!playlist) {
+        log('Attempted to load null playlist.');
+        return;
+    }
+    
+    if (!playlist.status || playlist.status != "ok") {
+        log('Error loading playlist: ' + (playlist.status ? playlist.status : 'No status'));
+        return;
+    }
+    
+    var initial_pageload = (model.playlist == null);
+    
+    if(Modernizr.history) {
+        if (initial_pageload) {
             window.history.replaceState(
                 playlist,
                 playlist.title,
                 playlist.url
             );
-        }
-
-    } else { // playlist is from xhr response      
-        var playlist = $.parseJSON(response);
-        if(!playlist || playlist.status != 'ok') {
-            log('Error loading playlist: ' + playlist.status);
-            return;
-        }
-        
-        // Attempt to push state onto URL history, fallback to redirect
-        if(Modernizr.history) {        
+        } else {
             window.history.pushState(
                 playlist,
                 playlist.title,
                 playlist.url
-            );
-        } else {
-            window.location = url;
+            );           
+            
+            $('#main').effect('pulsate', {times: 1});
         }
-        
-        nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#main').effect('pulsate', {times: 2});
+    } else {
+        window.location = url;
     }
-
+        
     model.updatePlaylist(playlist);
     player.renderPlaylist(playlist);
 
     player.playSong(0);
     ownershipStatusChanged();
-    log('Loaded playlist: ' + playlist.playlist_id);
+    nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
+    log('Loaded playlist: ' + playlist.url);
 };
 
 // Load a playlist with the given id
 Player.prototype.loadPlaylistByUrl = function(url) {
-    var the_url = url + '?json=true';
     $.ajax({
         dataType: 'json',
+        data: {'json': true},
         type: 'GET',
-        url: the_url,
+        url: url,
         success: function(responseData, textStatus, XMLHttpRequest) {
             player.loadPlaylist(responseData);
         }
