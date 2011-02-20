@@ -85,7 +85,7 @@ MiniBrowser.prototype.pushPartial = function(config) {
 			view = new ArtistView(config);
 			break;
 		case 'partial album':
-		    view = new BaseView(config);
+		    view = new AlbumView(config);
 			break;
 		default:
 		    view = new BaseView(config);

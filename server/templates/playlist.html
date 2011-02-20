@@ -24,7 +24,9 @@
     <section id="playlistDisplay">
     
       <div id="videoDiv">
-        <div id="player">&nbsp;</div>
+        <div id="player">
+          <noscript>This content requires the Adobe Flash Player. <a href="http://www.adobe.com/go/getflash/">Get Flash</a>.</noscript>
+        </div>
       </div>
       
       <div id="playlistDiv">
@@ -132,7 +134,7 @@
                 <section id="curSongDesc"></section>
                 <script id="curSongDescTemplate" type="text/x-jquery-tmpl">
                   <h4>${trackName}</h4> 
-                  <article>${trackDescription}</article>
+                  <article>{{'{{'}}html trackDescription}}</article>
                 </script>
                 
                 <section class="artistDesc" id="curArtistDesc"></section>
@@ -142,7 +144,7 @@
                     <img alt="${artistName}" src="${artistImg}">
                     <span class="zoomIcon"></span>
                   </a>
-                  <article>${artistDescription}</article>
+                  <article>{{'{{'}}html artistDescription}}</article>
                 </script>
               </div> <!-- end of #curDescs -->
 
@@ -181,7 +183,7 @@
     <nav>
       <a href="/">Instant.fm</a>
       <a href="#">Meet The Team</a>
-      <span class="byline">Designed by Feross, Jake, and John from Stanford.</span>
+      <span class="byline">Created by Feross, Jake, and John from Stanford.</span>
       <a href="#helpBox" id="helpLink">Keyboard shortcuts available</a>
     </nav>
   </footer>

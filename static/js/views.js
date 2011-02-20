@@ -85,100 +85,112 @@ SearchView.prototype._addSearchHandlers = function() {
     var that = this;
     $('.searchBox', this.content).submit(function(event) {
         event.preventDefault();
-        that._handleSearch(searchInput.val());
+        log('submit');
+		that.search.apply(that, [searchInput.val(), false]);
     });
     
     // Pushes a key
     searchInput.keyup(function(event) {
-		that._handleSearch.apply(that, [searchInput.val()]);
+        var searchString = $.trim(searchInput.val());
+        if (that.prevSearchString == searchString) {
+            return;
+        }
+        that.prevSearchString = searchString;    
+        
+        that.search.apply(that, [searchString, true]);
     });
     
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
-        event && event.preventDefault();
-        that._handleSearch(searchInput.val());
+        event.preventDefault();
+        log('click');
+		that.search.apply(that, [searchInput.val(), false]);
     });
-};
-
-// Private function that handles search
-SearchView.prototype._handleSearch = function(searchString) {
-    searchString = $.trim(searchString);
-    if (!this.delaySearch && (this.prevSearchString != searchString)) {
-        this.prevSearchString = searchString;
-        if (searchString.length) {
-            this.search(searchString);
-        } else {
-            $('.songResults', this.content).hide();
-	        $('.artistResults', this.content).hide();
-			$('.albumResults', this.content).hide();
-        }
-        
-        // Don't allow another search for a while.
-        this.delaySearch = true;
-        var that = this;
-        window.setTimeout(function() {
-            that.delaySearch = false;
-            
-            var searchInput = $('.searchBox input.search', that.content);
-            if (searchInput.val() != searchString) {
-                that._handleSearch(searchInput.val());
-            }
-        }, 800);
-    }
 };
 
 // Perform a search for given search string
-SearchView.prototype.search = function(searchString) {
-    if (!searchString) {
-        return;
-    }
-
-    this.prevSearchString = searchString;
-
-    var that = this;
-    model.lastfm.track.search(
-    {
-        track: searchString,
-        limit: 5,
-    },
-    {
-        success: function(data) {
-            that._handleSongSearchResults(data);
-        },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderSongs([]);
-        }
-    });
+SearchView.prototype.search = function(searchString, delay) {
+    searchString = $.trim(searchString);
     
-    model.lastfm.artist.search({
-        artist: searchString,
-        limit: 3,
-    },
-    {
-        success: function(data) {
-            that._handleArtistSearchResults(data);
-        },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderArtists([]);
+    if (delay) {
+        var timeout = 250;
+    } else {
+        var timeout = 0;
+    }
+    
+    $('.songResults, .artistResults, .albumResults', this.content).addClass('loading');
+    
+    var that = this;
+    window.setTimeout(function() {
+        
+        var searchInput = $('.searchBox input.search', this.content);
+        if (searchString != searchInput.val()) {
+            return; // don't perform search since user kept typing
         }
-    });
+        
+        if (!searchString.length) {
+            $('.songResults', that.content).slideUp();
+	        $('.artistResults', that.content).slideUp();
+			$('.albumResults', that.content).slideUp();
+			return;
+        }
+        
+        model.lastfm.track.search(
+        {
+            track: searchString,
+            limit: 5,
+        },
+        {
+            success: function(data) {
+                $('.songResults', that.content).removeClass('loading');
+                
+                if (searchString == that.prevSearchString) { // result is still relevant
+                    that._handleSongSearchResults(data);
+                }
+            },
+            error: function(code, message) {
+                log(code + ' ' + message);
+                that.renderSongs([]);
+            }
+        });
 
-    model.lastfm.album.search(
-    {
-        album: searchString,
-        limit: 3,
-    },
-    {
-        success: function(data) {
-            that._handleAlbumSearchResults(data);
+        model.lastfm.artist.search({
+            artist: searchString,
+            limit: 3,
         },
-        error: function(code, message) {
-            log(code + ' ' + message);
-            that.renderAlbums([]);
-        }
-    });
+        {
+            success: function(data) {
+                $('.artistResults', that.content).removeClass('loading');
+                
+                if (searchString == that.prevSearchString) { // result is still relevant
+                    that._handleArtistSearchResults(data);
+                }
+            },
+            error: function(code, message) {
+                log(code + ' ' + message);
+                that.renderArtists([]);
+            }
+        });
+
+        model.lastfm.album.search(
+        {
+            album: searchString,
+            limit: 3,
+        },
+        {
+            success: function(data) {
+                $('.albumResults', that.content).removeClass('loading');
+                
+                if (searchString == that.prevSearchString) { // result is still relevant
+                    that._handleAlbumSearchResults(data);
+                }
+            },
+            error: function(code, message) {
+                log(code + ' ' + message);
+                that.renderAlbums([]);
+            }
+        });
+    }, timeout);
 };
 
 SearchView.prototype._handleSongSearchResults = function(data) {
@@ -186,7 +198,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
 
     if (!trackResults || !trackResults.length) {
-        $('.songResults', this.content).hide();
+        $('.songResults', this.content).slideUp();
         return;
     }
 
@@ -226,7 +238,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     
     var $songResults = $('.songResults', this.content);
     songlist.render($songResults);
-    $songResults.show();
+    $songResults.slideDown();
 };
 
 SearchView.prototype._handleArtistSearchResults = function(data) {
@@ -234,7 +246,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     var artistResults = data && data.results && data.results.artistmatches && data.results.artistmatches.artist;
     
     if (!artistResults || !artistResults.length) {
-        $('.artistResults', this.content).hide();
+        $('.artistResults', this.content).slideUp();
         return;
     }
 
@@ -252,7 +264,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     $('.artistResults div', this.content).remove();
     $('.artistResults', this.content)
         .append(makeArtistList(artists))
-        .show();
+        .slideDown();
 };
 
 SearchView.prototype._handleAlbumSearchResults = function(data) {
@@ -260,7 +272,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     var albumResults = data && data.results && data.results.albummatches && data.results.albummatches.album;
 
     if (!albumResults || !albumResults.length) {
-        $('.albumResults', this.content).hide();
+        $('.albumResults', this.content).slideUp();
         return;
     }
 
@@ -278,7 +290,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
     $('.albumResults div', this.content).remove();
     $('.albumResults', this.content)
         .append(makeAlbumList(albums))
-        .show();
+        .slideDown();
 };
 
 
@@ -294,7 +306,6 @@ copyPrototype(ArtistView, BaseView);
 ArtistView.prototype.willSlide = function() {
     this.BaseView.prototype.willSlide(this.config);
 	this._fetchData();
-	$('.name', this.content).text(this.name);
 };
 
 ArtistView.prototype.didSlide = function() {
@@ -474,6 +485,115 @@ ArtistView.prototype._handleTopAlbums = function(data) {
 };
 
 ArtistView.prototype._updateArtistImg = function(src, alt) {
+	if (src) {
+        var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
+        $('.artistImg', this.content).empty().append(imgBlock);
+    
+    } else {
+        $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
+    }
+};
+
+
+/* --------------------------- ALBUM VIEW --------------------------- */
+
+function AlbumView(config) {
+    this.config = config;
+    this.BaseView.prototype.constructor(this);
+	this.name = config.title;
+}
+copyPrototype(ArtistView, BaseView);
+
+AlbumView.prototype.willSlide = function() {
+    this.BaseView.prototype.willSlide(this.config);
+	this._fetchData();
+};
+
+AlbumView.prototype.didSlide = function() {
+    this.BaseView.prototype.didSlide(this.config);
+};
+
+AlbumView.prototype.willSleep = function() {
+    this.BaseView.prototype.willSleep(this.config);
+};
+
+AlbumView.prototype.willAwake = function() {
+    this.BaseView.prototype.willAwake(this.config);
+};
+
+AlbumView.prototype.didAwake = function() {
+    this.BaseView.prototype.didAwake(this.config);
+};
+
+AlbumView.prototype.willPop = function() {
+    this.BaseView.prototype.willPop(this.config);
+};
+
+AlbumView.prototype._fetchData = function() {
+	that = this;
+    model.lastfm.album.getInfo({
+        album: this.name,
+        autocorrect: 1,
+        limit: 1,
+    },
+    {
+        success: function(data) {
+            that._handleInfo(data);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+};
+
+AlbumView.prototype._handleInfo = function(data) {
+    log(data);
+    var artist = data && data.artist;
+	
+    // log(artist);
+	// TODO: show similar artists
+	// TODO: show tags
+    
+	if (!artist) {
+        $('.artistDesc article', this.content)
+            .html('<p>No artist named "' + this.name + '" were found.</p>')
+            .show();
+        return;
+    }
+    
+	var name = artist.name;
+	$('.name', this.content).text(name);
+	
+    var artistSummary = artist.bio && artist.bio.summary;
+    var artistLongDesc = artist.bio && artist.bio.content;
+	
+	// Update artist summary
+    var shortContent;
+    if (artistSummary) {                  
+        shortContent = cleanHTML(artistSummary);
+        $('.artistDesc article', this.content)
+            .html(shortContent);
+    }
+
+    // Add link to longer description
+    if (artistSummary && artistLongDesc) {
+        var longContent = cleanHTML(artistLongDesc); 
+        
+        $('.artistDesc article', this.content)
+            .data('longContent', longContent)
+            .data('shortContent', shortContent);
+                                                       
+        var link = makeSeeMoreLink(onShowMoreText);
+        $('.artistDesc article', this.content).append(' ').append(link);
+    }
+	
+    var image = artist.image[artist.image.length - 1]['#text'];
+ 	this._updateArtistImg(image, name);
+ 	
+ 	$('.artistDesc', this.content).show();
+};
+
+AlbumView.prototype._updateAlbumImg = function(src, alt) {
 	if (src) {
         var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
         $('.artistImg', this.content).empty().append(imgBlock);

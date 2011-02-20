@@ -62,7 +62,7 @@ function cleanSongTitle(title) {
     return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix).*?[\)\]]/gi, '');
 }
 
-// Prepare Remove all html tags
+// Remove all html tags
 function cleanHTML(html) {
     var r = new RegExp('</?\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>', 'gi');   
     return html

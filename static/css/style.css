@@ -1116,7 +1116,6 @@ nav a:hover { text-decoration: underline; }
     padding-left: 19px;
 }
 
-
 #footer {
     font-size: 12px;
     height: 30px;
@@ -1177,6 +1176,11 @@ nav a:hover { text-decoration: underline; }
 
 
 /* Search Results */
+
+.searchPartial h3 {
+    margin: 0; /* override default h3 style to prevent jquery jitter */
+    padding: 5px 0 10px 0;
+}
 
 .artistResult, .albumResult {
     float: left;
@@ -1255,6 +1259,12 @@ nav a:hover { text-decoration: underline; }
     padding: 0;
     margin: 0 0 10px 0;
     width: 470px;
+}
+
+.loading {
+    -moz-opacity: 0.4;
+    filter: alpha(opacity: 40);
+    opacity: 0.4;
 }
 
 .songResults ul li {

@@ -37,7 +37,6 @@ NowPlaying.prototype.setupHandlers = function() {
 // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
 //             hasn't changed before we update the DOM.
 NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
-    log('searching for song ' + t);
 	model.lastfm.track.search({
 	    artist: a || '',
 	    limit: 1,
@@ -60,14 +59,11 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
 // Private method to handle song search results from Last.fm
 NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
     if (srcIndex && srcIndex != player.songIndex) {
-        log('too slow, discarding 1');
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
-        log('no results 1');
         return;
     }
-    log('first api call received');
     
     var track = data.results.trackmatches.track;
     var trackName = track.name || t;
@@ -113,14 +109,11 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
 // Private method to handle song information from Last.fm
 NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg, srcIndex, data) {
     if (srcIndex && srcIndex != player.songIndex) {
-        log('too slow, discarding 2');
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.track) {
-        log('no results 2');
         return;
     }
-    log('second api call received');
                     
     var track = data.track;
     var albumName = track.album && track.album.title;
@@ -222,7 +215,6 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
 };
 
 NowPlaying.prototype.renderAlbumBlock = function(data) {
-    log('rendering albumblock for ' + data.trackName);
     if (data.albumImg) {
         var albumAlt = data.albumName;
         data.albumAlt += data.artistName ? (' by ' + data.artistName) : '';

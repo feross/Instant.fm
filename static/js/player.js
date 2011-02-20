@@ -358,7 +358,7 @@ Player.prototype.loadPlaylist = function(response) {
         }
         
         nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#main').effect('pulsate', {times: 2});
+        $('#main').effect('pulsate', {times: 1});
     }
 
     model.updatePlaylist(playlist);
