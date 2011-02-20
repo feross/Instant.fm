@@ -41,6 +41,11 @@ Model.prototype.addSong = function(song) {
     this.saveSongs();
 };
 
+Model.prototype.removeSong = function(songNum) {
+    this.songs.splice(songNum, 1);
+    this.saveSongs();
+};
+
 Model.prototype.saveSongs = function() {
     model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
 };

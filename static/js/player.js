@@ -9,6 +9,7 @@ function Player() {
     this.songlist; // Playlist's SongView instance
     this.shuffle = false;
     this.repeat = false;
+    this.songIndex; // Current position in the playlist
     
     this.setupButtons();
 }
@@ -74,12 +75,12 @@ Player.prototype.decreaseVolume = function() {
 
 // Play a song at the given playlist index
 Player.prototype.playSong = function(i) {
-    songIndex = i;
+    player.songIndex = i;
     var song = model.songs[i];
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
-    player.playSongBySearch(title, artist, songIndex);
+    player.playSongBySearch(title, artist, player.songIndex);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
@@ -92,17 +93,17 @@ Player.prototype.playNextSong = function() {
     if (player.shuffle) {
         var randomSong = Math.floor(Math.random()*model.songs.length);
         player.playSong(randomSong);
-    } else if (songIndex < model.songs.length - 1) {
-        player.playSong(++songIndex);
+    } else if (player.songIndex < model.songs.length - 1) {
+        player.playSong(++player.songIndex);
     }
 };
 
 // Play prev song in the playlist
 Player.prototype.playPrevSong = function() {
-    if (songIndex == 0) {
+    if (player.songIndex == 0) {
         return;
     }
-    player.playSong(--songIndex);
+    player.playSong(--player.songIndex);
 };
 
 Player.prototype.moveSongIntoView = function() {
@@ -120,13 +121,13 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist, _songIndex) {
+Player.prototype.playSongBySearch = function(title, artist, _songNum) {
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
     
     document.title = title+' by '+artist+' - '+model.title+' - Instant.fm';
     
-    var srcIndex = songIndex;
+    var srcIndex = player.songIndex;
     $.ajax({
         dataType: 'jsonp',
         type: 'GET',
@@ -143,7 +144,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songIndex) {
                     $('.playing')
                         .removeClass('paused')
                         .addClass('missing');
-                    if (songIndex == srcIndex) {
+                    if (player.songIndex == srcIndex) {
                         player.playNextSong();
                     }
                 }, 2000);
@@ -152,7 +153,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songIndex) {
         }
     });
     
-    nowplaying.updateCurPlaying(title, artist, _songIndex);
+    nowplaying.updateCurPlaying(title, artist, _songNum);
 };
 
 // Attempts to play the video with the given ID. If the player is in a loading state,
@@ -248,24 +249,24 @@ Player.prototype.toggleRepeat = function(force) {
 /* Playlist editing */
 
 // Manually move the current song up
-Player.prototype.moveSongUp = function(oldId) {
+Player.prototype.moveCurSongUp = function() {
     if (!model.isEditable() ||
-        oldId <= 0) {
+        player.songIndex <= 0) {
         return;
     }
-    var songItem = $('#song'+oldId);
+    var songItem = $('#song'+player.songIndex);
     songItem.prev().before(songItem);
     
     player.onPlaylistReorder(null, {item: songItem});
 };
 
 // Manually move the current dong down
-Player.prototype.moveSongDown = function(oldId) {
+Player.prototype.moveCurSongDown = function() {
     if (!model.isEditable() ||
-        oldId >= model.songs.length - 1) {
+        player.songIndex >= model.songs.length - 1) {
         return;
     }
-    var songItem = $('#song'+oldId);
+    var songItem = $('#song'+player.songIndex);
     songItem.next().after(songItem);
     
     player.onPlaylistReorder(null, {item: songItem});
@@ -288,6 +289,25 @@ Player.prototype.addSongToPlaylist = function(song) {
         
     if (player.ytplayer.getPlayerState() == 0) { // player is stopped
         player.playSong(model.songs.length - 1);
+    }
+};
+
+Player.prototype.removeSongFromPlaylist = function(songNum) {
+    var nextElems = $('#song'+songNum).nextAll();
+    
+    this.songlist.remove(songNum, function() {
+        nextElems.each(function(index, element) {
+            var num = songNum+index;
+            $(element)
+                .attr('id', 'song' + num)
+                .find('.num').text(num+1);
+        });
+    });
+    model.removeSong(songNum);
+    updateDisplay(); // resizes short playlists
+    
+    if (player.songIndex == songNum) { // removed currently playing song
+        player.songIndex--; // go to the correct next song
     }
 };
 
@@ -363,6 +383,11 @@ Player.prototype.renderPlaylist = function(playlist) {
         songs: playlist.songs,
         onClick: player._onClickSong,
         buttons: [{
+            action: $.noop,
+            className: 'drag ir',
+            text: 'Drag song to reorder it'
+        },
+        {
             action: function(event, song) {
                 var songItem = $(this).closest('.songListItem');
                 var songId = parseInt(songItem.attr('id').substring(4));
@@ -375,10 +400,15 @@ Player.prototype.renderPlaylist = function(playlist) {
             text: 'Move to top'
         },
         {
-            action: $.noop,
-            className: 'drag ir',
-            text: 'Drag this song to reorder it'
-        }],
+            action: function(event, song) {
+                var songItem = $(this).closest('.songListItem');
+                var songId = parseInt(songItem.attr('id').substring(4));
+                player.removeSongFromPlaylist(songId);
+            },
+            className: 'kill ir',
+            text: 'Delete song'
+        },
+        ],
         id: 'playlist',
         listItemIdPrefix: 'song',
         isNumbered: true,
@@ -440,7 +470,6 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
     songItem.attr('id', ''); // Remove the reordered song's id to avoid overlap during update
 
     // Update all DOM ids to be sequential
-
     if (newId < oldId) { // Moved up
         songItem
             .nextUntil('#song'+(oldId+1))
@@ -467,7 +496,7 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
         .find('.num').text(newId+1);
     
     // Keep our position in the playlist up to date in case we moved the current song
-    songIndex = parseInt(playingItem.attr('id').substring(4));
+    this.songIndex = parseInt(playingItem.attr('id').substring(4));
 };
 
 // Show currently playing song

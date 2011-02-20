@@ -85,10 +85,10 @@ function setupKeyboardShortcuts() {
 
                 // Playlist editing
                 case 74: // j
-                    player.moveSongDown(songIndex);
+                    player.moveCurSongDown();
                     break;
                 case 75: // k
-                    player.moveSongUp(songIndex);
+                    player.moveCurSongUp();
                     break;
 
                 // Navigation
@@ -175,6 +175,7 @@ function setupSignup() {
                 $('#fbSignupForm').show();
                 $('#signupStep1').show();
                 $('#signupStep2').hide();
+                $('#signupBox > header > .subtitle').text('(1 of 2)');
             }
         },
         onLoad: function() {
@@ -218,6 +219,7 @@ function setupSignup() {
                 $('input[name=fb_user_id]', form).val(response.id);
                 $('input[name=auth_token]', form).val(login_response.session.access_token);
                 $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
+                
                 $('#submitFbSignupForm').click(function(event) {
                     event.preventDefault();
                     $('#fbSignupForm').submit();
@@ -265,7 +267,7 @@ function setupSignup() {
         // do not validate inputs when they are edited
         errorInputEvent: null
     }).submit(function(e) {
-    
+        log('submit');
         var form = $(this);
       
         // client-side validation OK.
@@ -286,7 +288,6 @@ function setupSignup() {
                       $('#signupStep2').fadeOut(function() {
                           $('#signupStep1').fadeIn();
                       });
-                      
               
                     // server-side validation failed. use invalidate() to show errors
                     } else {

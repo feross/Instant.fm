@@ -1223,12 +1223,12 @@ nav a:hover { text-decoration: underline; }
     border-top-right-radius: 10px;
 }
 
-.albumResult .mask {
+/*.albumResult .mask {
     background: url(/images/disk-mask.png) top left no-repeat;
     position: absolute;
     height: 140px;
     width: 155px;
-}
+}*/
 
 .albumResult .artistName {
     display: block;
@@ -1390,24 +1390,40 @@ nav a:hover { text-decoration: underline; }
 
 #playlist .songListItem .songInfo {
     padding: 0 20px 0 0;
-    width: 310px;
+    width: 270px;
 }
 
-#playlist .songActions { height: 15px; margin: 10px 5px 0 0; }
+#playlist .songActions { height: 17px; margin: 10px 5px 0 0; }
 
 #playlist .songInfo .title { font-size: 14px; }
 
-#playlist .songListItem .moveToTop { height: 15px; width: 11px; }
+#playlist .songListItem .moveToTop { display: none; }
 .isOwner #playlist .songListItem:hover .moveToTop {
-    background: transparent url("/images/top.png") left top no-repeat;
+    background: transparent url('/images/top2.png') left bottom no-repeat;
     cursor: pointer;
+    display: inline-block;
+    height: 17px;
+    width: 11px;
 }
-.isOwner #playlist li.songListItem:first-child .moveToTop { background: none; }
+.isOwner #playlist .songListItem:first-child .moveToTop { display: none !important; }
 
-#playlist .songListItem .drag { height: 15px; width: 15px; }
+#playlist .songListItem .drag { display: none; }
 .isOwner #playlist .songListItem:hover .drag {
-    background: transparent url("/images/drag.png") left top no-repeat;
+    background: transparent url('/images/drag2.png') right bottom no-repeat;
     cursor: url('/images/cursors/move.cur'), move !important;
+    display: inline-block;
+    height: 17px;
+    padding-left: 5px;
+    width: 15px;
+}
+
+#playlist .songListItem .kill { display: none; }
+.isOwner #playlist .songListItem:hover .kill {
+    background: transparent url('/images/kill.png') left bottom no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    height: 17px;
+    width: 15px;
 }
 
 .sorting #playlist .songListItem { cursor: url('/images/cursors/move.cur'), move !important; }

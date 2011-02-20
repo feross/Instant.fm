@@ -166,6 +166,19 @@ SongList.prototype.add = function(song) {
         .appendTo(this.elem);
 };
 
+// Remove a song from this songlist instance by index.
+// Used by the main #playlist view when removing songs.
+SongList.prototype.remove = function(songNum, _callback) {
+    var song = $(this.elem).find('.songListItem:nth-child('+(songNum+1)+')');
+    song.animate({opacity: 0}, function() {
+        song.slideUp(function() {
+            song.remove();
+            _callback && _callback();
+        });
+
+    });
+};
+
 // Try to fetch all the album art we can.
 SongList.prototype.fetchAlbumImgs = function() {
     this.concurrentReqs = 0;
@@ -278,7 +291,8 @@ function makeAlbumList(albums) {
 			rel: 'partial album',
 			title: album.name
 		})
-        .append('<span class="mask"></span>'+'<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')
+        // .append('<span class="mask"></span>'+'<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')
+        .append('<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')
         .append(img)
         .appendTo(result);
     }

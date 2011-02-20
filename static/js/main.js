@@ -3,7 +3,6 @@ var player;
 var nowplaying;
 var browser;
 
-var songIndex; // Current position in the playlist
 var keyEvents = true; // Used to disable keyboard shortuts
 
 var appSettings = {

@@ -59,7 +59,7 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
 
 // Private method to handle song search results from Last.fm
 NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
-    if (srcIndex && srcIndex != songIndex) {
+    if (srcIndex && srcIndex != player.songIndex) {
         log('too slow, discarding 1');
         return; // The request was too slow. We don't need it anymore.
     }
@@ -112,7 +112,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
 
 // Private method to handle song information from Last.fm
 NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg, srcIndex, data) {
-    if (srcIndex && srcIndex != songIndex) {
+    if (srcIndex && srcIndex != player.songIndex) {
         log('too slow, discarding 2');
         return; // The request was too slow. We don't need it anymore.
     }
@@ -164,7 +164,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
 
 // Private method to handle artist information from Last.fm
 NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
-    if (srcIndex && srcIndex != songIndex) {
+    if (srcIndex && srcIndex != player.songIndex) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.artist) {
