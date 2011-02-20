@@ -14,12 +14,7 @@ function Model(playlist) {
 }
     
 Model.prototype.updatePlaylist = function(playlist) {
-    this.playlistId  = playlist.playlist_id || -1;
-    this.title       = playlist.title;
-    this.description = playlist.description;
-    this.songs       = playlist.songs || [];
-    this.session_id  = playlist.session_id || -1;
-    this.user_id     = playlist.user_id || -1;
+    this.playlist = playlist;
 };
 
 Model.prototype.isEditable = function() {
@@ -30,7 +25,7 @@ Model.prototype.isEditable = function() {
 // @oldIndex - old playlist position
 // @newIndex - new playlist position
 Model.prototype.moveSong = function(oldIndex, newIndex) {
-    var songData = model.songs[oldIndex];
+    var songData = model.playlist.songs[oldIndex];
     this.songs.splice(oldIndex, 1);
     this.songs.splice(newIndex, 0, songData);
     this.saveSongs();
@@ -47,23 +42,23 @@ Model.prototype.removeSong = function(songNum) {
 };
 
 Model.prototype.saveSongs = function() {
-    model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.songs)));
+    model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.playlist.songs)));
 };
 
 Model.prototype.updateTitle = function(newTitle) {
-    model.title = $.trim(newTitle);
+    model.playlist.title = $.trim(newTitle);
     
-    model.savePlaylist('&title='+model.title);
+    model.savePlaylist('&title='+model.playlist.title);
 };
 
 Model.prototype.updateDesc = function(newDesc) {
-    model.description = $.trim(newDesc);
+    model.playlist.description = $.trim(newDesc);
     
-    model.savePlaylist('&description='+model.description);
+    model.savePlaylist('&description='+model.playlist.description);
 };
 
 Model.prototype.updateAlbumImg = function(index, albumImg) {
-    model.songs[index].i = albumImg;
+    model.playlist.songs[index].i = albumImg;
     model.saveSongs();
 };
 
@@ -73,14 +68,13 @@ Model.prototype.savePlaylist = function(data) {
         return;
     }
     
-    var the_url = '/p/'+model.playlistId+'/edit';
+    var edit_url = model.playlist.url+'/edit';
     $.ajax({
         data: data,
         dataType: 'json',
         type: 'POST',
-        url: the_url,
+        url: edit_url,
         success: function(responseData, textStatus, XMLHttpRequest) {
-            // TODO: Show a throbber while request is being sent.
             log('Server received updated playlist.');
         }
     });

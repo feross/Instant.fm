@@ -372,8 +372,8 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
 NowPlaying.prototype.shareOnFacebook = function() {
     // Use first non-blank album as share image
     var bestAlbumImg;
-    for (var i = 0; i < model.songs.length; i++) {
-        var image = model.songs[i].i;
+    for (var i = 0; i < model.playlist.songs.length; i++) {
+        var image = model.playlist.songs[i].i;
         if (image) {
             bestAlbumImg = image.replace('serve/34s', 'serve/126s');
             break;
@@ -382,7 +382,7 @@ NowPlaying.prototype.shareOnFacebook = function() {
     
     // Get top playlist artists
     var topArtists = [];
-    $.each(model.songs, function(index, value) {
+    $.each(model.playlist.songs, function(index, value) {
        var artist = value.a;
        if (artist && $.inArray(artist, topArtists) == -1) {
           topArtists.push(artist);
@@ -395,11 +395,11 @@ NowPlaying.prototype.shareOnFacebook = function() {
     FB.ui(
       {
         method: 'feed',
-        name: model.title,
-        link: 'http://instant.fm/p/'+model.playlistId,
+        name: model.playlist.title,
+        link: 'http://instant.fm' + model.playlist.url,
         picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
         caption: 'Instant.fm Playlist',
-        description: model.description + '\n',
+        description: model.playlist.description + '\n',
         properties: {'Artists in this playlist': topArtists.join(', ')},
         actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
       },
@@ -415,14 +415,14 @@ NowPlaying.prototype.shareOnFacebook = function() {
 };
 
 NowPlaying.prototype.shareOnTwitter = function() {
-    var tweetText = encodeURIComponent("♫ I'm listening to "+model.title);
+    var tweetText = encodeURIComponent("♫ I'm listening to "+model.playlist.title);
     var url = 'http://twitter.com/share'+
-              '?url=http://instant.fm/p/'+model.playlistId+
+              '?url=http://instant.fm' + model.playlist.url +
               '&text='+tweetText+'&via=instantDOTfm';
     showPop(url, 'instantfmTwitterShare');
 };
 
 NowPlaying.prototype.shareOnBuzz = function() {
-    var url = 'http://www.google.com/buzz/post?url=http://instant.fm/p/'+model.playlistId;
+    var url = 'http://www.google.com/buzz/post?url=http://instant.fm' + model.playlist.url;
     showPop(url, 'instantfmBuzzShare', 420, 700);
 };

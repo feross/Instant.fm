@@ -42,6 +42,7 @@ class Application(tornado.web.Application):
             (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
             (r"/login", LoginHandler),
+            (r"/new_list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
             (r"/([^/]+)/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
@@ -128,8 +129,7 @@ class BaseHandler(tornado.web.RequestHandler):
         
     def _set_session_cookie(self, 
                             user_id=None, 
-                            expire_on_browser_close=False,
-                            overwrite=False):
+                            expire_on_browser_close=False):
         """Checks if a user_id cookie is set and sets one if not"""
         expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
@@ -200,6 +200,20 @@ class TermsHandler(BaseHandler):
         self.render("terms.html")
     
 class PlaylistBaseHandler(BaseHandler):
+    """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
+    def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
+        playlist_dict = {
+            "status": "ok",
+            "id": id,
+            "url": url,
+            "title": title,
+            "description": description,
+            "user_id": user_id,
+            "session_id": session_id,
+            "songs": songs,
+        }
+        return playlist_dict
+    
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
@@ -209,18 +223,15 @@ class PlaylistBaseHandler(BaseHandler):
             print "Couldn't find playlist"
             raise tornado.web.HTTPError(404)
         
-        # Unfortunately, JSON encoding works a little funny if it's not a dictionary.
-        # Maybe it's a good idea to be explicit about which fields we send anyway.
-        playlist_dict = {
-            "playlist_id": self.base10_36(playlist.playlist_id),
-            "title": playlist.title,
-            "description": playlist.description,
-            "user_id": playlist.user_id,
-            "session_id": playlist.session_id,
-            "songs": json.loads(playlist.songs),
-        }
-        
-        return playlist_dict
+        url = '/p/' + self.base10_36(playlist_id)
+        songs = json.loads(playlist.songs)
+        return self._build_playlist(playlist_id, 
+                                    url, 
+                                    playlist.title, 
+                                    playlist.description, 
+                                    songs, 
+                                    playlist.session_id, 
+                                    playlist.user_id)
         
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name;
@@ -359,7 +370,7 @@ class PlaylistEditHandler(PlaylistBaseHandler):
         self.write(json.dumps({'status': 'Malformed edit request'}))        
         
         
-class UploadHandler(BaseHandler):
+class UploadHandler(PlaylistBaseHandler):
     """Handles playlist upload requests"""
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -456,22 +467,26 @@ class UploadHandler(BaseHandler):
                 res_arr.append({'t': title, 'a': artist})
                 
         return res_arr
-        
-    def _store_playlist(self, name, description, songs):
+    
+    """ Creates a new playlist owned by the current user/session """
+    def _new_playlist(self, title, description, songs=[]):
         songs_json = json.dumps(songs)
         if not songs_json:
-            return None 
+            self.send_error(500)
         
         session_id = self._set_session_cookie()
         user = self.get_current_user()
              
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-            name, description, songs_json, user.id if user else None, session_id)
+            title, description, songs_json, user.id if user else None, session_id)
 
-        return self.base10_36(new_id)
+        return self._get_playlist_by_id(new_id)
+        
+    def _store_playlist(self, playlist):
+        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
+            name, description, songs_json, user.id if user else None, session_id)
                 
     def _handle_request(self):
-           
         # If the file is directly uploaded in the POST body
         # Make a dict of the headers with all lowercase keys
         lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
@@ -494,37 +509,23 @@ class UploadHandler(BaseHandler):
             filename = uploaded_file['filename']
             contents = uploaded_file['body']
 
-        name, ext = os.path.splitext(filename)
+        title, ext = os.path.splitext(filename)
         
         # Parse the file based on the format
         if ext == ".m3u" or ext == ".m3u8":
-            parsed = self._parseM3U(contents)
+            songs = self._parseM3U(contents)
             
         elif ext == ".txt":
-            parsed = self._parse_text(contents)
+            songs = self._parse_text(contents)
             
         elif ext == ".pls":
-            parsed = self._parse_pls(contents)
+            songs = self._parse_pls(contents)
 
         else:
             return {'status': 'Unsupported type'}
             
-        playlist_id = self._store_playlist(name, "Uploaded playlist", parsed)
-        
-        if not playlist_id:
-            return {'status': 'Corrupted playlist file'}
-        
-        user = self.get_current_user()
-        playlist = {
-            'status': 'ok',
-            'title': name,
-            'description': 'Uploaded playlist',
-            'songs': parsed,
-            'playlist_id': playlist_id,
-            'session_id': self._set_session_cookie(),
-            'user_id': user.id if user else None,
-        }
-        return playlist
+        description = 'Uploaded playlist.'
+        return self._new_playlist(title, description, songs)
     
     def post(self):
         self._set_session_cookie()
@@ -652,6 +653,20 @@ class LoginHandler(SignupHandler):
         expire_on_browser_close = not self.get_argument('passwordless', False)
         self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
+        
+class NewPlaylistHandler(BaseHandler):
+    def post(self):
+        name = self.get_argument('name', True)
+        description = self.get_argument('description', None, True)
+        
+        # Error out if name is empty. Our client-side validation should prevent this
+        # from happening, so we don't need an error message.
+        if name == '':
+            self.send_error(500)
+            
+        
+            
+        
         
 class LogoutHandler(SignupHandler):
     def post(self):

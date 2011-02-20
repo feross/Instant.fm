@@ -102,21 +102,23 @@ function canonicalize(name) {
 }
 
 
-// These functions came for free with HTML5 Biolerplate
+// These functions came for free with HTML5 Boilerplate
 
 window.log = function(){
-  log.history = log.history || [];   
-  log.history.push(arguments);
-  if(this.console){
-    console.log( Array.prototype.slice.call(arguments) );
-  }
+    log.history = log.history || [];   
+    log.history.push(arguments);
+    if(this.console){
+        console.log( Array.prototype.slice.call(arguments) );
+    }
 };
 (function(doc){
-  var write = doc.write;
-  doc.write = function(q){ 
-    log('document.write(): ',arguments); 
-    if (/docwriteregexwhitelist/.test(q)) write.apply(doc,arguments);  
-  };
+    var write = doc.write;
+    doc.write = function(q){ 
+        log('document.write(): ',arguments); 
+        if (/docwriteregexwhitelist/.test(q)) {
+            write.apply(doc,arguments);  
+        }
+    };
 })(document);
 
 
@@ -183,7 +185,7 @@ function ownershipStatusChanged() {
         // If we own the playlist, make sure user_id is set
         var user_id = readCookie('user_id');
         if (user_id) {
-          model.user_id = user_id;
+          model.playlist.user_id = user_id;
         }
         
         $('#playlist').sortable('enable');
@@ -199,8 +201,8 @@ function ownershipStatusChanged() {
 function isOwner() {
     var user_id = readCookie('user_id');
     var session_num = readCookie('session_num');
-    if ((user_id && user_id == model.user_id) ||
-        (session_num && session_num == model.session_id)) {
+    if ((user_id && user_id == model.playlist.user_id) ||
+        (session_num && session_num == model.playlist.session_id)) {
         
         return true;
     }
