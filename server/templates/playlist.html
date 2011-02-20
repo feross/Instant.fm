@@ -269,7 +269,9 @@
   
   <div class="colorbox" id="newPlaylistBox">
     <header>New Playlist</header>
+    
     <div id="newPlaylistErrors"></div>
+    
     <form id="newPlaylistForm">
       <div class="formRow">
         <label for="newPlaylistTitle">Title</label>
@@ -279,7 +281,6 @@
         <label for="newPlaylistDescription">Description</label>
         <input id="newPlaylistDescription" name="description" type="text" />
       </div>
-      
       <div>
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
       </div>
@@ -289,8 +290,10 @@
   
   <div class="colorbox" id="loginBox">
     <header>Login to Instant.fm</header>
+    
+    <div id="loginErrors"></div>
+    
     <form id="login">
-      <div id="loginErrors"></div>
       <div class="formRow">
         <label for="loginEmail">E-mail</label>
         <input id="loginEmail" type="email" name="email" required="required"/>

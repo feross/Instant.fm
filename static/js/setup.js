@@ -262,6 +262,8 @@ function setupSignup() {
         errorInputEvent: null
     }).submit(function(e) {
         var form = $(this);
+        
+        $('#submitFbSignupForm').attr('disabled', 'disabled'); // so the user can only submit the form once
       
         // client-side validation OK.
         if (!e.isDefaultPrevented()) {
@@ -319,7 +321,8 @@ function setupLogin() {
     }).submit(function(e) {
     
         var form = $(this);
-      
+        $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
+        
         // client-side validation OK.
         if (!e.isDefaultPrevented()) {
       
@@ -379,6 +382,8 @@ function setupNewPlaylist() {
         errorInputEvent: null
     }).submit(function(e) {
         var form = $(this);
+        
+        $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
       
         // client-side validation OK.
         if (!e.isDefaultPrevented()) {
