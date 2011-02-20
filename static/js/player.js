@@ -77,6 +77,12 @@ Player.prototype.decreaseVolume = function() {
 Player.prototype.playSong = function(i) {
     player.songIndex = i;
     var song = model.playlist.songs[i];
+    
+    // Empty playlist?
+    if (!song) {
+        return;
+    }
+    
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
@@ -326,56 +332,54 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
-Player.prototype.loadPlaylist = function(response) {
-    if (response == null) {
-      return;
-    } else if ($.isPlainObject(response)) { // playlist is embedded in html
-        var playlist = response;
-        if(Modernizr.history) {
-            window.history.replaceState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );
-        }
-
-    } else { // playlist is from xhr response      
-        var playlist = $.parseJSON(response);
-        if(!playlist || playlist.status != 'ok') {
-            log('Error loading playlist: ' + playlist.status);
-            return;
-        }
-        
-        // Attempt to push state onto URL history, fallback to redirect
-        if(Modernizr.history) {        
-            window.history.pushState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );
-        } else {
-            window.location = url;
-        }
-        
-        nowplaying.tryLoadComments(playlist.playlist_id, playlist.title);
-        $('#main').effect('pulsate', {times: 1});
+Player.prototype.loadPlaylist = function(playlist) {
+    if (!playlist) {
+        log('Attempted to load null playlist.');
+        return;
     }
-
+    
+    if (!playlist.status || playlist.status != "ok") {
+        log('Error loading playlist: ' + (playlist.status ? playlist.status : 'No status'));
+        return;
+    }
+    
+    if(!Modernizr.history) {
+        window.location = playlist.url;
+    }
+    
+    // Replace history if initial page load, otherwise push.
+    if (model.playlist == null) {
+        window.history.replaceState(
+            playlist,
+            playlist.title,
+            playlist.url
+        );
+    } else {
+        window.history.pushState(
+            playlist,
+            playlist.title,
+            playlist.url
+        );
+        
+        $('#main').effect('pulsate', {times: 1});
+        nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
+    }
+        
     model.updatePlaylist(playlist);
     player.renderPlaylist(playlist);
 
     player.playSong(0);
     ownershipStatusChanged();
-    log('Loaded playlist: ' + playlist.playlist_id);
+    log('Loaded playlist: ' + playlist.url);
 };
 
 // Load a playlist with the given id
 Player.prototype.loadPlaylistByUrl = function(url) {
-    var the_url = url + '?json=true';
     $.ajax({
         dataType: 'json',
+        data: {'json': true},
         type: 'GET',
-        url: the_url,
+        url: url,
         success: function(responseData, textStatus, XMLHttpRequest) {
             player.loadPlaylist(responseData);
         }
@@ -512,7 +516,7 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
 Player.prototype.highlightSong = function(selector) {
     scrollTo(selector, '#playlistDiv', {
         callback: function() {
-            $(selector).effect('pulsate', {times: 2});
+            $(selector).effect('pulsate', {times: 1});
         }
     });
 };

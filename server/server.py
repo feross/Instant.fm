@@ -42,7 +42,7 @@ class Application(tornado.web.Application):
             (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
             (r"/login", LoginHandler),
-            (r"/new_list", NewPlaylistHandler),
+            (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
@@ -240,6 +240,20 @@ class PlaylistBaseHandler(BaseHandler):
     def _is_partial(self):
         return self.get_argument('partial', default=False)
         
+    """ Creates a new playlist owned by the current user/session """
+    def _new_playlist(self, title, description, songs=[]):
+        songs_json = json.dumps(songs)
+        if not songs_json:
+            self.send_error(500)
+        
+        session_id = self._set_session_cookie()
+        user = self.get_current_user()
+             
+        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
+            title, description, songs_json, user.id if user else None, session_id)
+
+        return self._get_playlist_by_id(new_id)
+ 
     def render_user_name(self):
         user = self.get_current_user()
         name = user.name if user else ''
@@ -355,11 +369,9 @@ class PlaylistEditHandler(PlaylistBaseHandler):
                     
                     url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
                     for song in songs:
-                        # Change empty string to NULL
-                        song['i'] = None if song['i'] == 'i' else song['i']
-                        if song['i'] is not None and url_re.match(song['i']) == None:
-                            print 'Invalid image art save attempted: ' + song['i']
-                            song['i'] = None
+                        if song.has_key('i') and song['i'] is not None:
+                            if song['i'] == '' or url_re.match(song['i']) == None:
+                                song['i'] = None
                     
                 if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))
@@ -467,21 +479,7 @@ class UploadHandler(PlaylistBaseHandler):
                 res_arr.append({'t': title, 'a': artist})
                 
         return res_arr
-    
-    """ Creates a new playlist owned by the current user/session """
-    def _new_playlist(self, title, description, songs=[]):
-        songs_json = json.dumps(songs)
-        if not songs_json:
-            self.send_error(500)
-        
-        session_id = self._set_session_cookie()
-        user = self.get_current_user()
-             
-        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-            title, description, songs_json, user.id if user else None, session_id)
-
-        return self._get_playlist_by_id(new_id)
-        
+       
     def _store_playlist(self, playlist):
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
             name, description, songs_json, user.id if user else None, session_id)
@@ -654,19 +652,19 @@ class LoginHandler(SignupHandler):
         self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
-class NewPlaylistHandler(BaseHandler):
+class NewPlaylistHandler(PlaylistBaseHandler):
     def post(self):
-        name = self.get_argument('name', True)
-        description = self.get_argument('description', None, True)
+        title = self.get_argument('title', strip=True)
+        description = self.get_argument('description', default=None, strip=True)
         
         # Error out if name is empty. Our client-side validation should prevent this
         # from happening, so we don't need an error message.
-        if name == '':
+        if title == '':
             self.send_error(500)
-            
+            return
         
-            
-        
+        self.write(json.dumps(self._new_playlist(title, description)))
+        return
         
 class LogoutHandler(SignupHandler):
     def post(self):

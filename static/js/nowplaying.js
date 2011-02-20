@@ -282,18 +282,20 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
 };
 
 // Optimization: Don't load Facebook comments until video is playing
-NowPlaying.prototype.tryLoadComments = function(playlist_id, title) {
+NowPlaying.prototype.tryLoadComments = function(url, title) {    
     if (player.isPlaying()) {
-        nowplaying._loadComments(playlist_id, title);
+        var xid = url.replace(new RegExp('/', 'gi'), '_');
+        log(xid);
+        nowplaying._loadComments(xid, title);
     } else {
         window.setTimeout(function() {
-            nowplaying.tryLoadComments(playlist_id, title);
+            nowplaying.tryLoadComments(url, title);
         }, 2000);
     }
 };
 
 // Private method to load playlist's comments
-NowPlaying.prototype._loadComments = function(playlist_id, title) {
+NowPlaying.prototype._loadComments = function(xid, title) {
     $('#commentsDiv').remove();
     $('<div id="commentsDiv"><section id="comments"></section></div>')
         .appendTo('#devNull');
@@ -301,8 +303,8 @@ NowPlaying.prototype._loadComments = function(playlist_id, title) {
     
     // Load Facebook comment box
     $('#comments')
-        .html('<fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/css/fbcomments.css?58" notify="true" title="'+title+'" xid="playlist_'+playlist_id+'"></fb:comments>');
-    FB.XFBML.parse(document.getElementById('comments'), function(reponse) {
+        .html('<fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/css/fbcomments.css?58" notify="true" title="'+title+'" xid="'+xid+'"></fb:comments>');
+    FB.XFBML.parse(document.getElementById('comments'), function(response) {
         $('#commentsDiv')
             .appendTo('#playlistActions')
             .hide()
