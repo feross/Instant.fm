@@ -75,7 +75,7 @@ Player.prototype.decreaseVolume = function() {
 // Play a song at the given playlist index
 Player.prototype.playSong = function(i) {
     songIndex = i;
-    var song = model.songs[i];
+    var song = model.playlist.songs[i];
     var title = cleanSongTitle(song.t);
     var artist = song.a;
 
@@ -91,9 +91,9 @@ Player.prototype.playSong = function(i) {
 // Play next song in the playlist
 Player.prototype.playNextSong = function() {
     if (player.shuffle) {
-        var randomSong = Math.floor(Math.random()*model.songs.length);
+        var randomSong = Math.floor(Math.random()*model.playlist.songs.length);
         player.playSong(randomSong);
-    } else if (songIndex < model.songs.length - 1) {
+    } else if (songIndex < model.playlist.songs.length - 1) {
         player.playSong(++songIndex);
     }
 };
@@ -125,7 +125,7 @@ Player.prototype.playSongBySearch = function(title, artist) {
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
     
-    document.title = title+' by '+artist+' - '+model.title+' - Instant.fm';
+    document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
     
     var srcIndex = songIndex;
     $.ajax({
@@ -259,7 +259,7 @@ Player.prototype.moveSongUp = function(oldId) {
 
 // Manually move the current dong down
 Player.prototype.moveSongDown = function(oldId) {
-    if (oldId >= model.songs.length - 1) {
+    if (oldId >= model.playlist.songs.length - 1) {
         return;
     }
     var songItem = $('#song'+oldId);
@@ -284,7 +284,7 @@ Player.prototype.addSongToPlaylist = function(song) {
     updateDisplay(); // resizes short playlists
         
     if (player.ytplayer.getPlayerState() == 0) { // player is stopped
-        player.playSong(model.songs.length - 1);
+        player.playSong(model.playlist.songs.length - 1);
     }
 };
 
@@ -300,26 +300,25 @@ Player.prototype.loadPlaylist = function(response) {
         var playlist = response;
         if(Modernizr.history) {
             window.history.replaceState(
-                {playlistId: playlist.playlist_id},
+                playlist,
                 playlist.title,
-                '/p/'+playlist.playlist_id
+                playlist.url
             );
         }
 
     } else { // playlist is from xhr response      
         var playlist = $.parseJSON(response);
-        if(!playlist && playlist.status != 'ok') {
+        if(!playlist || playlist.status != 'ok') {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
         
         // Attempt to push state onto URL history, fallback to redirect
-        var url = '/p/'+playlist.playlist_id;
         if(Modernizr.history) {        
             window.history.pushState(
-                {playlistId: playlist.playlist_id},
+                playlist,
                 playlist.title,
-                url
+                playlist.url
             );
         } else {
             window.location = url;
@@ -338,8 +337,8 @@ Player.prototype.loadPlaylist = function(response) {
 };
 
 // Load a playlist with the given id
-Player.prototype.loadPlaylistById = function(id) {
-    var the_url = '/p/'+id+'?json=true';
+Player.prototype.loadPlaylistByUrl = function(url) {
+    var the_url = url + '?json=true';
     $.ajax({
         dataType: 'json',
         type: 'GET',

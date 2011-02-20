@@ -38,8 +38,7 @@ function onloadHome() {
             log('Error loading playlist: ' + playlist.status);
             return;
         }
-        var id = playlist.playlist_id;
-        window.location = '/p/'+id;
+        window.location = playlist.url;
     });
 }
 
@@ -60,8 +59,8 @@ function onloadPlaylist() {
     window.onpopstate = function(event) {
         var state = event.state;
         log(state);
-        if (state && state.playlistId != model.playlistId) {
-            player.loadPlaylistById(state.playlistId);
+        if (state && state.url != model.playlist.url) {
+            player.loadPlaylistByUrl(state.url);
         }
     };
     

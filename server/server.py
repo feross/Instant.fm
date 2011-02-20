@@ -33,6 +33,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
+            (r"/upload/?$", UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
             (r"/terms/?$", TermsHandler),
@@ -202,8 +203,9 @@ class PlaylistBaseHandler(BaseHandler):
     """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
     def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
         playlist_dict = {
+            "status": "ok",
             "id": id,
-            "playlist_url": url,
+            "url": url,
             "title": title,
             "description": description,
             "user_id": user_id,
@@ -481,7 +483,7 @@ class UploadHandler(PlaylistBaseHandler):
         user = self.get_current_user()
              
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-            name, description, songs_json, user.id if user else None, session_id)
+            title, description, songs_json, user.id if user else None, session_id)
 
         return self._get_playlist_by_id(new_id)
         
@@ -512,26 +514,22 @@ class UploadHandler(PlaylistBaseHandler):
             filename = uploaded_file['filename']
             contents = uploaded_file['body']
 
-        name, ext = os.path.splitext(filename)
+        title, ext = os.path.splitext(filename)
         
         # Parse the file based on the format
         if ext == ".m3u" or ext == ".m3u8":
-            parsed = self._parseM3U(contents)
+            songs = self._parseM3U(contents)
             
         elif ext == ".txt":
-            parsed = self._parse_text(contents)
+            songs = self._parse_text(contents)
             
         elif ext == ".pls":
-            parsed = self._parse_pls(contents)
+            songs = self._parse_pls(contents)
 
         else:
             return {'status': 'Unsupported type'}
             
-        playlist_id = self._store_playlist(name, "Uploaded playlist", parsed)
-        
-        if not playlist_id:
-            return {'status': 'Corrupted playlist file'}
-        
+        description = 'Uploaded playlist.'
         return self._new_playlist(title, description, songs)
     
     def post(self):
