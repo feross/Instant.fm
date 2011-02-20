@@ -170,10 +170,11 @@ SongList.prototype.add = function(song) {
 // Used by the main #playlist view when removing songs.
 SongList.prototype.remove = function(songNum, _callback) {
     var song = $(this.elem).find('.songListItem:nth-child('+(songNum+1)+')');
-    song.animate({opacity: 0}, function() {
-        song.slideUp(function() {
+    song.animate({opacity: 0}, 'fast', function() {
+        song.slideUp('fast', function() {
+            _callback && _callback.before && _callback.before();
             song.remove();
-            _callback && _callback();
+            _callback && _callback.after && _callback.after();
         });
 
     });

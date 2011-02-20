@@ -26,18 +26,18 @@ Model.prototype.isEditable = function() {
 // @newIndex - new playlist position
 Model.prototype.moveSong = function(oldIndex, newIndex) {
     var songData = model.playlist.songs[oldIndex];
-    this.songs.splice(oldIndex, 1);
-    this.songs.splice(newIndex, 0, songData);
+    this.playlist.songs.splice(oldIndex, 1);
+    this.playlist.songs.splice(newIndex, 0, songData);
     this.saveSongs();
 };
 
 Model.prototype.addSong = function(song) {
-    this.songs.push(song);
+    this.playlist.songs.push(song);
     this.saveSongs();
 };
 
 Model.prototype.removeSong = function(songNum) {
-    this.songs.splice(songNum, 1);
+    this.playlist.songs.splice(songNum, 1);
     this.saveSongs();
 };
 

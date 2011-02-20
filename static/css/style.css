@@ -1384,7 +1384,9 @@ nav a:hover { text-decoration: underline; }
     background-color: rgb(255,255,255);
 }
 
-#playlist .songListItem:hover { background-color: rgb(197,222,254); }
+#playlist .songListItem:hover {
+    background-color: rgb(197,222,254);
+}
 
 #playlist .songListItem.playing { background-color: rgb(57,142,234); color: #fff}
 
@@ -1431,6 +1433,12 @@ nav a:hover { text-decoration: underline; }
 #playlist .playing.ui-sortable-helper { border-bottom: #3990ea 1px solid; }
 
 
+.transition-background-color {
+    -webkit-transition: background-color 0.4s linear;
+	-moz-transition: background-color 0.4s linear;
+	-o-transition: background-color 0.4s linear;
+	transition: background-color 0.4s linear;
+}
 
 .loggedIn .mustLogout, 
 .loggedOut .mustLogin,

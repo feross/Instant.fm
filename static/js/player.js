@@ -295,13 +295,23 @@ Player.prototype.addSongToPlaylist = function(song) {
 Player.prototype.removeSongFromPlaylist = function(songNum) {
     var nextElems = $('#song'+songNum).nextAll();
     
-    this.songlist.remove(songNum, function() {
-        nextElems.each(function(index, element) {
-            var num = songNum+index;
-            $(element)
-                .attr('id', 'song' + num)
-                .find('.num').text(num+1);
-        });
+    this.songlist.remove(songNum, {
+        before: function() {
+            nextElems.addClass('transition-background-color');
+        },
+        after: function() {
+            nextElems.each(function(index, element) {
+                var num = songNum+index;
+                $(element)
+                    .attr('id', 'song' + num)
+                    .find('.num').animate({opacity: 0}, 'fast', function() {
+                        $(this).text(num+1);
+                        $(this).animate({opacity: 1}, 'fast', function() {
+                            $(this).parent().removeClass('transition-background-color');
+                        });
+                    });
+            });
+        }
     });
     model.removeSong(songNum);
     updateDisplay(); // resizes short playlists
