@@ -74,6 +74,17 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         albumImg: albumImg,
         trackName: trackName,
         artistName: artistName,
+        callback: function() {
+            // Add colorbox to artist image
+            if (albumImg) {
+                $('#curAlbumImg').colorbox({
+                    href: albumImg,
+                    photo: true,
+                    returnFocus: false,
+                    title: '&nbsp;' // don't show a title
+                });
+            }
+        }
     });
 
     // Get detailed track info
@@ -190,6 +201,16 @@ NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
                     var link = makeSeeMoreLink(onShowMoreText);
                     $('#curArtistDesc article').append(' ').append(link);
                 }
+                
+                // Add colorbox to artist image
+                if (artistImg) {
+                    $('#curArtistImg').colorbox({
+                        href: artistImg,
+                        photo: true,
+                        returnFocus: false,
+                        title: '&nbsp;' // don't show a title
+                    });
+                }
             }
         });
     } else {
@@ -235,6 +256,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         FB.XFBML.parse(document.getElementById('curButtons'), function(reponse) {
             $('#curButtons').fadeIn('fast');
         });
+        data.callback && data.callback();
         $('#curAlbumBlock').fadeIn('fast');
     });
 };
@@ -247,7 +269,7 @@ NowPlaying.prototype.renderSongDesc = function(data) {
                 .tmpl(data)
                 .appendTo('#curSongDesc');
             
-            data.callback();
+            data.callback && data.callback();
             $('#curSongDesc').fadeIn('fast');
         }
     });
@@ -265,7 +287,7 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
                 .tmpl(data)
                 .appendTo('#curArtistDesc');
             
-            data.callback();
+            data.callback && data.callback();
             $('#curArtistDesc').fadeIn('fast');
         }
     });
@@ -285,7 +307,6 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
 NowPlaying.prototype.tryLoadComments = function(url, title) {    
     if (player.isPlaying()) {
         var xid = url.replace(new RegExp('/', 'gi'), '_');
-        log(xid);
         nowplaying._loadComments(xid, title);
     } else {
         window.setTimeout(function() {

@@ -261,7 +261,6 @@ function setupSignup() {
         // do not validate inputs when they are edited
         errorInputEvent: null
     }).submit(function(e) {
-        log('submit');
         var form = $(this);
       
         // client-side validation OK.

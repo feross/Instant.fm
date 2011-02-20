@@ -85,7 +85,6 @@ SearchView.prototype._addSearchHandlers = function() {
     var that = this;
     $('.searchBox', this.content).submit(function(event) {
         event.preventDefault();
-        log('submit');
 		that.search.apply(that, [searchInput.val(), false]);
     });
     
@@ -103,7 +102,6 @@ SearchView.prototype._addSearchHandlers = function() {
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
         event.preventDefault();
-        log('click');
 		that.search.apply(that, [searchInput.val(), false]);
     });
 };
@@ -611,7 +609,6 @@ AlbumView.prototype._handleInfo = function(data) {
             }],
             isNumbered: true
         });
-        log(songs);
         var $songResults = $('.songResults', this.content)
         $songResults.find('div').remove();
         songlist.render($songResults);
