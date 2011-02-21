@@ -75,7 +75,7 @@ class DBConnection(tornado.database.Connection):
         finally:
             cursor.close()
             
-class BaseHandler(tornado.web.RequestHandler):
+class HandlerBase(tornado.web.RequestHandler):
     # This is used to cache the session_id so we don't set more than one 
     # session cookie in the same request by accident. Kind of a hack.
     session_id = None
@@ -125,7 +125,7 @@ class BaseHandler(tornado.web.RequestHandler):
             except Exception:
                 pass
                 
-        return super(BaseHandler, self).get_error_html(status_code, **kwargs)
+        return super(HandlerBase, self).get_error_html(status_code, **kwargs)
         
     def _set_session_cookie(self, 
                             user_id=None, 
@@ -185,21 +185,22 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
-class ArtistAutocompleteHandler(BaseHandler):
+class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');
         artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
         self.write(json.dumps(artists))
     
-class HomeHandler(BaseHandler):
+class HomeHandler(HandlerBase):
     def get(self):
         self.render("index.html")
         
-class TermsHandler(BaseHandler):
+class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
     
-class PlaylistBaseHandler(BaseHandler):
+""" Any handler that involves playlists should extend this. """
+class PlaylistHandlerBase(HandlerBase):
     """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
     def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
         playlist_dict = {
@@ -278,7 +279,7 @@ class PlaylistBaseHandler(BaseHandler):
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
        
-class PlaylistHandler(PlaylistBaseHandler):
+class PlaylistHandler(PlaylistHandlerBase):
     def _render_playlist_json(self, playlist_id):
         """Renders the specified playlist's JSON representation"""
         try:
@@ -303,12 +304,12 @@ class PlaylistHandler(PlaylistBaseHandler):
         else:
             self.render('playlist.html', playlist=playlist);
    
-class SearchHandler(PlaylistBaseHandler):
+class SearchHandler(PlaylistHandlerBase):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
         self._render_playlist_view('search.html')
 
-class ArtistHandler(PlaylistBaseHandler):
+class ArtistHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name):
         
         try:
@@ -338,7 +339,7 @@ class ArtistHandler(PlaylistBaseHandler):
             print(e)
             self._render_playlist_view('artist.html', artist='')
 
-class AlbumHandler(PlaylistBaseHandler):
+class AlbumHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name, requested_album_name):
         
         """ Instead of using album.get_info, we search for the album concatenated with the artist name and take the first result. Otherwise, we have to know the album's exact name and we can't use the artist's name to help find it. """
@@ -359,7 +360,7 @@ class AlbumHandler(PlaylistBaseHandler):
             print(e)
             self._render_playlist_view('album.html', album=None)
        
-class PlaylistEditHandler(PlaylistBaseHandler):
+class PlaylistEditHandler(PlaylistHandlerBase):
     """Handles updates to playlists in the database"""
     
     # SECURITY WARNING: Do NOT user user-input for col_name, that would be BAD!
@@ -395,7 +396,7 @@ class PlaylistEditHandler(PlaylistBaseHandler):
         self.write(json.dumps({'status': 'Malformed edit request'}))        
         
         
-class UploadHandler(PlaylistBaseHandler):
+class UploadHandler(PlaylistHandlerBase):
     """Handles playlist upload requests"""
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -548,7 +549,7 @@ class UploadHandler(PlaylistBaseHandler):
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
 
-class SignupHandler(BaseHandler):
+class UserHandlerBase(HandlerBase):
     def _verify_pwd(self, password, hashed):
         return bcrypt.hashpw(password, hashed) == hashed
         
@@ -579,7 +580,7 @@ class SignupHandler(BaseHandler):
     def _is_registered_fbid(self, fbid):
         return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
          
-class FbSignupHandler(SignupHandler, 
+class FbSignupHandler(UserHandlerBase, 
                       tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     def post(self):
@@ -630,11 +631,11 @@ class FbSignupHandler(SignupHandler,
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
             
-class FbCheckHandler(SignupHandler):
+class FbCheckHandler(UserHandlerBase):
     def get(self):
         self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
         
-class LoginHandler(SignupHandler):
+class LoginHandler(UserHandlerBase):
     def post(self):
         errors = {}
         args = {
@@ -662,7 +663,7 @@ class LoginHandler(SignupHandler):
         self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
-class NewPlaylistHandler(PlaylistBaseHandler):
+class NewPlaylistHandler(PlaylistHandlerBase):
     def post(self):
         title = self.get_argument('title', strip=True)
         description = self.get_argument('description', default=None, strip=True)
@@ -676,14 +677,14 @@ class NewPlaylistHandler(PlaylistBaseHandler):
         self.write(json.dumps(self._new_playlist(title, description)))
         return
         
-class LogoutHandler(SignupHandler):
+class LogoutHandler(UserHandlerBase):
     def post(self):
         self.clear_all_cookies()
         session_id = self.get_secure_cookie('session_id')
         if session_id:
             self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)
 
-class ErrorHandler(BaseHandler):
+class ErrorHandler(HandlerBase):
     def prepare(self):
         self.send_error(404)    
         
