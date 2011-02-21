@@ -537,11 +537,11 @@ class UploadHandler(PlaylistBaseHandler):
             self.write(json.dumps(result))
 
 class SignupHandler(BaseHandler):
-    def _generate_salt(self):
-        return bcrypt.gensalt()
+    def _verify_pwd(self, password, hashed):
+        return bcrypt.hashpw(password, hashed) == hashed
         
-    def _hash_password(self, password, salt):
-        return bcrypt.hashpw(password, salt)
+    def _hash_password(self, password):
+        return bcrypt.hashpw(password, bcrypt.gensalt())
     
     def _validate_args(self, args, errors):
         for name, types in args.iteritems():
@@ -602,16 +602,14 @@ class FbSignupHandler(SignupHandler,
     def _on_auth(self, user):
         errors = []
         if user['id'] == self.get_argument('fb_user_id'):
-            salt = self._generate_salt()
-            hashed_pass = self._hash_password(self.get_argument('password'), salt)
+            hashed_pass = self._hash_password(self.get_argument('password'))
             
             # Write the user to DB
-            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, salt, create_date) VALUES (%s, %s, %s, %s, %s, NOW())',
+            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, create_date) VALUES (%s, %s, %s, %s, NOW())',
                                       self.get_argument('fb_user_id'),
                                       self.get_argument('name'),
                                       self.get_argument('email'),
-                                      hashed_pass,
-                                      salt)
+                                      hashed_pass)
             
             self._log_user_in(user_id)
             self.write(json.dumps(True))
@@ -642,7 +640,7 @@ class LoginHandler(SignupHandler):
             if self._send_errors(errors):
                 return
             
-        if self._hash_password(self.get_argument('password'), user.salt) != user.password:
+        if not self._verify_pwd(self.get_argument('password'), user.password):
             errors['password'] = 'Incorrect password.'
             if self._send_errors(errors):
                 return
