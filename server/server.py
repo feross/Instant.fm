@@ -214,6 +214,25 @@ class PlaylistBaseHandler(BaseHandler):
         }
         return playlist_dict
     
+    def _sanitize_songlist_json(self, json_str):
+        uploaded_list = json.loads(json_str)
+        playlist = []
+        
+        url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
+        
+        for song in uploaded_list:
+            title = song['t'] if song.has_key('t') else None
+            artist = song['a'] if song.has_key('a') else None
+            image = song['i'] if song.has_key('i') else None
+            
+            if title.__class__ == unicode and artist.__class__ == unicode:
+                new_song = {'a': artist, 't': title}
+                if image.__class__ == unicode and url_re.match(image) is not None:
+                    new_song['i'] = image
+                playlist.append(new_song)
+        
+        return json.dumps(playlist)
+    
     """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     def _get_playlist_by_id(self, playlist_id):
         """Renders a page with the specified playlist."""
@@ -362,16 +381,10 @@ class PlaylistEditHandler(PlaylistBaseHandler):
         for col_name in updatableColumns:
             col_value = self.get_argument(col_name, None)
             if col_value is not None:
-                # update playlist
                 
+                # Sanitize the column value
                 if col_name == 'songs':
-                    songs = json.loads(col_value)
-                    
-                    url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
-                    for song in songs:
-                        if song.has_key('i') and song['i'] is not None:
-                            if song['i'] == '' or url_re.match(song['i']) == None:
-                                song['i'] = None
+                    col_value = self._sanitize_songlist_json(col_value)
                     
                 if self._update_playlist(playlist_id, col_name, col_value):
                     self.write(json.dumps({'status': 'Updated'}))
@@ -480,10 +493,6 @@ class UploadHandler(PlaylistBaseHandler):
                 
         return res_arr
        
-    def _store_playlist(self, playlist):
-        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-            name, description, songs_json, user.id if user else None, session_id)
-                
     def _handle_request(self):
         # If the file is directly uploaded in the POST body
         # Make a dict of the headers with all lowercase keys
@@ -521,6 +530,9 @@ class UploadHandler(PlaylistBaseHandler):
 
         else:
             return {'status': 'Unsupported type'}
+        
+        # Just in case, we sanitize the playlist's json.
+        songs = json.loads(self._sanitize_songlist_json(json.dumps(songs)))
             
         description = 'Uploaded playlist.'
         return self._new_playlist(title, description, songs)
