@@ -291,15 +291,20 @@ function setupSignup() {
                             log('Registration failt.');
                             $.colorbox.resize();
                         }
+                        $('#submitFbSignupForm').removeAttr('disabled');
                     }
                 },
-                error: function() { log('Error posting form ;_;'); },
+                error: function() {
+                    log('Error posting form ;_;');
+                    $('#submitFbSignupForm').removeAttr('disabled');
+                },
             });
             
             // prevent default form submission logic
             e.preventDefault();
         } else {
             $.colorbox.resize();
+            $('#submitFbSignupForm').removeAttr('disabled');
         }
     });
 }
@@ -343,13 +348,20 @@ function setupLogin() {
                             form.data("validator").invalidate(json.errors);
                             log('Login failt.');
                         }
+                        $('#submitLogin').removeAttr('disabled');
                     }
                 },
-                error: function() { log('Error posting form ;_;'); },
+                error: function() {
+                    log('Error posting form ;_;');
+                    $('#submitLogin').removeAttr('disabled');
+                },
             });
             
             // prevent default form submission logic
             e.preventDefault();
+        } else {
+            $.colorbox.resize();
+            $('#submitLogin').removeAttr('disabled');
         }
     });
 }
@@ -404,16 +416,22 @@ function setupNewPlaylist() {
                             form.data("validator").invalidate(json.errors);
                             $.colorbox.resize();
                         }
+                        $('#submitNewPlaylist').removeAttr('disabled');
                     }
                 },
-                error: function() { log('Error posting new playlist form ;_;'); },
+                error: function() {
+                    log('Error posting new playlist form ;_;');
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                },
             });
             
             // prevent default form submission logic
             e.preventDefault();
         } else {
             $.colorbox.resize();
+            $('#submitNewPlaylist').removeAttr('disabled');
         }
+        
     });
 }
 

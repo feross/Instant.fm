@@ -340,7 +340,7 @@ body {
 }
 
 body#p {
-    background: #000 url('/images/bob-marley.jpg') top left repeat;
+    background: #000 url('/images/syria.jpg') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
@@ -1044,6 +1044,10 @@ a:hover .zoomIcon {
 
 .colorbox .subtitle { color: #999; padding-left: 5px; }
 
+.error { color: red; font-weight: bold; }
+
+
+/* Keyboard Shortvuts Colorbox */
 
 #helpBox dl {
     height: 25px;
@@ -1066,6 +1070,11 @@ a:hover .zoomIcon {
 }
 
 #helpBox dd { color: #555; float: left; font-size: 12px; padding-top: 5px; }
+
+
+/* New Playlist Colorbox */
+
+#newPlaylistForm { text-align: left; }
 
 
 /* Signup Colorbox - Step 1 */
