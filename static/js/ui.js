@@ -135,7 +135,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     }
     
     var that = this;
-    var imgSrc = song.i ? song.i : '/images/unknown.png';
+    var imgSrc = song.i ? song.i : '/images/unknown.jpg';
     var $songListItem = $('<li class="songListItem clearfix"></li>')
         .append(this.isNumbered ? '<div class="num">'+(_songNum+1)+'</div>' : '')
         .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
@@ -280,7 +280,7 @@ function makeAlbumList(albums) {
         var album = albums[i];
 
         if (!album.image) {
-            album.image = '/images/unknown.png';
+            album.image = '/images/unknown.jpg';
         }
 
         // No alt text. Want to avoid alt-text flash while img loads

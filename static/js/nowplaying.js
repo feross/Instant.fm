@@ -248,7 +248,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
     if (data.albumImg) {
         data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
     } else {
-        data.albumImg = '/images/unknown.png';
+        data.albumImg = '/images/unknown.jpg';
         data.albumAlt = 'Unknown album';
     }
     
@@ -424,7 +424,7 @@ NowPlaying.prototype.shareOnFacebook = function() {
         method: 'feed',
         name: model.playlist.title,
         link: 'http://instant.fm' + model.playlist.url,
-        picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
+        picture: bestAlbumImg || 'http://instant.fm/images/unknown.jpg',
         caption: 'Instant.fm Playlist',
         description: model.playlist.description + '\n',
         properties: {'Artists in this playlist': topArtists.join(', ')},
