@@ -43,7 +43,8 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
 	    track: t || ''
 	}, {
 	    success: function(data) {
-	      nowplaying._handleSongResults(t, a, _srcIndex, data);
+	        log('success');
+	        nowplaying._handleSongResults(t, a, _srcIndex, data);
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
@@ -62,6 +63,8 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+        this.renderSongDesc(false);
+        this.renderArtistDesc(false);
         return;
     }
     
@@ -127,6 +130,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.track) {
+        this.renderSongDesc(false);
         return;
     }
                     
@@ -176,6 +180,7 @@ NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.artist) {
+        this.renderArtistDesc(false);
         return;
     }
                     
@@ -267,8 +272,10 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
 
 NowPlaying.prototype.renderSongDesc = function(data) {    
     $('#curSongDesc').fadeOut('fast', function() {
+        log('song desc hide!');
         $('#curSongDesc').empty();
         if (data) {
+            log('song desc data!');
             $('#curSongDescTemplate')
                 .tmpl(data)
                 .appendTo('#curSongDesc');
@@ -285,8 +292,10 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
     }
     
     $('#curArtistDesc').fadeOut('fast', function() {
+        log('artist desc hide!');
         $('#curArtistDesc').empty();
         if (data) {
+            log('artist desc data!');
             $('#curArtistDescTemplate')
                 .tmpl(data)
                 .appendTo('#curArtistDesc');

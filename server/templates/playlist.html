@@ -13,7 +13,7 @@
     <nav>
       <a id="navNewPlaylist" href="#new">New Playlist</a>
       <a id="navSearch" href="/search" rel="partial search" title="Search">Search</a>
-      <a class="mustLogout" id="navLogin" href="#login">Login</a>
+      <a class="mustLogout" id="navLogin" href="#login">Log In</a>
       <a class="mustLogout" id="navSignup" href="#signUp">Sign Up</a>
       <a class="mustLogin" id="navProfile" href="#profile"> {{ handler.render_user_name() }} </a>
       <a class="mustLogin" id="navLogout" href="#logout">Logout</a>
@@ -282,7 +282,7 @@
         <input id="newPlaylistDescription" name="description" type="text" />
         <span>Optional.</span>
       </div>
-      <div>
+      <div class="clearfix">
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
       </div>
       {{ xsrf_form_html() }}
@@ -304,7 +304,7 @@
         <input id="loginPassword" type="password" name="password" required="required"/>
       </div>
             
-      <div>
+      <div class="clearfix">
         <input type="submit" class="red large awesome" name="submit" id="submitLogin" value="Login">
         <div id="rememberMe">
           <input type="checkbox" name="passwordless" checked="checked" />
@@ -353,7 +353,7 @@
           <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
         </div>
       
-        <div>
+        <div class="clearfix">
           <div id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
           <input type="submit" class="darkblue awesome large" name="submit" id="submitFbSignupForm" value="Create Account">
         </div>

@@ -340,7 +340,7 @@ body {
 }
 
 body#p {
-    background: #000 url('/images/syria.jpg') top left repeat;
+    background: #000 url('/images/asuna.png') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
@@ -993,6 +993,9 @@ a:hover .zoomIcon {
 .no-cssreflections a:hover .zoomIcon {
     bottom: 16px;
 }
+.artistPartial a:hover .zoomIcon,
+.albumPartial a:hover .zoomIcon { right: 20px; }
+
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 330px; }
 

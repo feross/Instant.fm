@@ -139,7 +139,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     var $songListItem = $('<li class="songListItem clearfix"></li>')
         .append(this.isNumbered ? '<div class="num">'+(_songNum+1)+'</div>' : '')
         .append('<img src="'+ imgSrc +'">') // No alt text. Want to avoid alt-text flash while img loads
-        .append('<div class="songInfo"><span class="title">'+song.t+'</span><span class="artist">'+song.a+'</span></div>')
+        .append('<div class="songInfo"><span class="title">'+htmlEncode(song.t)+'</span><span class="artist">'+htmlEncode(song.a)+'</span></div>')
         .append($buttonActions)
         .click(function(event) {
             event.preventDefault();

@@ -481,8 +481,14 @@ ArtistView.prototype._handleTopAlbums = function(data) {
 
 ArtistView.prototype._updateArtistImg = function(src, alt) {
 	if (src) {
-        var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
-        $('.artistImg', this.content).empty().append(imgBlock);
+        var imgBlock = $('<a class="artistImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
+            .colorbox({
+                href: src,
+                photo: true,
+                returnFocus: false,
+                title: '&nbsp;' // don't show a title
+            });
+        $('.artistImg', this.content).replaceWith(imgBlock);
     
     } else {
         $('.artistImg', this.content).replaceWith($('<span class="artistImg reflect"></span>'));
@@ -619,9 +625,15 @@ AlbumView.prototype._handleInfo = function(data) {
 };
 
 AlbumView.prototype._updateAlbumImg = function(src, alt) {
-	if (src) {
-        var imgBlock = $('<img alt="'+alt+'" src="'+src+'" />');
-        $('.albumImg', this.content).empty().append(imgBlock);
+	if (src) {    
+        var imgBlock = $('<a class="albumImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
+            .colorbox({
+                href: src,
+                photo: true,
+                returnFocus: false,
+                title: '&nbsp;' // don't show a title
+            });
+        $('.albumImg', this.content).replaceWith(imgBlock);
     
     } else {
         $('.albumImg', this.content).replaceWith($('<span class="albumImg reflect"></span>'));
