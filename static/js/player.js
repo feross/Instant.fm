@@ -362,7 +362,7 @@ Player.prototype.loadPlaylist = function(playlist) {
             playlist.url
         );
         
-        $('#main').effect('pulsate', {times: 1});
+        //$('#main').effect('pulsate', {times: 1});
         nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
     }
         

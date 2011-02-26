@@ -72,12 +72,14 @@ function SongList(options) {
     this.renderChunkSize = 500; // Render playlist in chunks so we don't lock up
     this.renderTimeout = 100; // Time between rendering each chunk
     
+    // TODO: Just save options, so we don't save each individual thing
     this.playlist = options.playlist;
     this.onClick = options.onClick;
     this.buttons = options.buttons;
-    this.id = options.id
+    this.id = options.id;
     this.listItemIdPrefix = options.listItemIdPrefix;
     this.isNumbered = !!options.isNumbered;
+    this.startingLen = options.startingLen;
     
     var that = this;
     this.buttonHelper = function(i, song, _songNum) {
@@ -111,7 +113,11 @@ SongList.prototype._renderHelper = function(start, _callback) {
         return;
     }
     
-    var end = Math.min(start + this.renderChunkSize, this.playlist.songs.length);    	
+    var end = Math.min(start + this.renderChunkSize, this.playlist.songs.length);
+    if (this.startingLen) {
+        end = Math.min(end, this.startingLen);
+    }
+    
     for (var i = start; i < end; i++) {
         var song = this.playlist.songs[i];    
         var $newSongItem = this._makeItem(song, i);
@@ -249,6 +255,9 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
 SongList.prototype.playAll = function() {
     var playlist = $.extend({status: 'ok'}, this.playlist);
     player.loadPlaylist(playlist);
+    window.setTimeout(function() {
+        browser.toggle(false); 
+    }, 500);
 };
 
 

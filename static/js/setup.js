@@ -181,7 +181,7 @@ function setupSignup() {
             $('#fbFacepile')
                 .empty()
                 .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            FB.XFBML.parse(document.getElementById('fbFacepile'));
+            FB.XFBML.parse($('#fbFacepile').get(0));
         },
         scrolling: false,
         width: 450
@@ -315,7 +315,8 @@ function setupLogin() {
         href: "#loginBox",
         onComplete: function() {
             $('input[name=email]', '#login').focus();
-        }
+        },
+        scrolling: false
     });
     $("form#login").validator({
         effect: 'wall', 
@@ -349,6 +350,8 @@ function setupLogin() {
                             log('Login failt.');
                         }
                         $('#submitLogin').removeAttr('disabled');
+                        $.colorbox.resize();
+                        $('input[name=password]', '#login').focus();
                     }
                 },
                 error: function() {
@@ -361,6 +364,7 @@ function setupLogin() {
             e.preventDefault();
         } else {
             $.colorbox.resize();
+            $('input[name=email]', '#login').focus();
             $('#submitLogin').removeAttr('disabled');
         }
     });
@@ -382,7 +386,8 @@ function setupNewPlaylist() {
         href: "#newPlaylistBox",
         onComplete: function() {
             $('input[name=title]', '#newPlaylistForm').focus();
-        }
+        },
+        scrolling: false
     });
     
     // initialize validator and add a custom form submission logic
@@ -409,15 +414,17 @@ function setupNewPlaylist() {
                 success: function(json) {
                     if (json && json.status && json.status == "ok")  {
                         $.colorbox.close();
-                        player.loadPlaylist(json)
+                        player.loadPlaylist(json);
+                        browser.pushSearchPartial(true);
+                        
                     } else {
                         // server-side validation failed. use invalidate() to show errors
                         if (json && json.errors) {
                             form.data("validator").invalidate(json.errors);
                             $.colorbox.resize();
                         }
-                        $('#submitNewPlaylist').removeAttr('disabled');
                     }
+                    $('#submitNewPlaylist').removeAttr('disabled');
                 },
                 error: function() {
                     log('Error posting new playlist form ;_;');
@@ -428,8 +435,8 @@ function setupNewPlaylist() {
             // prevent default form submission logic
             e.preventDefault();
         } else {
-            $.colorbox.resize();
             $('#submitNewPlaylist').removeAttr('disabled');
+            $.colorbox.resize();
         }
         
     });

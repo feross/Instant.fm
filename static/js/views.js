@@ -136,7 +136,7 @@ SearchView.prototype.search = function(searchString, delay) {
         model.lastfm.track.search(
         {
             track: searchString,
-            limit: 5,
+            limit: 50,
         },
         {
             success: function(data) {
@@ -236,6 +236,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
         }],
+        startingLen: 10
     });
     
     var $songResults = $('.songResults', this.content);
@@ -356,7 +357,6 @@ ArtistView.prototype._fetchData = function() {
     model.lastfm.artist.getTopTracks({
         artist: this.name,
         autocorrect: 1,
-        limit: 10
     },
     {
         success: function(data) {
@@ -462,7 +462,8 @@ ArtistView.prototype._handleTopSongs = function(data) {
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
         }],
-        isNumbered: true
+        isNumbered: true,
+        startingLen: 10
     });
     
     var $songResults = $('.songResults', this.content)

@@ -349,7 +349,7 @@ body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !
 
 h1 { font-size: 24px; }
 h2 { font-size: 24px; }
-h3 { font-size: 20px; margin: 10px 0 8px 0; }
+h3 { font-size: 22px; margin: 10px 0 8px 0; }
 h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 10px; }
@@ -937,12 +937,30 @@ header:hover .editLink, article:hover .editLink {
 
 #comments { padding: 20px 0 0 0; }
 
-#comments h3 { border-bottom: #444 1px solid; }
-
 
 /* Current Playing Song */
 
-#curPlaying { margin-top: 20px; }
+.separator {
+    height: 16px;
+    margin: 50px 0 0 0;
+    background: transparent url("/images/flourishes.png") no-repeat center -61px;
+    border: 0;
+    outline: 0;
+    -moz-opacity: .75;
+    opacity: .75;
+    filter: alpha(opacity=75);
+    text-align: center;
+}
+
+.separator span {
+    color: #000;
+    font-size: 22px;
+    font-weight: bold;
+    position: relative;
+    top: -28px;
+}
+
+#curPlaying { margin-top: 10px; }
 
 #curAlbumBlock { margin: 10px 0 0 0; }
 

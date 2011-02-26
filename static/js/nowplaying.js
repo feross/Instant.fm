@@ -266,7 +266,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         $('#curAlbumBlockTemplate')
             .tmpl(data)
             .appendTo('#curAlbumBlock');
-        FB.XFBML.parse(document.getElementById('curButtons'), function(reponse) {
+        FB.XFBML.parse($('#curButtons').get(0), function(reponse) {
             $('#curButtons').fadeIn('fast');
         });
         data.callback && data.callback();

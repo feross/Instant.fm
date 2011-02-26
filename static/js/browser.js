@@ -58,11 +58,12 @@ MiniBrowser.prototype.setupHandlers = function() {
     });
 };
 
-MiniBrowser.prototype.pushSearchPartial = function() {
+MiniBrowser.prototype.pushSearchPartial = function(noAnimateModal) {
     browser.pushPartial({
         path: '/search',
         type: 'partial search',
-        linkElem: $(this)
+        linkElem: $(this),
+        noAnimateModal: noAnimateModal
     });
 };
 
@@ -93,11 +94,11 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		    break;
 	}
 	view.config = config;
-	this.pushStatic(newPath, view);
+	this.pushStatic(newPath, view, config.noAnimateModal);
 };
 
 // Push a static HTML file onto the browser.
-MiniBrowser.prototype.pushStatic = function(path, view) {
+MiniBrowser.prototype.pushStatic = function(path, view, noAnimateModal) {
     // Don't push duplicate views.
     var topPath = this.getTopView() && this.getTopView().config.path;
     if (topPath && (topPath == path || topPath == view.config.path)) {
@@ -107,12 +108,12 @@ MiniBrowser.prototype.pushStatic = function(path, view) {
     
     $.get(path, null, function(data, textStatus, xhr) {
         var partial = $(data);
-        browser.push(partial, view);
+        browser.push(partial, view, noAnimateModal);
     });
 };
 
 // Push a new element onto the browser.
-MiniBrowser.prototype.push = function(elem, view) {    
+MiniBrowser.prototype.push = function(elem, view, noAnimateModal) {    
     var prevView = this.getTopView();
     prevView && prevView.willSleep();
 
@@ -123,12 +124,19 @@ MiniBrowser.prototype.push = function(elem, view) {
 	view.willSlide();  // Tell the view to do anything it has to now that content is in DOM	
     
     this._slideTo(this.viewStack.length);
-        
+    
     var slideAnimationDuration;
     if (browser.isOpen) {
         slideAnimationDuration = 300;
     } else {
         slideAnimationDuration = 500;
+        
+        if (noAnimateModal) {
+            $('#modal').removeClass('animate');
+            window.setTimeout(function() {
+                $('#modal').addClass('animate');
+            }, 0);
+        }
         this.toggle(true, false);
     }
     window.setTimeout(function() {
