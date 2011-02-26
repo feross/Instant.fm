@@ -94,11 +94,11 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		    break;
 	}
 	view.config = config;
-	this.pushStatic(newPath, view, config.noAnimateModal);
+	this.pushStatic(newPath, view);
 };
 
 // Push a static HTML file onto the browser.
-MiniBrowser.prototype.pushStatic = function(path, view, noAnimateModal) {
+MiniBrowser.prototype.pushStatic = function(path, view) {
     // Don't push duplicate views.
     var topPath = this.getTopView() && this.getTopView().config.path;
     if (topPath && (topPath == path || topPath == view.config.path)) {
@@ -108,12 +108,12 @@ MiniBrowser.prototype.pushStatic = function(path, view, noAnimateModal) {
     
     $.get(path, null, function(data, textStatus, xhr) {
         var partial = $(data);
-        browser.push(partial, view, noAnimateModal);
+        browser.push(partial, view);
     });
 };
 
 // Push a new element onto the browser.
-MiniBrowser.prototype.push = function(elem, view, noAnimateModal) {    
+MiniBrowser.prototype.push = function(elem, view) {    
     var prevView = this.getTopView();
     prevView && prevView.willSleep();
 
@@ -131,7 +131,7 @@ MiniBrowser.prototype.push = function(elem, view, noAnimateModal) {
     } else {
         slideAnimationDuration = 500;
         
-        if (noAnimateModal) {
+        if (view.config.noAnimateModal) {
             $('#modal').removeClass('animate');
             window.setTimeout(function() {
                 $('#modal').addClass('animate');
@@ -161,6 +161,7 @@ MiniBrowser.prototype.pop = function() {
     
     this._slideTo(this.viewStack.length);
 	window.setTimeout(function() {
+	    browser.getTopView().didAwake();
 		$(view.content).remove();
 	}, 300);
 };
