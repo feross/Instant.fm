@@ -219,7 +219,11 @@ SearchView.prototype._handleSongSearchResults = function(data) {
     $('.songResults ul', this.content).remove();
     
     var songlist = new SongList({
-        songs: tracks,
+        playlist: {
+            title: 'Search results',
+            description: '',
+            songs: tracks
+        },
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
@@ -297,7 +301,9 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
 function ArtistView(config) {
     this.config = config;
     this.BaseView.prototype.constructor(this);
+    
 	this.name = config.title;
+	this.songlist;
 }
 copyPrototype(ArtistView, BaseView);
 
@@ -308,6 +314,12 @@ ArtistView.prototype.willSlide = function() {
 
 ArtistView.prototype.didSlide = function() {
     this.BaseView.prototype.didSlide(this.config);
+    
+    var that = this;
+    $('.playAll', this.content).click(function(event) {
+        event.preventDefault();
+        that.songlist && that.songlist.playAll();
+    });
 };
 
 ArtistView.prototype.willSleep = function() {
@@ -431,8 +443,13 @@ ArtistView.prototype._handleTopSongs = function(data) {
         songs.push(song);
     };
     
-    var songlist = new SongList({
-        songs: songs,
+    this.songlist = new SongList({
+        playlist: {
+            title: song.a+"'s Top Tracks",
+            description: 'Auto-generated playlist',
+            songs: songs,
+            url: this.config.path
+        },
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');
@@ -449,8 +466,7 @@ ArtistView.prototype._handleTopSongs = function(data) {
     });
     
     var $songResults = $('.songResults', this.content)
-    $songResults.find('div').remove();
-    songlist.render($songResults);
+    this.songlist.render($songResults);
     
     $songResults.show();
 };
@@ -504,6 +520,7 @@ function AlbumView(config) {
     
     this.albumName = config.title;
 	this.artistName = config.linkElem.attr('data-artist');
+	this.songlist;
 }
 copyPrototype(AlbumView, BaseView);
 
@@ -514,6 +531,12 @@ AlbumView.prototype.willSlide = function() {
 
 AlbumView.prototype.didSlide = function() {
     this.BaseView.prototype.didSlide(this.config);
+    
+    var that = this;
+    $('.playAll', this.content).click(function(event) {
+        event.preventDefault();
+        that.songlist && that.songlist.playAll();
+    });
 };
 
 AlbumView.prototype.willSleep = function() {
@@ -599,8 +622,13 @@ AlbumView.prototype._handleInfo = function(data) {
      	    });
      	});
 
-     	var songlist = new SongList({
-            songs: songs,
+     	this.songlist = new SongList({
+     	    playlist: {
+                title: this.name,
+                description: 'Auto-generated playlist',
+                songs: songs,
+                url: this.config.path
+            },
             onClick: function(song) {
                 $('.playing').removeClass('playing');
                 $(this).addClass('playing');
@@ -616,8 +644,7 @@ AlbumView.prototype._handleInfo = function(data) {
             isNumbered: true
         });
         var $songResults = $('.songResults', this.content)
-        $songResults.find('div').remove();
-        songlist.render($songResults);
+        this.songlist.render($songResults);
 
         $songResults.show();
  	}

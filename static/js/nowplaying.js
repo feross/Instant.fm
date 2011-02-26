@@ -43,7 +43,6 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
 	    track: t || ''
 	}, {
 	    success: function(data) {
-	        log('success');
 	        nowplaying._handleSongResults(t, a, _srcIndex, data);
 	    },
 	    error: function(code, message) {
@@ -65,6 +64,11 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
         this.renderSongDesc(false);
         this.renderArtistDesc(false);
+        this.renderAlbumBlock({
+            albumImg: undefined,
+            trackName: t,
+            artistName: a,
+        });
         return;
     }
     

@@ -72,7 +72,7 @@ function SongList(options) {
     this.renderChunkSize = 500; // Render playlist in chunks so we don't lock up
     this.renderTimeout = 100; // Time between rendering each chunk
     
-    this.songs = options.songs;
+    this.playlist = options.playlist;
     this.onClick = options.onClick;
     this.buttons = options.buttons;
     this.id = options.id
@@ -106,14 +106,14 @@ SongList.prototype.render = function(addToElem, _callback) {
 };
 
 SongList.prototype._renderHelper = function(start, _callback) {
-    if (start >= this.songs.length) { // we're done
+    if (start >= this.playlist.songs.length) { // we're done
         _callback && _callback();
         return;
     }
     
-    var end = Math.min(start + this.renderChunkSize, this.songs.length);    	
+    var end = Math.min(start + this.renderChunkSize, this.playlist.songs.length);    	
     for (var i = start; i < end; i++) {
-        var song = this.songs[i];    
+        var song = this.playlist.songs[i];    
         var $newSongItem = this._makeItem(song, i);
         this.elem.append($newSongItem);
     }
@@ -156,7 +156,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
 // Add a new song to this songlist instance.
 // Song needs to have 't' and 'a' attributes.
 SongList.prototype.add = function(song) {
-    var songNum = this.songs.length;
+    var songNum = this.playlist.songs.length;
     var that = this;
     this._makeItem(song, songNum)
         .click(function(event) {
@@ -184,10 +184,10 @@ SongList.prototype.remove = function(songNum, _callback) {
 SongList.prototype.fetchAlbumImgs = function() {
     this.concurrentReqs = 0;
     for (this.albumUpdateInd = 0;
-         this.albumUpdateInd < this.songs.length && this.concurrentReqs < 2; // Max # of reqs to Last.fm
+         this.albumUpdateInd < this.playlist.songs.length && this.concurrentReqs < 2; // Max # of reqs to Last.fm
          this.albumUpdateInd++) {
         
-        var song = this.songs[this.albumUpdateInd];
+        var song = this.playlist.songs[this.albumUpdateInd];
         if (song.i === undefined) {
             this._fetchAlbumImgsHelper(this.albumUpdateInd, song);
         	this.concurrentReqs++;
@@ -200,10 +200,10 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
     var that = this;
     var continueFetching = function() {
         that.albumUpdateInd++;
-        that._fetchAlbumImgsHelper(that.albumUpdateInd, that.songs[that.albumUpdateInd]);
+        that._fetchAlbumImgsHelper(that.albumUpdateInd, that.playlist.songs[that.albumUpdateInd]);
     };
     
-    if (albumIndex >= this.songs.length) { // we're done
+    if (albumIndex >= this.playlist.songs.length) { // we're done
         this.concurrentReqs--;
     
         if (!this.concurrentReqs) {
@@ -234,9 +234,9 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
             
             if (albumImg) {
                 $('#song'+albumIndex+' img').attr('src', albumImg);
-                that.songs[albumIndex].i = albumImg;
+                that.playlist.songs[albumIndex].i = albumImg;
             } else {
-                that.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
+                that.playlist.songs[albumIndex].i = null; // Mark songs without art so we don't try to fetch it in the future
             }
             continueFetching();
 	    },
@@ -245,6 +245,12 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
 		}
 	});
 };
+
+SongList.prototype.playAll = function() {
+    var playlist = $.extend({status: 'ok'}, this.playlist);
+    player.loadPlaylist(playlist);
+};
+
 
 // Takes an array of objects with properties 'name', 'image' 
 function makeArtistList(artists) {

@@ -333,6 +333,7 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
 Player.prototype.loadPlaylist = function(playlist) {
+    log(playlist);
     if (!playlist) {
         log('Attempted to load null playlist.');
         return;
@@ -393,7 +394,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     
     // Render Playlist
     this.songlist = new SongList({
-        songs: playlist.songs,
+        playlist: playlist,
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
