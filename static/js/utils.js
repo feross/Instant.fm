@@ -5,7 +5,7 @@ function hideElement(elem, duration) {
     duration = (duration == null) ? 500 : duration;
 
     elem.data('original-position', elem.css('position')); // save position
-    elem.animate({opacity: 0.1}, duration, function() {
+    elem.animate({opacity: 0}, duration, function() {
         elem.css({
             position: 'relative',
             left: -9999

@@ -85,7 +85,7 @@ SearchView.prototype._addSearchHandlers = function() {
     var that = this;
     $('.searchBox', this.content).submit(function(event) {
         event.preventDefault();
-		that.search.apply(that, [searchInput.val(), false]);
+		that.search(searchInput.val(), false);
     });
     
     // Pushes a key
@@ -96,13 +96,13 @@ SearchView.prototype._addSearchHandlers = function() {
         }
         that.prevSearchString = searchString;    
         
-        that.search.apply(that, [searchString, true]);
+        that.search(searchString, true);
     });
     
     // Clicks search button
     $('.searchBox input.submit', this.content).click(function(event) {
         event.preventDefault();
-		that.search.apply(that, [searchInput.val(), false]);
+		that.search(searchInput.val(), false);
     });
 };
 
@@ -121,7 +121,7 @@ SearchView.prototype.search = function(searchString, delay) {
     var that = this;
     window.setTimeout(function() {
         
-        var searchInput = $('.searchBox input.search', this.content);
+        var searchInput = $('.searchBox input.search', that.content);
         if (searchString != searchInput.val()) {
             return; // don't perform search since user kept typing
         }
