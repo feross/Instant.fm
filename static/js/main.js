@@ -3,7 +3,8 @@ var player;
 var nowplaying;
 var browser;
 
-var keyEvents = true; // Used to disable keyboard shortuts
+var keyEvents = true; // Are keyboard shortuts enabled?
+var colorboxOpen = false; // Is a colorbox open?
 
 var appSettings = {
     jeditable: {

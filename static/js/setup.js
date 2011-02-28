@@ -49,6 +49,13 @@ function setupKeyboardShortcuts() {
         keyEvents = true;
     });
     
+    $(document).bind('cbox_open', function() {
+        colorboxOpen = true;
+    });
+    $(document).bind('cbox_closed', function() {
+        colorboxOpen = false;
+    });
+    
     $(window).keydown(function(event) {
         var k = event.which;
         log(k);
@@ -133,7 +140,14 @@ function setupKeyboardShortcuts() {
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
-                browser.pop();
+                if (!browser.isOpen || colorboxOpen) {
+                    return;
+                }    
+                if (browser.viewStack.length > 1) {
+                    browser.pop();
+                } else {
+                    browser.toggle(false);
+                }
                 break;
             default:
                 pressed2 = false;
