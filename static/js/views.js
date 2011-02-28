@@ -122,7 +122,7 @@ SearchView.prototype.search = function(searchString, delay) {
     window.setTimeout(function() {
         
         var searchInput = $('.searchBox input.search', that.content);
-        if (searchString != searchInput.val()) {
+        if (searchString != $.trim(searchInput.val())) {
             return; // don't perform search since user kept typing
         }
         
