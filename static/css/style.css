@@ -340,12 +340,12 @@ body {
 }
 
 body#p {
-    background: #000 url('/images/asuna.png') top left repeat;
+    background: #000 url('/images/bg.jpg') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
-#container { margin: 0 auto; text-align: left; width: 1000px; }
+#container { margin: 0 auto; position: relative; text-align: left; width: 1000px; }
 
 h1 { font-size: 24px; }
 h2 { font-size: 24px; }
@@ -968,11 +968,11 @@ header:hover .editLink, article:hover .editLink {
     display: inline-block;
     font-size: 12px;
     font-style: italic;
-    margin: 0 3px 0 0;
+    margin: 3px 3px 0 0;
     overflow: hidden;
     text-align: right;
     width: 15px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .reflect img {
@@ -1069,6 +1069,8 @@ a:hover .zoomIcon {
 
 
 /* Keyboard Shortvuts Colorbox */
+
+#helpBox section { float: left; }
 
 #helpBox dl {
     height: 25px;

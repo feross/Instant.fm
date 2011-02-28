@@ -51,6 +51,7 @@ function setupKeyboardShortcuts() {
     
     $(window).keydown(function(event) {
         var k = event.which;
+        log(k);
         var pressed1 = true;
         var pressed2 = true;
 
@@ -92,6 +93,9 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
+                case 78: // n
+                    $('#navNewPlaylist').click();
+                    break;
                 case 70: // f
                     browser.pushSearchPartial();
                     break;
@@ -102,7 +106,8 @@ function setupKeyboardShortcuts() {
                     var container = $('#container');
                     var message = $('#backgroundMsg');
                     
-                    if (container.css('opacity') == 0) {
+                    log(Math.round(container.css('opacity')));
+                    if (Math.round(container.css('opacity')) == 0) {
                         showElement(container);
                         hideElement(message);
                     } else if (container.css('opacity') == 1) {

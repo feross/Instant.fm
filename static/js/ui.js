@@ -257,7 +257,7 @@ SongList.prototype.playAll = function() {
     player.loadPlaylist(playlist);
     window.setTimeout(function() {
         browser.toggle(false); 
-    }, 500);
+    }, 250);
 };
 
 
