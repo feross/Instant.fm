@@ -102,6 +102,10 @@ MiniBrowser.prototype.pushStatic = function(path, view) {
     // Don't push duplicate views.
     var topPath = this.getTopView() && this.getTopView().config.path;
     if (topPath && (topPath == path || topPath == view.config.path)) {
+        
+        if (view.config.noAnimateModal) {
+            browser.preventModalAnimate();
+        }
         browser.toggle(true, true);
         return;
     }
@@ -132,10 +136,7 @@ MiniBrowser.prototype.push = function(elem, view) {
         slideAnimationDuration = 500;
         
         if (view.config.noAnimateModal) {
-            $('#modal').removeClass('animate');
-            window.setTimeout(function() {
-                $('#modal').addClass('animate');
-            }, 0);
+            browser.preventModalAnimate();
         }
         this.toggle(true, false);
     }
@@ -218,7 +219,7 @@ MiniBrowser.prototype._updateHeader = function() {
 };
 
 // Show or hide the modal browser.
-// @param awaken = whether the browser is just being re-opened (nothing has been pushed)
+// @param awaken = true if the browser is just being re-opened (nothing has been pushed)
 MiniBrowser.prototype.toggle = function(toggle, awaken) {
     toggle = (toggle === undefined) ? !this.isOpen : toggle;
     awaken = (awaken === undefined) ? false : awaken;
@@ -266,4 +267,11 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
             $('#modal').css(css);
         }
     }
+};
+
+MiniBrowser.prototype.preventModalAnimate = function() {
+    $('#modal').removeClass('animate');
+    window.setTimeout(function() {
+        $('#modal').addClass('animate');
+    }, 500);
 };
