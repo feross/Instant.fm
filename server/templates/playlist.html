@@ -94,9 +94,10 @@
               </a>
             </section> <!-- end of #playlistActions -->
         
-            <div class="separator"><span>Current Track</span></div>
+            <hr class="separator">
 
-            <section id="curPlaying">              
+            <section id="curPlaying">
+              <!-- <header><h3>What song is playing?</h3></header> -->
               <div class="clearfix" id="curAlbumBlock"></div>
               <script id="curAlbumBlockTemplate" type="text/x-jquery-tmpl">
                 <a id="curAlbumImg" class="albumImg reflect" href="#" title="${albumTitle}">
@@ -278,12 +279,11 @@
     <form id="newPlaylistForm">
       <div class="formRow">
         <label for="newPlaylistTitle">Title</label>
-        <input id="newPlaylistTitle" name="title" type="text" required="required" />
+        <input id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ..." />
       </div>
       <div class="formRow">
-        <label for="newPlaylistDescription">Optional Description</label>
-        <input id="newPlaylistDescription" name="description" type="text" />
-        <span>Optional.</span>
+        <label for="newPlaylistDescription">Description</label>
+        <input id="newPlaylistDescription" name="description" type="text" placeholder="Optional" />
       </div>
       <div class="clearfix">
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
@@ -293,7 +293,7 @@
   </div>
   
   <div class="colorbox" id="loginBox">
-    <header>Login to Instant.fm</header>
+    <header>Log In</header>
     
     <div class="error" id="loginErrors"></div>
     
@@ -308,6 +308,7 @@
       </div>
             
       <div class="clearfix">
+        <div class="formBottomNote" id="loginSignup">No account? <a href="#">Sign up!</a></div>
         <input type="submit" class="red large awesome" name="submit" id="submitLogin" value="Login">
         <div id="rememberMe">
           <input type="checkbox" name="passwordless" checked="checked" />
@@ -320,7 +321,7 @@
   </div>
    
   <div class="colorbox" id="signupBox">
-    <header>Create an Account <span class="subtitle">(1 of 2)</span></header>
+    <header>Sign Up <span class="subtitle">(1 of 2)</span></header>
       
     <div id="signupStep1">
       <div id="fbSignupPitch">
@@ -329,7 +330,9 @@
     
       <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
     
-      <div id="fbFacepile"></div>
+      <div id="fbFacepile">
+        <fb:facepile width="390" max_rows="1"></fb:facepile>
+      </div>
     </div>
     
     <div id="signupStep2" style="display: none;">
@@ -357,7 +360,7 @@
         </div>
       
         <div class="clearfix">
-          <div id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
+          <div class="formBottomNote" id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
           <input type="submit" class="darkblue awesome large" name="submit" id="submitFbSignupForm" value="Create Account">
         </div>
       

@@ -942,27 +942,21 @@ header:hover .editLink, article:hover .editLink {
 
 .separator {
     height: 16px;
-    margin: 50px 0 0 0;
-    background: transparent url("/images/flourishes.png") no-repeat center -61px;
+    margin: 20px 0 0 0;
+    background: transparent url('/images/flourishes.png') no-repeat center -61px;
     border: 0;
     outline: 0;
-    -moz-opacity: .75;
-    opacity: .75;
-    filter: alpha(opacity=75);
+    -moz-opacity: .4;
+    opacity: .4;
+    filter: alpha(opacity=40);
     text-align: center;
-}
-
-.separator span {
-    color: #000;
-    font-size: 22px;
-    font-weight: bold;
-    position: relative;
-    top: -28px;
 }
 
 #curPlaying { margin-top: 10px; }
 
-#curAlbumBlock { margin: 10px 0 0 0; }
+/*#curPlaying > header { font-style: italic; }*/
+
+#curAlbumBlock { margin: 5px 0 0 0; }
 
 .curLabel {
     display: inline-block;
@@ -1178,11 +1172,15 @@ a:hover .zoomIcon {
     margin: 4px 0 0 103px;
 }
 
+.formBottomNote {
+    float: left;
+    font-size: 12px;
+    margin: 17px 0 0 13px;
+}
+
 #agreeToTerms {
     color: #888;
-    float: left;
     font-size: 11px;
-    margin: 17px 0 0 13px;
 }
 
 #submitFbSignupForm,
@@ -1269,9 +1267,9 @@ nav a:hover { text-decoration: underline; }
 }
 
 #footer #helpLink {
-    background: transparent url("/images/keyboard.png") center right no-repeat;
+    background: transparent url("/images/keyboard.png") center left no-repeat;
     float: right;
-    padding: 0 25px 0 0;
+    padding: 0 0 0 25px;
     margin-right: 10px;
 }
 

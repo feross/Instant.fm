@@ -197,10 +197,10 @@ function setupSignup() {
                 $('#signupBox > header > .subtitle').text('(1 of 2)');
             }
 
-            $('#fbFacepile')
-                .empty()
-                .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            FB.XFBML.parse($('#fbFacepile').get(0));
+            // $('#fbFacepile')
+            //     .empty()
+            //     .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
+            // FB.XFBML.parse($('#fbFacepile').get(0));
         },
         scrolling: false,
         width: 450
@@ -337,6 +337,11 @@ function setupLogin() {
         },
         scrolling: false
     });
+    
+    $('#loginSignup a').click(function() {
+        $('#navSignup').click();
+    });
+    
     $("form#login").validator({
         effect: 'wall', 
         container: '#loginErrors',
@@ -362,6 +367,7 @@ function setupLogin() {
                     if (json && json === true)  {
                         log('Login succeeded.');
                         loginStatusChanged();
+                        $.colorbox.close();
                     // server-side validation failed. use invalidate() to show errors
                     } else {
                         if (json && json.success === false && json.errors) {

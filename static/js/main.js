@@ -64,6 +64,20 @@ function onloadPlaylist() {
         }
     };
     
+    // Page may scroll in odd circumstances, like when selecting text.
+    // Don't allow page to scroll.
+    $(window).scroll(function(event) {
+        window.setTimeout(function() {
+            $('body').scrollTop(0);
+        }, 0);
+    });
+    $('#main').scroll(function(event) {
+        window.setTimeout(function() {
+            $('#main').scrollTop(0);
+        }, 0);
+    });
+    
+    
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);
     setupSignup();

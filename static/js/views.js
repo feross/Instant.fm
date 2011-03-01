@@ -625,7 +625,7 @@ AlbumView.prototype._handleInfo = function(data) {
 
      	this.songlist = new SongList({
      	    playlist: {
-                title: this.name,
+                title: this.albumName+' by '+this.artistName,
                 description: 'Auto-generated playlist',
                 songs: songs,
                 url: this.config.path
