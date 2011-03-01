@@ -1199,7 +1199,11 @@
 			clearInterval(this.interval);
 		},
 
-		checkExpand: function() {			
+		checkExpand: function() {
+		    // Start Instant.fm Modification
+		    var self = this;
+		    // End Instant.fm Modification
+		    			
 			if (this.dummy == null) {
 				this.dummy = jQuery('<div></div>');
 				this.dummy.css({
@@ -1239,7 +1243,7 @@
 						    duration: 100,
 						    complete: function() {
 						        // Start Instant.fm Modification
-                			    this.onResize && this.onResize(this.textarea);
+                			    self.onResize && self.onResize(self.textarea);
                 			    // End Instant.fm Modification
                 			}
 						});	
@@ -1253,7 +1257,7 @@
 							    duration: 100,
 							    complete: function() {
 							        // Start Instant.fm Modification
-                    			    this.onResize && this.onResize(this.textarea);
+                    			    self.onResize && self.onResize(self.textarea);
                     			    // End Instant.fm Modification
                     			}
 							});
@@ -1262,7 +1266,7 @@
 							    duration: 100,
 							    complete: function() {
 							        // Start Instant.fm Modification
-                    			    this.onResize && this.onResize(this.textarea);
+                    			    self.onResize && self.onResize(self.textarea);
                     			    // End Instant.fm Modification
                     			}
 							});	

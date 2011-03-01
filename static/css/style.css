@@ -914,10 +914,13 @@ header:hover .editLink, article:hover .editLink {
 
 #nowPlaying header .editLink { top: -3px; }
 
-#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; }
+#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; min-height: 30px; }
 #curPlaylistTitle button { float: left; margin-left: 8px; }
 
-#curPlaylistDesc textarea { color: #444; padding: 3px; outline:none; }
+#curPlaylistDesc {
+    white-space: pre-line; /* collapse whitespace but preserve line breaks */
+}
+#curPlaylistDesc textarea { color: #444; padding: 3px; outline:none; min-height: 16px; }
 
 #curPlaylistDesc button { display: inline-block; margin: 10px 0 10px 0; }
 
@@ -1160,6 +1163,8 @@ a:hover .zoomIcon {
     
     float: right;
     padding: 5px 4px;
+    height: 18px;
+    min-height: 18px;
     width: 270px;
 }
 

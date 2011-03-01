@@ -10,15 +10,16 @@ var appSettings = {
     autogrow: {
         expandTolerance: 0.1,
         lineHeight: 16,
-        minHeight: 16,
-        maxHeight: 200
+        // minHeight: 16
     },
     fbAppId: '114871205247916',
     jeditable: {
         data: function(value, settings) {
-            // Decode HTML before the user edits it.
-            // &amp; -> &
-            var retval = htmlDecode(value);
+            // Turn <br>s into newlines before user edits text.
+            var retval = value.replace(/<br>/gi, '\n');
+            
+            // Decode HTML before the user edits text. (&amp; -> &)
+            retval = htmlDecode(retval);
             return retval;
         },
         event: 'editable', // custom jQuery event

@@ -361,7 +361,6 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
             autogrowSettings = {
                 expandTolerance: 0.05,
                 lineHeight: 30,
-                minHeight: 30,
             };
             buttonClass = 'large awesome white';
             break;
@@ -372,14 +371,14 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
     }
     
     elem.after($('<a class="editLink mustOwn" href="#edit">Edit</a>')
-        .click(function(event) {
-            event.preventDefault();
-            $.extend(appSettings.jeditable.autogrow, autogrowSettings);
+            .click(function(event) {
+                event.preventDefault();
+                $.extend(appSettings.jeditable.autogrow, autogrowSettings);
 
-            $(this).prev().trigger('editable');
-            $(this).hide();
-            
-        }))
+                $(this).prev().trigger('editable');
+                $(this).hide();
+            })
+        )
         .editable(function(value, settings) {
             $(this).next().show();
             

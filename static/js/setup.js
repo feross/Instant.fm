@@ -198,15 +198,14 @@ function setupNewPlaylist() {
             $('textarea[name=title]', '#newPlaylistForm').focus();
         },
         scrolling: false,
-        transition: 'none'
     });
     
-    $('textarea[name=title]', '#newPlaylistForm')
+    $('textarea', '#newPlaylistForm')
         .autogrow($.extend({}, appSettings.autogrow, {onResize: function(elem) {
                 $.colorbox.resize();
-                log(elem);
                 $(elem).focus();
-            }
+            },
+            lineHeight: 18
         })
     );
     
