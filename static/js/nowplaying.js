@@ -240,7 +240,6 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
         
         $('.editLink').remove(); // remove all edit links
 
-        // TODO: Hide the editableness when we're not owner
         nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
         nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
@@ -392,7 +391,7 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
         .editable(function(value, settings) {
             $(this).next().show();
             
-            updateCallback(value);
+            updateCallback(encodeURIComponent(value));
             return value;
         }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
 };

@@ -40,7 +40,7 @@ function setupAutogrowInputType() {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    $('#helpLink').colorbox({inline: true, href: '#helpBox'});
+    $('#helpLink').colorbox({inline: true, href: '#helpBox', returnFocus: false});
     
     $('input, textarea').live('focus', function(event) {
         keyEvents = false; 
@@ -188,6 +188,7 @@ function setupSignup() {
     $('#navSignup').colorbox({
         inline: true,
         href: '#signupBox',
+        returnFocus: false,
         onOpen: function() {
             // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
             if (!$('#fbSignupForm').is(':visible')) {
@@ -332,6 +333,7 @@ function setupLogin() {
     $('a[href="#login"]').colorbox({
         inline: true,
         href: "#loginBox",
+        returnFocus: false,
         onComplete: function() {
             $('input[name=email]', '#login').focus();
         },
@@ -409,6 +411,7 @@ function setupNewPlaylist() {
     $('a[href="#new"]').colorbox({
         inline: true,
         href: "#newPlaylistBox",
+        returnFocus: false,
         onComplete: function() {
             $('input[name=title]', '#newPlaylistForm').focus();
         },

@@ -8,6 +8,12 @@ var colorboxOpen = false; // Is a colorbox open?
 
 var appSettings = {
     jeditable: {
+        data: function(value, settings) {
+            // Decode HTML before the user edits it.
+            // &amp; -> &
+            var retval = htmlDecode(value);
+            return retval;
+        },
         event: 'editable', // custom jQuery event
         onblur: 'ignore',
         submit: 'Update',
