@@ -275,10 +275,8 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
 
 NowPlaying.prototype.renderSongDesc = function(data) {    
     $('#curSongDesc').fadeOut('fast', function() {
-        log('song desc hide!');
         $('#curSongDesc').empty();
         if (data) {
-            log('song desc data!');
             $('#curSongDescTemplate')
                 .tmpl(data)
                 .appendTo('#curSongDesc');
@@ -295,10 +293,8 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
     }
     
     $('#curArtistDesc').fadeOut('fast', function() {
-        log('artist desc hide!');
         $('#curArtistDesc').empty();
         if (data) {
-            log('artist desc data!');
             $('#curArtistDescTemplate')
                 .tmpl(data)
                 .appendTo('#curArtistDesc');
@@ -392,7 +388,7 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
         }, $.extend({}, appSettings.jeditable, {
             buttonClass: buttonClass,
             onreset: function() {
-                $(this).parent().next().show();
+                $(this).parent().next().show(); // Show the edit button again if the edit is canceled.
             }
         }));
 };

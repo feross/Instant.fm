@@ -202,8 +202,10 @@ function setupNewPlaylist() {
     });
     
     $('textarea[name=title]', '#newPlaylistForm')
-        .autogrow($.extend({}, appSettings.autogrow, {onResize: function() {
+        .autogrow($.extend({}, appSettings.autogrow, {onResize: function(elem) {
                 $.colorbox.resize();
+                log(elem);
+                $(elem).focus();
             }
         })
     );

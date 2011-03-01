@@ -230,6 +230,8 @@ class PlaylistHandlerBase(HandlerBase):
                 new_song = {'a': artist, 't': title}
                 if image.__class__ == unicode and url_re.match(image) is not None:
                     new_song['i'] = image
+                else:
+                    new_song['i'] = None # Mark the album art fetch as attempted, so the client doesn't attempt to fetch it again
                 playlist.append(new_song)
         
         return json.dumps(playlist)
