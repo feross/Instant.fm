@@ -277,13 +277,13 @@
     <div class="error" id="newPlaylistErrors"></div>
     
     <form id="newPlaylistForm">
-      <div class="formRow">
+      <div class="clearfix formRow">
         <label for="newPlaylistTitle">Title</label>
-        <input id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ..." />
+        <textarea id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ..."></textarea>
       </div>
-      <div class="formRow">
+      <div class="clearfix formRow">
         <label for="newPlaylistDescription">Description</label>
-        <input id="newPlaylistDescription" name="description" type="text" placeholder="Optional" />
+        <textarea id="newPlaylistDescription" name="description" type="text" placeholder="Optional"></textarea>
       </div>
       <div class="clearfix">
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
@@ -298,17 +298,17 @@
     <div class="error" id="loginErrors"></div>
     
     <form id="login">
-      <div class="formRow">
+      <div class="clearfix formRow">
         <label for="loginEmail">E-mail</label>
         <input id="loginEmail" type="email" name="email" required="required"/>
       </div>
-      <div class="formRow">
+      <div class="clearfix formRow">
         <label for="loginPassword">Password</label>
         <input id="loginPassword" type="password" name="password" required="required"/>
       </div>
             
       <div class="clearfix">
-        <div class="formBottomNote" id="loginSignup">No account? <a href="#">Sign up!</a></div>
+        <div class="formBottomNote" id="loginSignup">No account? <a href="#">Sign up</a>.</div>
         <input type="submit" class="red large awesome" name="submit" id="submitLogin" value="Login">
         <div id="rememberMe">
           <input type="checkbox" name="passwordless" checked="checked" />
@@ -331,7 +331,7 @@
       <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
     
       <div id="fbFacepile">
-        <fb:facepile width="390" max_rows="1"></fb:facepile>
+        <!-- automatically populated when colorbox is opened -->
       </div>
     </div>
     
@@ -349,12 +349,12 @@
           <span>Use your real name.</span>
         </div>
   
-        <div class="formRow">
+        <div class="clearfix formRow">
           <label for="fbEmail">E-mail</label>
           <input id="fbEmail" type="email" name="email" required="required"/>
         </div>   
          
-        <div class="formRow">
+        <div class="clearfix formRow">
           <label for="fbPassword">Password</label>
           <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
         </div>

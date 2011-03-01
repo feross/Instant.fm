@@ -7,6 +7,13 @@ var keyEvents = true; // Are keyboard shortuts enabled?
 var colorboxOpen = false; // Is a colorbox open?
 
 var appSettings = {
+    autogrow: {
+        expandTolerance: 0.1,
+        lineHeight: 16,
+        minHeight: 16,
+        maxHeight: 200
+    },
+    fbAppId: '114871205247916',
     jeditable: {
         data: function(value, settings) {
             // Decode HTML before the user edits it.
@@ -15,8 +22,8 @@ var appSettings = {
             return retval;
         },
         event: 'editable', // custom jQuery event
-        onblur: 'ignore',
-        submit: 'Update',
+        onblur: 'submit',
+        submit: 'Save',
         tooltip: 'Click to edit',
         type: 'autogrow',
         autogrow: {
@@ -27,8 +34,7 @@ var appSettings = {
         axis: 'y',
         scrollSensitivity: 25,
         tolerance: 'pointer'
-    },
-    fbAppId: '114871205247916'
+    }
 };
 
 function onloadHome() {
@@ -55,7 +61,7 @@ function onloadPlaylist() {
     nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
-    setupAutogrowInputType();
+    setupEditableAutogrowInputType();
     player.loadPlaylist(initial_playlist);
     
     updateDisplay();

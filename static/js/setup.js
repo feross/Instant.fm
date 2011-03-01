@@ -1,6 +1,6 @@
 /* --------------------------- SETUP  --------------------------- */
 
-function setupAutogrowInputType() {
+function setupEditableAutogrowInputType() {
     $.editable.addInputType('autogrow', {
         element: function(settings, original) {
             var textarea = $('<textarea />');
@@ -22,7 +22,7 @@ function setupAutogrowInputType() {
             var width;
             switch(elemId) {
                 case 'curPlaylistTitle':
-                    width = 380;
+                    width = 390;
                     break;
                 case 'curPlaylistDesc':
                     width = 470;
@@ -58,7 +58,6 @@ function setupKeyboardShortcuts() {
     
     $(window).keydown(function(event) {
         var k = event.which;
-        log(k);
         var pressed1 = true;
         var pressed2 = true;
 
@@ -184,6 +183,161 @@ function setupFBML(playlist) {
     }());
 }
 
+function setupDragDropUploader(dropId, callback) {
+    if (Modernizr.draganddrop) {
+        new uploader(dropId, null, '/upload', null, callback);
+    }
+}
+
+function setupNewPlaylist() {
+    $('a[href="#new"]').colorbox({
+        inline: true,
+        href: "#newPlaylistBox",
+        returnFocus: false,
+        onComplete: function() {
+            $('textarea[name=title]', '#newPlaylistForm').focus();
+        },
+        scrolling: false,
+        transition: 'none'
+    });
+    
+    $('textarea[name=title]', '#newPlaylistForm')
+        .autogrow($.extend({}, appSettings.autogrow, {onResize: function() {
+                $.colorbox.resize();
+            }
+        })
+    );
+    
+    // initialize validator and add a custom form submission logic
+    $("form#newPlaylistForm").validator({
+        effect: 'wall', 
+        container: '#newPlaylistErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+        var form = $(this);
+        
+        $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/new-list',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    if (json && json.status && json.status == "ok")  {
+                        $.colorbox.close();
+                        player.loadPlaylist(json);
+                        browser.pushSearchPartial(true);
+                        
+                    } else {
+                        // server-side validation failed. use invalidate() to show errors
+                        if (json && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            $.colorbox.resize();
+                        }
+                    }
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                },
+                error: function() {
+                    log('Error posting new playlist form ;_;');
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        } else {
+            $('#submitNewPlaylist').removeAttr('disabled');
+            $.colorbox.resize();
+        }
+        
+    });
+}
+
+function setupLogin() {
+    $('a[href="#login"]').colorbox({
+        inline: true,
+        href: "#loginBox",
+        returnFocus: false,
+        onComplete: function() {
+            $('input[name=email]', '#login').focus();
+        },
+        scrolling: false
+    });
+    
+    $('#loginSignup a').click(function() {
+        $('#navSignup').click();
+    });
+    
+    $("form#login").validator({
+        effect: 'wall',
+        container: '#loginErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+    
+        var form = $(this);
+        $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
+        
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/login',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    // everything is ok. (server returned true)
+                    if (json && json === true)  {
+                        log('Login succeeded.');
+                        loginStatusChanged();
+                        $.colorbox.close();
+                    // server-side validation failed. use invalidate() to show errors
+                    } else {
+                        if (json && json.success === false && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            log('Login failt.');
+                        }
+                        $('#submitLogin').removeAttr('disabled');
+                        $.colorbox.resize();
+                        $('input[name=password]', '#login').focus();
+                    }
+                },
+                error: function() {
+                    log('Error posting form ;_;');
+                    $('#submitLogin').removeAttr('disabled');
+                },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        } else {
+            $.colorbox.resize();
+            $('input[name=email]', '#login').focus();
+            $('#submitLogin').removeAttr('disabled');
+        }
+    });
+}
+
+function setupLogout() {
+	$('a[href="#logout"]').click(function(event) {
+      event.preventDefault();
+    	$.post('/logout', function() {
+        	loginStatusChanged();
+            log('Logged out.');
+        });
+    });
+}
+
 function setupSignup() {
     $('#navSignup').colorbox({
         inline: true,
@@ -198,10 +352,10 @@ function setupSignup() {
                 $('#signupBox > header > .subtitle').text('(1 of 2)');
             }
 
-            // $('#fbFacepile')
-            //     .empty()
-            //     .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            // FB.XFBML.parse($('#fbFacepile').get(0));
+            $('#fbFacepile')
+                .empty()
+                .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
+            FB.XFBML.parse($('#fbFacepile').get(0));
         },
         scrolling: false,
         width: 450
@@ -327,151 +481,4 @@ function setupSignup() {
             $('#submitFbSignupForm').removeAttr('disabled');
         }
     });
-}
-
-function setupLogin() {
-    $('a[href="#login"]').colorbox({
-        inline: true,
-        href: "#loginBox",
-        returnFocus: false,
-        onComplete: function() {
-            $('input[name=email]', '#login').focus();
-        },
-        scrolling: false
-    });
-    
-    $('#loginSignup a').click(function() {
-        $('#navSignup').click();
-    });
-    
-    $("form#login").validator({
-        effect: 'wall', 
-        container: '#loginErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-    
-        var form = $(this);
-        $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
-        
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/login',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    // everything is ok. (server returned true)
-                    if (json && json === true)  {
-                        log('Login succeeded.');
-                        loginStatusChanged();
-                        $.colorbox.close();
-                    // server-side validation failed. use invalidate() to show errors
-                    } else {
-                        if (json && json.success === false && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            log('Login failt.');
-                        }
-                        $('#submitLogin').removeAttr('disabled');
-                        $.colorbox.resize();
-                        $('input[name=password]', '#login').focus();
-                    }
-                },
-                error: function() {
-                    log('Error posting form ;_;');
-                    $('#submitLogin').removeAttr('disabled');
-                },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $.colorbox.resize();
-            $('input[name=email]', '#login').focus();
-            $('#submitLogin').removeAttr('disabled');
-        }
-    });
-}
-
-function setupLogout() {
-	$('a[href="#logout"]').click(function(event) {
-      event.preventDefault();
-    	$.post('/logout', function() {
-        	loginStatusChanged();
-            log('Logged out.');
-        });
-    });
-}
-
-function setupNewPlaylist() {
-    $('a[href="#new"]').colorbox({
-        inline: true,
-        href: "#newPlaylistBox",
-        returnFocus: false,
-        onComplete: function() {
-            $('input[name=title]', '#newPlaylistForm').focus();
-        },
-        scrolling: false
-    });
-    
-    // initialize validator and add a custom form submission logic
-    $("form#newPlaylistForm").validator({
-        effect: 'wall', 
-        container: '#newPlaylistErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-        var form = $(this);
-        
-        $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
-      
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/new-list',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    if (json && json.status && json.status == "ok")  {
-                        $.colorbox.close();
-                        player.loadPlaylist(json);
-                        browser.pushSearchPartial(true);
-                        
-                    } else {
-                        // server-side validation failed. use invalidate() to show errors
-                        if (json && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            $.colorbox.resize();
-                        }
-                    }
-                    $('#submitNewPlaylist').removeAttr('disabled');
-                },
-                error: function() {
-                    log('Error posting new playlist form ;_;');
-                    $('#submitNewPlaylist').removeAttr('disabled');
-                },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $('#submitNewPlaylist').removeAttr('disabled');
-            $.colorbox.resize();
-        }
-        
-    });
-}
-
-function setupDragDropUploader(dropId, callback) {
-    if (Modernizr.draganddrop) {
-        new uploader(dropId, null, '/upload', null, callback);
-    }
 }

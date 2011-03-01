@@ -370,11 +370,7 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
             buttonClass = 'large awesome white';
             break;
         default:
-            autogrowSettings = {
-                expandTolerance: 0.1,
-                lineHeight: 16,
-                minHeight: 16,
-            };
+            autogrowSettings = $.extend({}, appSettings.autogrow);
             buttonClass = 'small awesome white';
             break;
     }
@@ -393,7 +389,12 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
             
             updateCallback(encodeURIComponent(value));
             return value;
-        }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
+        }, $.extend({}, appSettings.jeditable, {
+            buttonClass: buttonClass,
+            onreset: function() {
+                $(this).parent().next().show();
+            }
+        }));
 };
 
 

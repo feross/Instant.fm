@@ -1164,6 +1164,10 @@
 		this.max_height		  	= this.options.maxHeight || parseInt(jQuery(e).css('max-height'));;
 		this.textarea		  	= jQuery(e);
 		this.expand_tolerance	= (!isNaN(this.options.expandTolerance) && this.options.expandTolerance > 0) ? this.options.expandTolerance : 4;
+		
+		// Start Instant.fm Modification
+		this.onResize           = this.options.onResize;
+		// End Instant.fm Modification	
 
 		if(isNaN(this.line_height))
 		  this.line_height = 0;
@@ -1187,15 +1191,19 @@
 		},
 
 		startExpand: function() {				
-		  var self = this;
+		    var self = this;
 			this.interval = window.setInterval(function() {self.checkExpand()}, 400);
 		},
 
 		stopExpand: function() {
-			clearInterval(this.interval);	
+			clearInterval(this.interval);
 		},
 
 		checkExpand: function() {
+		    // Start Instant.fm Modification
+			this.onResize && this.onResize();
+			// End Instant.fm Modification
+			
 			if (this.dummy == null) {
 				this.dummy = jQuery('<div></div>');
 				this.dummy.css({

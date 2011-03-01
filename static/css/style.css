@@ -55,7 +55,7 @@ td, td img { vertical-align: top; }
 sub { vertical-align: sub; font-size: smaller; }
 sup { vertical-align: super; font-size: smaller; }
 pre {  padding: 15px;  white-space: pre;  white-space: pre-wrap;  white-space: pre-line;  word-wrap: break-word; }
-textarea { overflow: auto; } 
+textarea { resize: none; overflow: auto; } 
 .ie6 legend, .ie7 legend { margin-left: -7px; } 
 input[type="radio"] { vertical-align: text-bottom; }
 input[type="checkbox"] { vertical-align: bottom; }
@@ -65,9 +65,9 @@ label, input[type=button], input[type=submit], button, .pointer { cursor: pointe
 input[type=button], input[type=submit], button { border: 0; }
 button, input, select, textarea { margin: 0; }
 input:valid, textarea:valid   {  }
-/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }*/
+/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }
 .no-boxshadow input:invalid, 
-.no-boxshadow textarea:invalid { background-color: #f0dddd; }
+.no-boxshadow textarea:invalid { background-color: #f0dddd; }*/
 
 ::-moz-selection{ background: #499bd1; color:#fff; text-shadow: none; }
 ::selection { background:#499bd1; color:#fff; text-shadow: none; } 
@@ -1118,13 +1118,13 @@ a:hover .zoomIcon {
 
 #fbSignupForm { display: inline-block; }
 
-.formRow { margin: 7px 0; }
+.formRow { clear: both; margin: 7px 0; }
 
-.formRow label, .formRow input { font-size: 16px; }
+.formRow label, .formRow input, .formRow textarea { font-size: 16px; }
 
 .formRow label {
     color: #555;
-    display: inline-block;
+    float: left;
     font-weight: bold;
     padding-right: 8px;
     padding-bottom: 3px;
@@ -1133,7 +1133,7 @@ a:hover .zoomIcon {
     vertical-align: middle;
 }
 
-.formRow input {
+.formRow input, .formRow textarea {
     background-image:
         -webkit-gradient(
             linear,
@@ -1158,7 +1158,7 @@ a:hover .zoomIcon {
     -webkit-box-shadow: inset 0 2px 2px #EFEFEF;
     box-shadow: inset 0 2px 2px #EFEFEF;
     
-    display: inline-block;
+    float: right;
     padding: 5px 4px;
     width: 270px;
 }
