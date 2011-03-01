@@ -236,6 +236,11 @@ function setupNewPlaylist() {
                         player.loadPlaylist(json);
                         browser.pushSearchPartial(true);
                         
+                        // Clear form fields (after colorbox closes)
+                        window.setTimeout(function() {
+                            $('textarea', '#newPlaylistForm').val('');
+                        }, 300);
+                        
                     } else {
                         // server-side validation failed. use invalidate() to show errors
                         if (json && json.errors) {
