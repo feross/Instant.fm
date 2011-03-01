@@ -292,8 +292,11 @@ Player.prototype.addSongToPlaylist = function(song) {
     this.highlightSong('#playlist li:last');
     model.addSong(song);
     updateDisplay(); // resizes short playlists
-        
-    if (player.ytplayer.getPlayerState() == 0) { // player is stopped
+    
+    if (model.playlist.songs.length == 1) {
+        player.playSong(0);
+    } 
+    if (player.ytplayer && player.ytplayer.getPlayerState() == 0) { // player is stopped
         player.playSong(model.playlist.songs.length - 1);
     }
 };

@@ -44,6 +44,7 @@ function SearchView(config) {
     this.config = config;
     this.prevSearchString = ''; // Used to prevent repeating identical searches
     this.delaySearch = false; // Used to force a delay between searches
+    this.noResults = 0; // When it reaches 3, we know that there are no song, artist, or album results
     
     // Force title to change depending on user state
     this.config.title = {mustOwn: 'Add Songs', mustNotOwn: 'Search'};
@@ -121,15 +122,22 @@ SearchView.prototype.search = function(searchString, delay) {
     var that = this;
     window.setTimeout(function() {
         
+        $('.start', that.content).fadeOut();
+        
         var searchInput = $('.searchBox input.search', that.content);
         if (searchString != $.trim(searchInput.val())) {
             return; // don't perform search since user kept typing
         }
         
+        // Reset the noResult count
+        that.noResults = 0;
+        $('.noResults', this.content).fadeOut();
+        
         if (!searchString.length) {
             $('.songResults', that.content).slideUp();
 	        $('.artistResults', that.content).slideUp();
 			$('.albumResults', that.content).slideUp();
+			$('.start', that.content).fadeIn();
 			return;
         }
         
@@ -149,6 +157,7 @@ SearchView.prototype.search = function(searchString, delay) {
             error: function(code, message) {
                 log(code + ' ' + message);
                 that.renderSongs([]);
+                that._incNoResults();
             }
         });
 
@@ -167,6 +176,7 @@ SearchView.prototype.search = function(searchString, delay) {
             error: function(code, message) {
                 log(code + ' ' + message);
                 that.renderArtists([]);
+                that._incNoResults();
             }
         });
 
@@ -186,6 +196,7 @@ SearchView.prototype.search = function(searchString, delay) {
             error: function(code, message) {
                 log(code + ' ' + message);
                 that.renderAlbums([]);
+                that._incNoResults();
             }
         });
     }, timeout);
@@ -197,6 +208,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
 
     if (!trackResults || !trackResults.length) {
         $('.songResults', this.content).slideUp();
+        this._incNoResults();
         return;
     }
 
@@ -232,6 +244,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
         buttons: [{
             action: function(event, song) {
                 player.addSongToPlaylist(song);
+                $(event.currentTarget).addClass('dulled');
             },
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
@@ -250,6 +263,7 @@ SearchView.prototype._handleArtistSearchResults = function(data) {
     
     if (!artistResults || !artistResults.length) {
         $('.artistResults', this.content).slideUp();
+        this._incNoResults();
         return;
     }
 
@@ -276,6 +290,7 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
 
     if (!albumResults || !albumResults.length) {
         $('.albumResults', this.content).slideUp();
+        this._incNoResults();
         return;
     }
 
@@ -295,6 +310,16 @@ SearchView.prototype._handleAlbumSearchResults = function(data) {
         .append(makeAlbumList(albums))
         .slideDown();
 };
+
+// Increment the no results count. When it hits 3, we display a message saying that there are no results.
+SearchView.prototype._incNoResults = function() {
+    this.noResults++;
+    if (this.noResults >= 3) {
+        $('.noResults', this.content)
+            .text('No results for "'+this.prevSearchString+'".')
+            .fadeIn();
+    }
+}
 
 
 /* --------------------------- ARTIST VIEW --------------------------- */
@@ -458,6 +483,7 @@ ArtistView.prototype._handleTopSongs = function(data) {
         buttons: [{
             action: function(event, song) {
                 player.addSongToPlaylist(song);
+                $(event.currentTarget).addClass('dulled');
             },
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
@@ -638,6 +664,7 @@ AlbumView.prototype._handleInfo = function(data) {
             buttons: [{
                 action: function(event, song) {
                     player.addSongToPlaylist(song);
+                    $(event.currentTarget).addClass('dulled');
                 },
                 className: 'awesome small white mustOwn',
                 text: 'Add to Playlist'

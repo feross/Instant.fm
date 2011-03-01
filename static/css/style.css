@@ -293,41 +293,11 @@ a.awesome:hover { text-decoration: none; }
     );
 }
 
-/* YouTube player style buttons */
-.ytbutton.awesome, .ytbutton.awesome:visited {
-    background-color: #ddd;
-    border: 1px solid #ddd;
-    color: #333;
-    text-shadow: none;
+.dulled {
+    -moz-opacity: 0.4;
+    filter: alpha(opacity: 40);
+    opacity: 0.4;
 }
-.ytbutton.awesome:hover {
-    color: #bf1e1e;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.50, rgb(237,237,237)),
-        color-stop(0.55, rgb(255,255,255))
-    );
-    border: 1px solid #cdcdcd;
-}
-.ytbutton.awesome.on {
-    background-color: #b03434;
-    background-image: none;
-    border: 1px solid #b03434;
-    color: #fff;
-}
-.ytbutton.awesome.on:hover {
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.50, rgb(182,15,15)),
-        color-stop(0.55, rgb(200,24,24))
-    );
-    border: 1px solid #c82424;
-}
-
 
 
 
@@ -496,9 +466,9 @@ input.file {
 #altPlaylistTitle {
     color: #fff;
     font-size: 20px;
-    font-weight: normal;
     margin: 10px 10px 0 15px;
     position: absolute;
+    text-shadow: #000 0 1px 2px;
     top: 0;
 }
 
@@ -1343,6 +1313,15 @@ nav a:hover { text-decoration: underline; }
     margin: 0; /* override default h3 style to prevent jquery jitter */
     padding: 5px 0 10px 0;
 }
+
+.searchPartial .start {
+    background: transparent url('/images/searchPrompt.png') top left no-repeat;
+    height: 65px;
+    margin: 25px auto 0 auto;
+    width: 370px;
+}
+
+.searchPartial .noResults { font-size: 18px; margin: 15px 0 0 10px; }
 
 .artistResult, .albumResult {
     float: left;
