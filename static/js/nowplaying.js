@@ -240,7 +240,10 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
         
         $('.editLink').remove(); // remove all edit links
 
-        nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+        nowplaying._makeEditable($('#curPlaylistTitle'), function(newTitle) {
+            model.updateTitle(newTitle);
+            $('#altPlaylistTitle').text(newTitle);
+        });
         nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
         $('#curPlaylist').fadeIn('fast');
@@ -382,7 +385,7 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
         .editable(function(value, settings) {
             $(this).next().show();
             
-            updateCallback(encodeURIComponent(value));
+            updateCallback(value);
             return value;
         }, $.extend({}, appSettings.jeditable, {
             buttonClass: buttonClass,
