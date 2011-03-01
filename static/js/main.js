@@ -8,7 +8,7 @@ var colorboxOpen = false; // Is a colorbox open?
 
 var appSettings = {
     autogrow: {
-        expandTolerance: 0.1,
+        expandTolerance: 0.001,
         lineHeight: 16,
         // minHeight: 16
     },

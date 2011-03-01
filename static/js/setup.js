@@ -197,13 +197,20 @@ function setupNewPlaylist() {
         onComplete: function() {
             $('textarea[name=title]', '#newPlaylistForm').focus();
         },
-        scrolling: false,
+        scrolling: false
     });
     
     $('textarea', '#newPlaylistForm')
-        .autogrow($.extend({}, appSettings.autogrow, {onResize: function(elem) {
-                $.colorbox.resize();
-                $(elem).focus();
+        .autogrow($.extend({}, appSettings.autogrow,
+            {onResize: function(elem) {
+                // Ensure that elem had focus before re-setting the focus
+                var elemHadFocus = $(elem).is(':focus');
+                log(elemHadFocus);
+                
+                if (elemHadFocus) {
+                    $.colorbox.resize();
+                    $(elem).focus();
+                }
             },
             lineHeight: 18
         })
@@ -227,7 +234,7 @@ function setupNewPlaylist() {
             // submit with AJAX
             $.ajax({
                 url: '/new-list',
-                data: form.serialize(), 
+                data: form.serialize(),
                 type: 'POST',
                 dataType: 'json',
                 success: function(json) {

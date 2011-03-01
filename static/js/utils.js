@@ -1,3 +1,16 @@
+/* -------------------- JQUERY EXTENSIONS ----------------------- */
+
+// Detect if an input/textarea has focus.
+// Usage:
+// if ($("...").is(":focus")) {
+//   ...
+// }
+jQuery.extend(jQuery.expr[':'], {
+    focus: function(element) { 
+        return element == document.activeElement; 
+    }
+});
+
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
 // Hide element without removing it from the DOM.

@@ -1252,6 +1252,7 @@
 				else {
 					this.textarea.css('overflow-y', 'hidden');
 					if (this.textarea.height() < this.dummy.height() + (this.expand_tolerance*this.line_height) || (this.dummy.height() < this.textarea.height())) {	
+					    
 						if (this.dummy.height() < this.min_height) {
 							this.textarea.animate({height: (this.min_height + (this.expand_tolerance*this.line_height)) + 'px'}, {
 							    duration: 100,
@@ -1261,7 +1262,12 @@
                     			    // End Instant.fm Modification
                     			}
 							});
-						} else {
+						// Start Instant.fm Modification
+					    // } else {
+					    // Modified to prevent self.onResize from getting called repeatedly when the height hasn't changed.
+				        // End Instant.fm Modification
+						} else if (this.textarea.height() != parseInt((this.dummy.height() + (this.expand_tolerance*this.line_height)).toFixed())) {
+						    
 							this.textarea.animate({height: (this.dummy.height() + (this.expand_tolerance*this.line_height)) + 'px'}, {
 							    duration: 100,
 							    complete: function() {
