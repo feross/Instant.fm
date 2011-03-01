@@ -11,6 +11,17 @@ jQuery.extend(jQuery.expr[':'], {
     }
 });
 
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            // Only send the token to relative URLs i.e. locally.
+            log(getCookie('_xsrf'));
+            xhr.setRequestHeader("X-CSRFToken", getCookie('_xsrf'));
+        }
+    }
+});
+    
+
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
 // Hide element without removing it from the DOM.

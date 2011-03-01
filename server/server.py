@@ -684,7 +684,7 @@ class LogoutHandler(UserHandlerBase):
         self.clear_all_cookies()
         session_id = self.get_secure_cookie('session_id')
         if session_id:
-            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)
+            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
 
 class ErrorHandler(HandlerBase):
     def prepare(self):

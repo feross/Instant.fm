@@ -320,10 +320,10 @@ function setupLogin() {
                             form.data("validator").invalidate(json.errors);
                             log('Login failt.');
                         }
-                        $('#submitLogin').removeAttr('disabled');
                         $.colorbox.resize();
                         $('input[name=password]', '#login').focus();
                     }
+                    $('#submitLogin').removeAttr('disabled');
                 },
                 error: function() {
                     log('Error posting form ;_;');
