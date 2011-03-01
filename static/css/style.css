@@ -1136,7 +1136,7 @@ a:hover .zoomIcon {
 
 .formRow label {
     color: #555;
-    float: left;
+    display: inline-block;
     font-weight: bold;
     padding-right: 8px;
     padding-bottom: 3px;
@@ -1170,12 +1170,15 @@ a:hover .zoomIcon {
     -webkit-box-shadow: inset 0 2px 2px #EFEFEF;
     box-shadow: inset 0 2px 2px #EFEFEF;
     
-    float: right;
+    display: inline-block;
     padding: 5px 4px;
     height: 18px;
     min-height: 18px;
     width: 270px;
 }
+
+#newPlaylistBox .formRow label { display: block; float: left; padding-top: 5px; }
+#newPlaylistBox .formRow textarea { display: block; float: right; }
 
 #fbName { width: 210px; }
 
@@ -1204,6 +1207,9 @@ a:hover .zoomIcon {
     margin-top: 8px;
 }
 
+#fbFacepile.like { height: 85px; overflow: hidden; }
+
+#fbFacepile.like iframe { left: -5px; position: relative; top: -70px; }
 
 /* Login Colorbox */
 

@@ -356,7 +356,7 @@ function setupSignup() {
         inline: true,
         href: '#signupBox',
         returnFocus: false,
-        onOpen: function() {
+        onComplete: function() {
             // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
             if (!$('#fbSignupForm').is(':visible')) {
                 $('#fbSignupForm').show();
@@ -366,9 +366,23 @@ function setupSignup() {
             }
 
             $('#fbFacepile')
+                .removeClass('like')
                 .empty()
                 .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            FB.XFBML.parse($('#fbFacepile').get(0));
+            FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
+                // If none of the user's friends have connected to Instant.fm, then lets fallback to showing the users
+                // who have liked our page (including non-friends). We show the like box, but use CSS trickery to just show the faces. 
+                window.setTimeout(function() {
+                    if ($('#fbFacepile').height() < 20) {
+                        $('#fbFacepile')
+                            .empty()
+                            .addClass('like')
+                            .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
+                        FB.XFBML.parse($('#fbFacepile').get(0));
+                    }
+                    $.colorbox.resize();
+                }, 1000);
+            });
         },
         scrolling: false,
         width: 450

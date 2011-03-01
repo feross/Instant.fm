@@ -13,6 +13,7 @@ var appSettings = {
         // minHeight: 16
     },
     fbAppId: '114871205247916',
+    fbPageURL: 'http://www.facebook.com/pages/Instantfm/198137876872500',
     jeditable: {
         data: function(value, settings) {
             // Turn <br>s into newlines before user edits text.
