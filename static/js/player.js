@@ -390,9 +390,9 @@ Player.prototype.loadPlaylistByUrl = function(url) {
 // Updates the playlist table
 Player.prototype.renderPlaylist = function(playlist) {
     
+    // Render Playlist
     $('#playlist').remove(); // clear the playlist
     
-    // Render Playlist
     this.songlist = new SongList({
         playlist: playlist,
         onClick: player._onClickSong,
@@ -458,6 +458,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         title: playlist.title,
         description: playlist.description
     });
+    $('#altPlaylistTitle').text(playlist.title);
 };
 
 Player.prototype._onClickSong = function() {

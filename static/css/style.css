@@ -493,6 +493,15 @@ input.file {
 	transition: height 0.6s ease-in-out;
 }
 
+#altPlaylistTitle {
+    color: #fff;
+    font-size: 20px;
+    font-weight: normal;
+    margin: 10px 10px 0 15px;
+    position: absolute;
+    top: 0;
+}
+
 #ytPlayer {
     position: relative;
     top: 0;

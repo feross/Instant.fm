@@ -242,9 +242,13 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
             }
         }
         
+        $('#altPlaylistTitle').slideDown(animationDuration);
+        
     } else {
         var pixels = browser.closedCSSTop;
         this.getTopView() && this.getTopView().willSleep();
+        
+        $('#altPlaylistTitle').slideUp(animationDuration);
     }
     
     this.isOpen = toggle;
