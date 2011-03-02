@@ -1,6 +1,6 @@
 /* --------------------------- SETUP  --------------------------- */
 
-function setupAutogrowInputType() {
+function setupEditableAutogrowInputType() {
     $.editable.addInputType('autogrow', {
         element: function(settings, original) {
             var textarea = $('<textarea />');
@@ -22,7 +22,7 @@ function setupAutogrowInputType() {
             var width;
             switch(elemId) {
                 case 'curPlaylistTitle':
-                    width = 380;
+                    width = 390;
                     break;
                 case 'curPlaylistDesc':
                     width = 470;
@@ -40,13 +40,20 @@ function setupAutogrowInputType() {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    $('#helpLink').colorbox({inline: true, href: '#helpBox'});
+    $('#helpLink').colorbox({inline: true, href: '#helpBox', returnFocus: false});
     
     $('input, textarea').live('focus', function(event) {
         keyEvents = false; 
     });
     $('input, textarea').live('blur', function(event) {
         keyEvents = true;
+    });
+    
+    $(document).bind('cbox_open', function() {
+        colorboxOpen = true;
+    });
+    $(document).bind('cbox_closed', function() {
+        colorboxOpen = false;
     });
     
     $(window).keydown(function(event) {
@@ -92,6 +99,9 @@ function setupKeyboardShortcuts() {
                     break;
 
                 // Navigation
+                case 78: // n
+                    $('#navNewPlaylist').click();
+                    break;
                 case 70: // f
                     browser.pushSearchPartial();
                     break;
@@ -102,7 +112,8 @@ function setupKeyboardShortcuts() {
                     var container = $('#container');
                     var message = $('#backgroundMsg');
                     
-                    if (container.css('opacity') == 0) {
+                    log(Math.round(container.css('opacity')));
+                    if (Math.round(container.css('opacity')) == 0) {
                         showElement(container);
                         hideElement(message);
                     } else if (container.css('opacity') == 1) {
@@ -128,7 +139,14 @@ function setupKeyboardShortcuts() {
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
-                browser.pop();
+                if (!browser.isOpen || colorboxOpen) {
+                    return;
+                }    
+                if (browser.viewStack.length > 1) {
+                    browser.pop();
+                } else {
+                    browser.toggle(false);
+                }
                 break;
             default:
                 pressed2 = false;
@@ -165,11 +183,180 @@ function setupFBML(playlist) {
     }());
 }
 
+function setupDragDropUploader(dropId, callback) {
+    if (Modernizr.draganddrop) {
+        new uploader(dropId, null, '/upload', null, callback);
+    }
+}
+
+function setupNewPlaylist() {
+    $('a[href="#new"]').colorbox({
+        inline: true,
+        href: "#newPlaylistBox",
+        returnFocus: false,
+        onComplete: function() {
+            $('textarea[name=title]', '#newPlaylistForm').focus();
+        },
+        scrolling: false
+    });
+    
+    $('textarea', '#newPlaylistForm')
+        .autogrow($.extend({}, appSettings.autogrow,
+            {onResize: function(elem) {
+                // Ensure that elem had focus before re-setting the focus
+                var elemHadFocus = $(elem).is(':focus');
+                log(elemHadFocus);
+                
+                if (elemHadFocus) {
+                    $.colorbox.resize();
+                    $(elem).focus();
+                }
+            },
+            lineHeight: 18
+        })
+    );
+    
+    // initialize validator and add a custom form submission logic
+    $("form#newPlaylistForm").validator({
+        effect: 'wall', 
+        container: '#newPlaylistErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+        var form = $(this);
+        
+        $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
+      
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/new-list',
+                data: form.serialize(),
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    if (json && json.status && json.status == "ok")  {
+                        $.colorbox.close();
+                        player.loadPlaylist(json);
+                        browser.pushSearchPartial(true);
+                        
+                        // Clear form fields (after colorbox closes)
+                        window.setTimeout(function() {
+                            $('textarea', '#newPlaylistForm').val('');
+                        }, 300);
+                        
+                    } else {
+                        // server-side validation failed. use invalidate() to show errors
+                        if (json && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            $.colorbox.resize();
+                        }
+                    }
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                },
+                error: function() {
+                    log('Error posting new playlist form ;_;');
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        } else {
+            $('#submitNewPlaylist').removeAttr('disabled');
+            $.colorbox.resize();
+        }
+        
+    });
+}
+
+function setupLogin() {
+    $('a[href="#login"]').colorbox({
+        inline: true,
+        href: "#loginBox",
+        returnFocus: false,
+        onComplete: function() {
+            $('input[name=email]', '#login').focus();
+        },
+        scrolling: false
+    });
+    
+    $('#loginSignup a').click(function() {
+        $('#navSignup').click();
+    });
+    
+    $("form#login").validator({
+        effect: 'wall',
+        container: '#loginErrors',
+   
+        // do not validate inputs when they are edited
+        errorInputEvent: null
+    }).submit(function(e) {
+    
+        var form = $(this);
+        $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
+        
+        // client-side validation OK.
+        if (!e.isDefaultPrevented()) {
+      
+            // submit with AJAX
+            $.ajax({
+                url: '/login',
+                data: form.serialize(), 
+                type: 'POST',
+                dataType: 'json',
+                success: function(json) {
+                    // everything is ok. (server returned true)
+                    if (json && json === true)  {
+                        log('Login succeeded.');
+                        loginStatusChanged();
+                        $.colorbox.close();
+                    // server-side validation failed. use invalidate() to show errors
+                    } else {
+                        if (json && json.success === false && json.errors) {
+                            form.data("validator").invalidate(json.errors);
+                            log('Login failt.');
+                        }
+                        $.colorbox.resize();
+                        $('input[name=password]', '#login').focus();
+                    }
+                    $('#submitLogin').removeAttr('disabled');
+                },
+                error: function() {
+                    log('Error posting form ;_;');
+                    $('#submitLogin').removeAttr('disabled');
+                },
+            });
+            
+            // prevent default form submission logic
+            e.preventDefault();
+        } else {
+            $.colorbox.resize();
+            $('input[name=email]', '#login').focus();
+            $('#submitLogin').removeAttr('disabled');
+        }
+    });
+}
+
+function setupLogout() {
+	$('a[href="#logout"]').click(function(event) {
+      event.preventDefault();
+    	$.post('/logout', function() {
+        	loginStatusChanged();
+            log('Logged out.');
+        });
+    });
+}
+
 function setupSignup() {
     $('#navSignup').colorbox({
         inline: true,
         href: '#signupBox',
-        onOpen: function() {
+        returnFocus: false,
+        onComplete: function() {
             // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
             if (!$('#fbSignupForm').is(':visible')) {
                 $('#fbSignupForm').show();
@@ -179,9 +366,23 @@ function setupSignup() {
             }
 
             $('#fbFacepile')
+                .removeClass('like')
                 .empty()
                 .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            FB.XFBML.parse(document.getElementById('fbFacepile'));
+            FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
+                // If none of the user's friends have connected to Instant.fm, then lets fallback to showing the users
+                // who have liked our page (including non-friends). We show the like box, but use CSS trickery to just show the faces. 
+                window.setTimeout(function() {
+                    if ($('#fbFacepile').height() < 20) {
+                        $('#fbFacepile')
+                            .empty()
+                            .addClass('like')
+                            .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
+                        FB.XFBML.parse($('#fbFacepile').get(0));
+                    }
+                    $.colorbox.resize();
+                }, 1000);
+            });
         },
         scrolling: false,
         width: 450
@@ -262,6 +463,8 @@ function setupSignup() {
         errorInputEvent: null
     }).submit(function(e) {
         var form = $(this);
+        
+        $('#submitFbSignupForm').attr('disabled', 'disabled'); // so the user can only submit the form once
       
         // client-side validation OK.
         if (!e.isDefaultPrevented()) {
@@ -289,131 +492,20 @@ function setupSignup() {
                             log('Registration failt.');
                             $.colorbox.resize();
                         }
+                        $('#submitFbSignupForm').removeAttr('disabled');
                     }
                 },
-                error: function() { log('Error posting form ;_;'); },
+                error: function() {
+                    log('Error posting form ;_;');
+                    $('#submitFbSignupForm').removeAttr('disabled');
+                },
             });
             
             // prevent default form submission logic
             e.preventDefault();
         } else {
             $.colorbox.resize();
+            $('#submitFbSignupForm').removeAttr('disabled');
         }
     });
-}
-
-function setupLogin() {
-    $('a[href="#login"]').colorbox({
-        inline: true,
-        href: "#loginBox",
-        onComplete: function() {
-            $('input[name=email]', '#login').focus();
-        }
-    });
-    $("form#login").validator({
-        effect: 'wall', 
-        container: '#loginErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-    
-        var form = $(this);
-      
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/login',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    // everything is ok. (server returned true)
-                    if (json && json === true)  {
-                        log('Login succeeded.');
-                        loginStatusChanged();
-                    // server-side validation failed. use invalidate() to show errors
-                    } else {
-                        if (json && json.success === false && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            log('Login failt.');
-                        }
-                    }
-                },
-                error: function() { log('Error posting form ;_;'); },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        }
-    });
-}
-
-function setupLogout() {
-	$('a[href="#logout"]').click(function(event) {
-      event.preventDefault();
-    	$.post('/logout', function() {
-        	loginStatusChanged();
-            log('Logged out.');
-        });
-    });
-}
-
-function setupNewPlaylist() {
-    $('a[href="#new"]').colorbox({
-        inline: true,
-        href: "#newPlaylistBox",
-        onComplete: function() {
-            $('input[name=title]', '#newPlaylistForm').focus();
-        }
-    });
-    
-    // initialize validator and add a custom form submission logic
-    $("form#newPlaylistForm").validator({
-        effect: 'wall', 
-        container: '#newPlaylistErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-        var form = $(this);
-      
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/new-list',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    if (json && json.status && json.status == "ok")  {
-                        $.colorbox.close();
-                        player.loadPlaylist(json)
-                    } else {
-                        // server-side validation failed. use invalidate() to show errors
-                        if (json && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            $.colorbox.resize();
-                        }
-                    }
-                },
-                error: function() { log('Error posting new playlist form ;_;'); },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $.colorbox.resize();
-        }
-    });
-}
-
-function setupDragDropUploader(dropId, callback) {
-    if (Modernizr.draganddrop) {
-        new uploader(dropId, null, '/upload', null, callback);
-    }
 }

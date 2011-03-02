@@ -3,13 +3,29 @@ var player;
 var nowplaying;
 var browser;
 
-var keyEvents = true; // Used to disable keyboard shortuts
+var keyEvents = true; // Are keyboard shortuts enabled?
+var colorboxOpen = false; // Is a colorbox open?
 
 var appSettings = {
+    autogrow: {
+        expandTolerance: 0.001,
+        lineHeight: 16,
+        // minHeight: 16
+    },
+    fbAppId: '114871205247916',
+    fbPageURL: 'http://www.facebook.com/pages/Instantfm/198137876872500',
     jeditable: {
+        data: function(value, settings) {
+            // Turn <br>s into newlines before user edits text.
+            var retval = value.replace(/<br>/gi, '\n');
+            
+            // Decode HTML before the user edits text. (&amp; -> &)
+            retval = htmlDecode(retval);
+            return retval;
+        },
         event: 'editable', // custom jQuery event
-        onblur: 'ignore',
-        submit: 'Update',
+        onblur: 'submit',
+        submit: 'Save',
         tooltip: 'Click to edit',
         type: 'autogrow',
         autogrow: {
@@ -20,8 +36,7 @@ var appSettings = {
         axis: 'y',
         scrollSensitivity: 25,
         tolerance: 'pointer'
-    },
-    fbAppId: '114871205247916'
+    }
 };
 
 function onloadHome() {
@@ -48,7 +63,7 @@ function onloadPlaylist() {
     nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
-    setupAutogrowInputType();
+    setupEditableAutogrowInputType();
     player.loadPlaylist(initial_playlist);
     
     updateDisplay();
@@ -62,6 +77,20 @@ function onloadPlaylist() {
             player.loadPlaylistByUrl(state.url);
         }
     };
+    
+    // Page may scroll in odd circumstances, like when selecting text.
+    // Don't allow page to scroll.
+    $(window).scroll(function(event) {
+        window.setTimeout(function() {
+            $('body').scrollTop(0);
+        }, 0);
+    });
+    $('#main').scroll(function(event) {
+        window.setTimeout(function() {
+            $('#main').scrollTop(0);
+        }, 0);
+    });
+    
     
     setupKeyboardShortcuts();
     setupFBML(initial_playlist);

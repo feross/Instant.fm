@@ -48,13 +48,13 @@ Model.prototype.saveSongs = function() {
 Model.prototype.updateTitle = function(newTitle) {
     model.playlist.title = $.trim(newTitle);
     
-    model.savePlaylist('&title='+model.playlist.title);
+    model.savePlaylist('&title='+encodeURIComponent(model.playlist.title));
 };
 
 Model.prototype.updateDesc = function(newDesc) {
     model.playlist.description = $.trim(newDesc);
     
-    model.savePlaylist('&description='+model.playlist.description);
+    model.savePlaylist('&description='+encodeURIComponent(model.playlist.description));
 };
 
 Model.prototype.updateAlbumImg = function(index, albumImg) {

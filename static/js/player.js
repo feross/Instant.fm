@@ -292,8 +292,11 @@ Player.prototype.addSongToPlaylist = function(song) {
     this.highlightSong('#playlist li:last');
     model.addSong(song);
     updateDisplay(); // resizes short playlists
-        
-    if (player.ytplayer.getPlayerState() == 0) { // player is stopped
+    
+    if (model.playlist.songs.length == 1) {
+        player.playSong(0);
+    } 
+    if (player.ytplayer && player.ytplayer.getPlayerState() == 0) { // player is stopped
         player.playSong(model.playlist.songs.length - 1);
     }
 };
@@ -333,6 +336,7 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 // Load a playlist based on the xhr response or the initial embedded playlist
 // @response - response body
 Player.prototype.loadPlaylist = function(playlist) {
+    log(playlist);
     if (!playlist) {
         log('Attempted to load null playlist.');
         return;
@@ -361,7 +365,7 @@ Player.prototype.loadPlaylist = function(playlist) {
             playlist.url
         );
         
-        $('#main').effect('pulsate', {times: 1});
+        //$('#main').effect('pulsate', {times: 1});
         nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
     }
         
@@ -389,11 +393,11 @@ Player.prototype.loadPlaylistByUrl = function(url) {
 // Updates the playlist table
 Player.prototype.renderPlaylist = function(playlist) {
     
+    // Render Playlist
     $('#playlist').remove(); // clear the playlist
     
-    // Render Playlist
     this.songlist = new SongList({
-        songs: playlist.songs,
+        playlist: playlist,
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
@@ -457,6 +461,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         title: playlist.title,
         description: playlist.description
     });
+    $('#altPlaylistTitle').text(playlist.title);
 };
 
 Player.prototype._onClickSong = function() {

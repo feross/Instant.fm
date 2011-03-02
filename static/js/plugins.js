@@ -1164,6 +1164,10 @@
 		this.max_height		  	= this.options.maxHeight || parseInt(jQuery(e).css('max-height'));;
 		this.textarea		  	= jQuery(e);
 		this.expand_tolerance	= (!isNaN(this.options.expandTolerance) && this.options.expandTolerance > 0) ? this.options.expandTolerance : 4;
+		
+		// Start Instant.fm Modification
+		this.onResize           = this.options.onResize;
+		// End Instant.fm Modification
 
 		if(isNaN(this.line_height))
 		  this.line_height = 0;
@@ -1187,15 +1191,19 @@
 		},
 
 		startExpand: function() {				
-		  var self = this;
+		    var self = this;
 			this.interval = window.setInterval(function() {self.checkExpand()}, 400);
 		},
 
 		stopExpand: function() {
-			clearInterval(this.interval);	
+			clearInterval(this.interval);
 		},
 
 		checkExpand: function() {
+		    // Start Instant.fm Modification
+		    var self = this;
+		    // End Instant.fm Modification
+		    			
 			if (this.dummy == null) {
 				this.dummy = jQuery('<div></div>');
 				this.dummy.css({
@@ -1231,16 +1239,43 @@
 				if (this.max_height > 0 && (this.dummy.height() + (this.expand_tolerance*this.line_height) > this.max_height)) {
 					this.textarea.css('overflow-y', 'auto');
 					if (this.textarea.height() < this.max_height) {
-						this.textarea.animate({height: (this.max_height + (this.expand_tolerance*this.line_height)) + 'px'}, 100);	
+						this.textarea.animate({height: (this.max_height + (this.expand_tolerance*this.line_height)) + 'px'}, {
+						    duration: 100,
+						    complete: function() {
+						        // Start Instant.fm Modification
+                			    self.onResize && self.onResize(self.textarea);
+                			    // End Instant.fm Modification
+                			}
+						});	
 					}
 				}
 				else {
 					this.textarea.css('overflow-y', 'hidden');
 					if (this.textarea.height() < this.dummy.height() + (this.expand_tolerance*this.line_height) || (this.dummy.height() < this.textarea.height())) {	
+					    
 						if (this.dummy.height() < this.min_height) {
-							this.textarea.animate({height: (this.min_height + (this.expand_tolerance*this.line_height)) + 'px'}, 100);	
-						} else {
-							this.textarea.animate({height: (this.dummy.height() + (this.expand_tolerance*this.line_height)) + 'px'}, 100);	
+							this.textarea.animate({height: (this.min_height + (this.expand_tolerance*this.line_height)) + 'px'}, {
+							    duration: 100,
+							    complete: function() {
+							        // Start Instant.fm Modification
+                    			    self.onResize && self.onResize(self.textarea);
+                    			    // End Instant.fm Modification
+                    			}
+							});
+						// Start Instant.fm Modification
+					    // } else {
+					    // Modified to prevent self.onResize from getting called repeatedly when the height hasn't changed.
+				        // End Instant.fm Modification
+						} else if (this.textarea.height() != parseInt((this.dummy.height() + (this.expand_tolerance*this.line_height)).toFixed())) {
+						    
+							this.textarea.animate({height: (this.dummy.height() + (this.expand_tolerance*this.line_height)) + 'px'}, {
+							    duration: 100,
+							    complete: function() {
+							        // Start Instant.fm Modification
+                    			    self.onResize && self.onResize(self.textarea);
+                    			    // End Instant.fm Modification
+                    			}
+							});	
 						}
 					}
 				}

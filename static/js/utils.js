@@ -1,3 +1,27 @@
+/* -------------------- JQUERY EXTENSIONS ----------------------- */
+
+// Detect if an input/textarea has focus.
+// Usage:
+// if ($("...").is(":focus")) {
+//   ...
+// }
+jQuery.extend(jQuery.expr[':'], {
+    focus: function(element) { 
+        return element == document.activeElement; 
+    }
+});
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            // Only send the token to relative URLs i.e. locally.
+            log(getCookie('_xsrf'));
+            xhr.setRequestHeader("X-CSRFToken", getCookie('_xsrf'));
+        }
+    }
+});
+    
+
 /* -------------------- UTILITY FUNCTIONS ----------------------- */
 
 // Hide element without removing it from the DOM.
@@ -7,7 +31,7 @@ function hideElement(elem, duration) {
     elem.data('original-position', elem.css('position')); // save position
     elem.animate({opacity: 0}, duration, function() {
         elem.css({
-            position: 'absolute',
+            position: 'relative',
             left: -9999
         });
     });

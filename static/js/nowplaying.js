@@ -43,7 +43,7 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
 	    track: t || ''
 	}, {
 	    success: function(data) {
-	      nowplaying._handleSongResults(t, a, _srcIndex, data);
+	        nowplaying._handleSongResults(t, a, _srcIndex, data);
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
@@ -62,6 +62,13 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+        this.renderSongDesc(false);
+        this.renderArtistDesc(false);
+        this.renderAlbumBlock({
+            albumImg: undefined,
+            trackName: t,
+            artistName: a,
+        });
         return;
     }
     
@@ -82,6 +89,10 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
                     photo: true,
                     returnFocus: false,
                     title: '&nbsp;' // don't show a title
+                });
+            } else {
+                $('#curAlbumImg').click(function(event) {
+                    event.preventDefault();
                 });
             }
         }
@@ -123,6 +134,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.track) {
+        this.renderSongDesc(false);
         return;
     }
                     
@@ -172,6 +184,7 @@ NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
         return; // The request was too slow. We don't need it anymore.
     }
     if (!data.artist) {
+        this.renderArtistDesc(false);
         return;
     }
                     
@@ -227,8 +240,10 @@ NowPlaying.prototype.renderPlaylistInfo = function(data) {
         
         $('.editLink').remove(); // remove all edit links
 
-        // TODO: Hide the editableness when we're not owner
-        nowplaying._makeEditable($('#curPlaylistTitle'), model.updateTitle);
+        nowplaying._makeEditable($('#curPlaylistTitle'), function(newTitle) {
+            model.updateTitle(newTitle);
+            $('#altPlaylistTitle').text(newTitle);
+        });
         nowplaying._makeEditable($('#curPlaylistDesc'), model.updateDesc);
         
         $('#curPlaylist').fadeIn('fast');
@@ -239,7 +254,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
     if (data.albumImg) {
         data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
     } else {
-        data.albumImg = '/images/unknown.png';
+        data.albumImg = '/images/unknown.jpg';
         data.albumAlt = 'Unknown album';
     }
     
@@ -253,7 +268,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         $('#curAlbumBlockTemplate')
             .tmpl(data)
             .appendTo('#curAlbumBlock');
-        FB.XFBML.parse(document.getElementById('curButtons'), function(reponse) {
+        FB.XFBML.parse($('#curButtons').get(0), function(reponse) {
             $('#curButtons').fadeIn('fast');
         });
         data.callback && data.callback();
@@ -287,7 +302,7 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
                 .tmpl(data)
                 .appendTo('#curArtistDesc');
             
-            data.callback && data.callback();
+                data.callback && data.callback();
             $('#curArtistDesc').fadeIn('fast');
         }
     });
@@ -349,35 +364,35 @@ NowPlaying.prototype._makeEditable = function(elem, updateCallback) {
             autogrowSettings = {
                 expandTolerance: 0.05,
                 lineHeight: 30,
-                minHeight: 30,
             };
             buttonClass = 'large awesome white';
             break;
         default:
-            autogrowSettings = {
-                expandTolerance: 0.1,
-                lineHeight: 16,
-                minHeight: 16,
-            };
+            autogrowSettings = $.extend({}, appSettings.autogrow);
             buttonClass = 'small awesome white';
             break;
     }
     
     elem.after($('<a class="editLink mustOwn" href="#edit">Edit</a>')
-        .click(function(event) {
-            event.preventDefault();
-            $.extend(appSettings.jeditable.autogrow, autogrowSettings);
+            .click(function(event) {
+                event.preventDefault();
+                $.extend(appSettings.jeditable.autogrow, autogrowSettings);
 
-            $(this).prev().trigger('editable');
-            $(this).hide();
-            
-        }))
+                $(this).prev().trigger('editable');
+                $(this).hide();
+            })
+        )
         .editable(function(value, settings) {
             $(this).next().show();
             
             updateCallback(value);
             return value;
-        }, $.extend({}, appSettings.jeditable, {buttonClass: buttonClass}));
+        }, $.extend({}, appSettings.jeditable, {
+            buttonClass: buttonClass,
+            onreset: function() {
+                $(this).parent().next().show(); // Show the edit button again if the edit is canceled.
+            }
+        }));
 };
 
 
@@ -411,7 +426,7 @@ NowPlaying.prototype.shareOnFacebook = function() {
         method: 'feed',
         name: model.playlist.title,
         link: 'http://instant.fm' + model.playlist.url,
-        picture: bestAlbumImg || 'http://instant.fm/images/unknown.png',
+        picture: bestAlbumImg || 'http://instant.fm/images/unknown.jpg',
         caption: 'Instant.fm Playlist',
         description: model.playlist.description + '\n',
         properties: {'Artists in this playlist': topArtists.join(', ')},

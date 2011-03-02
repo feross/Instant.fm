@@ -55,7 +55,7 @@ td, td img { vertical-align: top; }
 sub { vertical-align: sub; font-size: smaller; }
 sup { vertical-align: super; font-size: smaller; }
 pre {  padding: 15px;  white-space: pre;  white-space: pre-wrap;  white-space: pre-line;  word-wrap: break-word; }
-textarea { overflow: auto; } 
+textarea { resize: none; overflow: auto; } 
 .ie6 legend, .ie7 legend { margin-left: -7px; } 
 input[type="radio"] { vertical-align: text-bottom; }
 input[type="checkbox"] { vertical-align: bottom; }
@@ -65,9 +65,9 @@ label, input[type=button], input[type=submit], button, .pointer { cursor: pointe
 input[type=button], input[type=submit], button { border: 0; }
 button, input, select, textarea { margin: 0; }
 input:valid, textarea:valid   {  }
-/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }*/
+/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }
 .no-boxshadow input:invalid, 
-.no-boxshadow textarea:invalid { background-color: #f0dddd; }
+.no-boxshadow textarea:invalid { background-color: #f0dddd; }*/
 
 ::-moz-selection{ background: #499bd1; color:#fff; text-shadow: none; }
 ::selection { background:#499bd1; color:#fff; text-shadow: none; } 
@@ -293,41 +293,11 @@ a.awesome:hover { text-decoration: none; }
     );
 }
 
-/* YouTube player style buttons */
-.ytbutton.awesome, .ytbutton.awesome:visited {
-    background-color: #ddd;
-    border: 1px solid #ddd;
-    color: #333;
-    text-shadow: none;
+.dulled {
+    -moz-opacity: 0.4;
+    filter: alpha(opacity: 40);
+    opacity: 0.4;
 }
-.ytbutton.awesome:hover {
-    color: #bf1e1e;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.50, rgb(237,237,237)),
-        color-stop(0.55, rgb(255,255,255))
-    );
-    border: 1px solid #cdcdcd;
-}
-.ytbutton.awesome.on {
-    background-color: #b03434;
-    background-image: none;
-    border: 1px solid #b03434;
-    color: #fff;
-}
-.ytbutton.awesome.on:hover {
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0.50, rgb(182,15,15)),
-        color-stop(0.55, rgb(200,24,24))
-    );
-    border: 1px solid #c82424;
-}
-
 
 
 
@@ -340,16 +310,16 @@ body {
 }
 
 body#p {
-    background: #000 url('/images/bob-marley.jpg') top left repeat;
+    background: #000 url('/images/bg.jpg') top left repeat;
 }
 
 body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
 
-#container { margin: 0 auto; text-align: left; width: 1000px; }
+#container { margin: 0 auto; position: relative; text-align: left; width: 1000px; }
 
 h1 { font-size: 24px; }
 h2 { font-size: 24px; }
-h3 { font-size: 20px; margin: 10px 0 5px 0; }
+h3 { font-size: 22px; margin: 10px 0 8px 0; }
 h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 10px; }
@@ -491,6 +461,15 @@ input.file {
 	-moz-transition: height 0.6s ease-in-out;
 	-o-transition: height 0.6s ease-in-out;
 	transition: height 0.6s ease-in-out;
+}
+
+#altPlaylistTitle {
+    color: #fff;
+    font-size: 20px;
+    margin: 10px 10px 0 15px;
+    position: absolute;
+    text-shadow: #000 0 1px 2px;
+    top: 0;
 }
 
 #ytPlayer {
@@ -914,10 +893,13 @@ header:hover .editLink, article:hover .editLink {
 
 #nowPlaying header .editLink { top: -3px; }
 
-#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; }
+#curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; min-height: 30px; }
 #curPlaylistTitle button { float: left; margin-left: 8px; }
 
-#curPlaylistDesc textarea { color: #444; padding: 3px; outline:none; }
+#curPlaylistDesc {
+    white-space: pre-line; /* collapse whitespace but preserve line breaks */
+}
+#curPlaylistDesc textarea { color: #444; padding: 3px; outline:none; min-height: 16px; }
 
 #curPlaylistDesc button { display: inline-block; margin: 10px 0 10px 0; }
 
@@ -937,24 +919,36 @@ header:hover .editLink, article:hover .editLink {
 
 #comments { padding: 20px 0 0 0; }
 
-#comments h3 { border-bottom: #444 1px solid; }
-
 
 /* Current Playing Song */
 
-#curPlaying { margin-top: 20px; }
+.separator {
+    height: 16px;
+    margin: 20px 0 0 0;
+    background: transparent url('/images/flourishes.png') no-repeat center -61px;
+    border: 0;
+    outline: 0;
+    -moz-opacity: .4;
+    opacity: .4;
+    filter: alpha(opacity=40);
+    text-align: center;
+}
 
-#curAlbumBlock { margin: 10px 0 0 0; }
+#curPlaying { margin-top: 10px; }
+
+/*#curPlaying > header { font-style: italic; }*/
+
+#curAlbumBlock { margin: 5px 0 0 0; }
 
 .curLabel {
     display: inline-block;
     font-size: 12px;
     font-style: italic;
-    margin: 0 3px 0 0;
+    margin: 3px 3px 0 0;
     overflow: hidden;
     text-align: right;
     width: 15px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .reflect img {
@@ -993,6 +987,9 @@ a:hover .zoomIcon {
 .no-cssreflections a:hover .zoomIcon {
     bottom: 16px;
 }
+.artistPartial a:hover .zoomIcon,
+.albumPartial a:hover .zoomIcon { right: 20px; }
+
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 330px; }
 
@@ -1044,6 +1041,12 @@ a:hover .zoomIcon {
 
 .colorbox .subtitle { color: #999; padding-left: 5px; }
 
+.error { color: red; font-weight: bold; }
+
+
+/* Keyboard Shortvuts Colorbox */
+
+#helpBox section { float: left; }
 
 #helpBox dl {
     height: 25px;
@@ -1066,6 +1069,11 @@ a:hover .zoomIcon {
 }
 
 #helpBox dd { color: #555; float: left; font-size: 12px; padding-top: 5px; }
+
+
+/* New Playlist Colorbox */
+
+#newPlaylistForm { text-align: left; }
 
 
 /* Signup Colorbox - Step 1 */
@@ -1092,9 +1100,9 @@ a:hover .zoomIcon {
 
 #fbSignupForm { display: inline-block; }
 
-.formRow { margin: 7px 0; }
+.formRow { clear: both; margin: 7px 0; }
 
-.formRow label, .formRow input { font-size: 16px; }
+.formRow label, .formRow input, .formRow textarea { font-size: 16px; }
 
 .formRow label {
     color: #555;
@@ -1107,7 +1115,7 @@ a:hover .zoomIcon {
     vertical-align: middle;
 }
 
-.formRow input {
+.formRow input, .formRow textarea {
     background-image:
         -webkit-gradient(
             linear,
@@ -1134,8 +1142,13 @@ a:hover .zoomIcon {
     
     display: inline-block;
     padding: 5px 4px;
+    height: 18px;
+    min-height: 18px;
     width: 270px;
 }
+
+#newPlaylistBox .formRow label { display: block; float: left; padding-top: 5px; }
+#newPlaylistBox .formRow textarea { display: block; float: right; }
 
 #fbName { width: 210px; }
 
@@ -1146,11 +1159,15 @@ a:hover .zoomIcon {
     margin: 4px 0 0 103px;
 }
 
+.formBottomNote {
+    float: left;
+    font-size: 12px;
+    margin: 17px 0 0 13px;
+}
+
 #agreeToTerms {
     color: #888;
-    float: left;
     font-size: 11px;
-    margin: 17px 0 0 13px;
 }
 
 #submitFbSignupForm,
@@ -1160,6 +1177,9 @@ a:hover .zoomIcon {
     margin-top: 8px;
 }
 
+#fbFacepile.like { height: 85px; overflow: hidden; }
+
+#fbFacepile.like iframe { left: -5px; position: relative; top: -70px; }
 
 /* Login Colorbox */
 
@@ -1237,9 +1257,9 @@ nav a:hover { text-decoration: underline; }
 }
 
 #footer #helpLink {
-    background: transparent url("/images/keyboard.png") center right no-repeat;
+    background: transparent url("/images/keyboard.png") center left no-repeat;
     float: right;
-    padding: 0 25px 0 0;
+    padding: 0 0 0 25px;
     margin-right: 10px;
 }
 
@@ -1293,6 +1313,15 @@ nav a:hover { text-decoration: underline; }
     margin: 0; /* override default h3 style to prevent jquery jitter */
     padding: 5px 0 10px 0;
 }
+
+.searchPartial .start {
+    background: transparent url('/images/searchPrompt.png') top left no-repeat;
+    height: 65px;
+    margin: 25px auto 0 auto;
+    width: 370px;
+}
+
+.searchPartial .noResults { font-size: 18px; margin: 15px 0 0 10px; }
 
 .artistResult, .albumResult {
     float: left;
@@ -1491,6 +1520,18 @@ nav a:hover { text-decoration: underline; }
 }
 
 .songListItem:hover { background-color: rgb(197,222,254); }
+
+.playAll {
+    background: transparent url('/images/playall.png') top left no-repeat;
+    display: block;
+    float: right;
+    font-weight: bold;
+    height: 20px;
+    line-height: 1.4;
+    padding-left: 25px;
+    margin: 3px 20px 0 0;
+}
+
 
 /* Playlist */
 
