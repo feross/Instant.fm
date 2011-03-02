@@ -1,40 +1,91 @@
-/* --------------------------- SETUP  --------------------------- */
+/* -------------------- JQUERY EXTENSIONS ----------------------- */
 
-function setupEditableAutogrowInputType() {
-    $.editable.addInputType('autogrow', {
-        element: function(settings, original) {
-            var textarea = $('<textarea />');
-            if (settings.rows) {
-                textarea.attr('rows', settings.rows);
-            } else {
-                textarea.height(settings.height);
-            }
-            if (settings.cols) {
-                textarea.attr('cols', settings.cols);
-            } else {
-                textarea.width(settings.width);
-            }
-            $(this).append(textarea);
-            return(textarea);
-        },
-        plugin: function(settings, original) {
-            var elemId = $(this).parent().attr('id');
-            var width;
-            switch(elemId) {
-                case 'curPlaylistTitle':
-                    width = 390;
-                    break;
-                case 'curPlaylistDesc':
-                    width = 470;
-                    break;
-                default:
-                    width = $(this).width();
-                    break;
-            }
-            $('textarea', this).width(width).autogrow(settings.autogrow);
+// Detect if an input/textarea has focus.
+// Usage:
+// if ($("...").is(":focus")) {
+//   ...
+// }
+jQuery.extend(jQuery.expr[':'], {
+    focus: function(element) { 
+        return element == document.activeElement; 
+    }
+});
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            // Only send the token to relative URLs i.e. locally.
+            log(getCookie('_xsrf'));
+            xhr.setRequestHeader("X-CSRFToken", getCookie('_xsrf'));
         }
+    }
+});
+
+
+/* ------------------ JQUERY TOOLS VALIDATOR  ------------------ */
+
+// adds an effect called "wall" to the validator
+// TODO: Feross, I just copied and pasted this from JQuery Tools's page.
+//       I'm not sure what effect we want here, but this is how the error
+//       effects are implemented.
+$.tools.validator.addEffect('wall', function(errors, event) {
+    // get the message wall
+    var wall = $(this.getConf().container).fadeIn();
+    
+    // remove all existing messages
+    wall.find("p").remove();
+    
+    // add new ones
+    $.each(errors, function(index, error) {
+        wall.append(
+            //"<p><strong>" +error.input.attr("name")+ "</strong> " +error.messages[0]+ "</p>"
+            '<p>' +error.messages[0]+ ' <strong>' +error.input.attr('name')+ '</strong></p>'
+        );    
     });
-}
+
+// the effect does nothing when all inputs are valid  
+}, function(inputs)  {
+});
+
+
+/* ---------------- JEDITABLE - CUSTOM TEXTAREA WITH AUTOGROW ----------------- */
+
+$.editable.addInputType('autogrow', {
+    element: function(settings, original) {
+        var textarea = $('<textarea />');
+        if (settings.rows) {
+            textarea.attr('rows', settings.rows);
+        } else {
+            textarea.height(settings.height);
+        }
+        if (settings.cols) {
+            textarea.attr('cols', settings.cols);
+        } else {
+            textarea.width(settings.width);
+        }
+        $(this).append(textarea);
+        return(textarea);
+    },
+    plugin: function(settings, original) {
+        var elemId = $(this).parent().attr('id');
+        var width;
+        switch(elemId) {
+            case 'curPlaylistTitle':
+                width = 390;
+                break;
+            case 'curPlaylistDesc':
+                width = 470;
+                break;
+            default:
+                width = $(this).width();
+                break;
+        }
+        $('textarea', this).width(width).autogrow(settings.autogrow);
+    }
+});
+
+
+/* --------------------------- SETUP FUNCTIONS --------------------------- */
 
 // Set up keyboard shortcuts in a cross-browser manner
 // Tested in Firefox, Chrome, Safari.
@@ -109,18 +160,7 @@ function setupKeyboardShortcuts() {
                     player.highlightSong('.playing');
                     break;
                 case 66: // b
-                    var container = $('#container');
-                    var message = $('#backgroundMsg');
-                    
-                    log(Math.round(container.css('opacity')));
-                    if (Math.round(container.css('opacity')) == 0) {
-                        showElement(container);
-                        hideElement(message);
-                    } else if (container.css('opacity') == 1) {
-                        hideElement(container);
-                        showElement(message);
-                    }
-                    
+                    showHideUI();
                     break;
                 case 191: // ?
                     $('#helpLink').trigger('click');
@@ -430,28 +470,6 @@ function setupSignup() {
                 });
             });  
         }, {perms:'email'});
-    });
-     
-    // adds an effect called "wall" to the validator
-    // TODO: Feross, I just copied and pasted this from JQuery Tools's page.
-    //       I'm not sure what effect we want here, but this is how the error
-    //       effects are implemented.
-    $.tools.validator.addEffect("wall", function(errors, event) {
-        // get the message wall
-        var wall = $(this.getConf().container).fadeIn();
-        
-        // remove all existing messages
-        wall.find("p").remove();
-        
-        // add new ones
-        $.each(errors, function(index, error) {
-            wall.append(
-                "<p><strong>" +error.input.attr("name")+ "</strong> " +error.messages[0]+ "</p>"
-            );    
-        });
-  
-    // the effect does nothing when all inputs are valid  
-    }, function(inputs)  {
     });
     
     // initialize validator and add a custom form submission logic

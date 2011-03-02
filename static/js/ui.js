@@ -65,6 +65,20 @@ function onShowLessText(event) {
         .append(link);
 }
 
+function showHideUI() {
+    var container = $('#container');
+    var message = $('#backgroundMsg');
+    
+    log(Math.round(container.css('opacity')));
+    if (Math.round(container.css('opacity')) == 0) {
+        showElement(container);
+        hideElement(message);
+    } else if (container.css('opacity') == 1) {
+        hideElement(container);
+        showElement(message);
+    }
+}
+
 /* -------------------------- REUSABLE LIST COMPONENTS ------------------------ */
 
 // Takes an array of objects with properties 't', 'a', 'i' 

@@ -63,7 +63,6 @@ function onloadPlaylist() {
     nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
-    setupEditableAutogrowInputType();
     player.loadPlaylist(initial_playlist);
     
     updateDisplay();
