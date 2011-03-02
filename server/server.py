@@ -185,6 +185,10 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+class ImageUrlHandler(HandlerBase):
+    def post(self):
+        self.get_argument('url')
+        
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');
