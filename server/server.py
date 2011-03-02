@@ -14,7 +14,8 @@ import tornado.auth
 import lastfm
 import lastfm_cache
 import bcrypt
-import urllib2
+import Image
+import hashlib
 
 from datetime import datetime
 from optparse import OptionParser
@@ -44,6 +45,7 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
+            (r"/upload-img-url", ImageUrlHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -130,6 +132,9 @@ class HandlerBase(tornado.web.RequestHandler):
     def _set_session_cookie(self, 
                             user_id=None, 
                             expire_on_browser_close=False):
+        '''
+        TODO: After logging in, this ignores the "expire on browser close" option.
+        '''
         """Checks if a user_id cookie is set and sets one if not"""
         expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
@@ -186,8 +191,43 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
 class ImageUrlHandler(HandlerBase):
+    @tornado.web.asynchronous
     def post(self):
-        self.get_argument('url')
+        image_url = self.get_argument('image_url')
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(image_url, callback=self.on_response)
+        
+    @tornado.web.asynchronous
+    def get(self):
+        # TODO: Remove this. It's just for testing.
+        self.post()
+        
+    def on_response(self, response):
+        self._set_session_cookie()
+        result = {'status': 'OK'}
+        if response.body is None:
+            result['status'] = 'Nothing there.'
+            print(result['status'])
+            self.write(json.dumps(result))
+            self.finish()
+            return
+        
+        # Open image and verify it.
+        image = Image.open(response.buffer)
+        image.verify()
+        
+        # Rewind buffer and open image again
+        response.buffer.seek(0)
+        image = Image.open(response.buffer)
+        
+        user = self.get_current_user()
+        id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
+                             user.id if user else None,
+                             self._set_session_cookie())
+        
+        # Filenames are the md5 of the full size image.
+        filename = '{0:x}.{1:s}'.format(id, image.format)
+        image.save('static/images/uploaded/' + filename, image.format)
         
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
@@ -203,10 +243,15 @@ class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
     
-""" Any handler that involves playlists should extend this. """
 class PlaylistHandlerBase(HandlerBase):
-    """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
+    ''' 
+    Any handler that involves playlists should extend this.
+    ''' 
+    
     def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
+        ''' 
+        Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent.
+        ''' 
         playlist_dict = {
             "status": "ok",
             "id": id,
