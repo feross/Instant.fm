@@ -248,11 +248,6 @@ class ImageUrlHandler(ImageHandlerBase):
         http = tornado.httpclient.AsyncHTTPClient()
         http.fetch(image_url, callback=self.on_response)
         
-    @tornado.web.asynchronous
-    def get(self):
-        # TODO: Remove this. It's just for testing.
-        self.post()
-        
     def on_response(self, response):
         result = self._handle_image(response.buffer)
         self.write(result)
