@@ -180,8 +180,10 @@ class HandlerBase(tornado.web.RequestHandler):
         # Associate session with user
         self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
         
-        # Promote playlists to be owned by user
+        # Promote playlists and uploaded images to be owned by user
         self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
+                        user_id, session_id)
+        self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
         
         # Set cookies for user_id and user_name
@@ -203,32 +205,56 @@ class ImageUrlHandler(HandlerBase):
         self.post()
         
     def on_response(self, response):
-        self._set_session_cookie()
-        result = {'status': 'OK'}
-        if response.body is None:
-            result['status'] = 'Nothing there.'
-            print(result['status'])
-            self.write(json.dumps(result))
-            self.finish()
-            return
+        result = self._handle_image(response.buffer)
+        self.write(result)
+        self.finish()
+        
+    def _handle_image(self, buffer):
+        STATIC_DIR = 'static'
+        result = {'status': 'OK', 'images': {}}
         
         # Open image and verify it.
-        image = Image.open(response.buffer)
-        image.verify()
+        try:
+            image = Image.open(buffer)
+            image.verify()
+        except IOError:
+            result['status'] = 'No valid image at that URL.'
+            return result
         
         # Rewind buffer and open image again
-        response.buffer.seek(0)
-        image = Image.open(response.buffer)
+        buffer.seek(0)
+        image = Image.open(buffer)
         
         user = self.get_current_user()
         id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
                              user.id if user else None,
                              self._set_session_cookie())
         
-        # Filenames are the md5 of the full size image.
-        filename = '{0:x}.{1:s}'.format(id, image.format)
-        image.save('static/images/uploaded/' + filename, image.format)
+        filename_original = '{0:x}.{1:s}'.format(id, image.format)
+        filename_medium = '{0:x}-medium.{1:s}'.format(id, image.format)
         
+        url = '/images/uploaded/' + filename_original
+        image.save(STATIC_DIR + url, image.format)
+        result['images']['original'] = url
+        
+        # Crop to square for thumbnail versions
+        cropped_side_length = min(image.size)
+        square = ((image.size[0] - cropped_side_length) / 2, 
+                  (image.size[1] - cropped_side_length) / 2,
+                  (image.size[0] + cropped_side_length) / 2, 
+                  (image.size[1] + cropped_side_length) / 2)
+        cropped = image.crop(square)
+        
+        medium = cropped.copy()
+        medium_size = (160, 160)
+        medium.thumbnail(medium_size, Image.ANTIALIAS)
+        url = '/images/uploaded/' + filename_medium
+        medium.save(STATIC_DIR + url, medium.format)
+        result['images']['medium'] = url
+        
+        return result
+    
+    
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');

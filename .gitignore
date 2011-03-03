@@ -1,4 +1,5 @@
 *.log
+static/images/uploaded/*
 
 # PYTHON START
 
