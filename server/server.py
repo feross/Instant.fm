@@ -192,25 +192,11 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
-class ImageUrlHandler(HandlerBase):
-    @tornado.web.asynchronous
-    def post(self):
-        image_url = self.get_argument('image_url')
-        http = tornado.httpclient.AsyncHTTPClient()
-        http.fetch(image_url, callback=self.on_response)
         
-    @tornado.web.asynchronous
-    def get(self):
-        # TODO: Remove this. It's just for testing.
-        self.post()
-        
-    def on_response(self, response):
-        result = self._handle_image(response.buffer)
-        self.write(result)
-        self.finish()
-        
+class ImageHandlerBase(HandlerBase):
+    STATIC_DIR = 'static'
+    
     def _handle_image(self, buffer):
-        STATIC_DIR = 'static'
         result = {'status': 'OK', 'images': {}}
         
         # Open image and verify it.
@@ -234,7 +220,7 @@ class ImageUrlHandler(HandlerBase):
         filename_medium = '{0:x}-medium.{1:s}'.format(id, image.format)
         
         url = '/images/uploaded/' + filename_original
-        image.save(STATIC_DIR + url, image.format)
+        image.save(self.STATIC_DIR + url, image.format)
         result['images']['original'] = url
         
         # Crop to square for thumbnail versions
@@ -249,12 +235,30 @@ class ImageUrlHandler(HandlerBase):
         medium_size = (160, 160)
         medium.thumbnail(medium_size, Image.ANTIALIAS)
         url = '/images/uploaded/' + filename_medium
-        medium.save(STATIC_DIR + url, medium.format)
+        medium.save(self.STATIC_DIR + url, medium.format)
         result['images']['medium'] = url
         
         return result
     
-    
+         
+class ImageUrlHandler(ImageHandlerBase):
+    @tornado.web.asynchronous
+    def post(self):
+        image_url = self.get_argument('image_url')
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(image_url, callback=self.on_response)
+        
+    @tornado.web.asynchronous
+    def get(self):
+        # TODO: Remove this. It's just for testing.
+        self.post()
+        
+    def on_response(self, response):
+        result = self._handle_image(response.buffer)
+        self.write(result)
+        self.finish()
+        
+   
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');
