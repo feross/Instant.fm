@@ -14,7 +14,8 @@ import tornado.auth
 import lastfm
 import lastfm_cache
 import bcrypt
-import urllib2
+import Image
+import hashlib
 
 from datetime import datetime
 from optparse import OptionParser
@@ -44,6 +45,7 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
+            (r"/upload-img-url", ImageUrlHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -130,6 +132,9 @@ class HandlerBase(tornado.web.RequestHandler):
     def _set_session_cookie(self, 
                             user_id=None, 
                             expire_on_browser_close=False):
+        '''
+        TODO: After logging in, this ignores the "expire on browser close" option.
+        '''
         """Checks if a user_id cookie is set and sets one if not"""
         expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
@@ -175,8 +180,10 @@ class HandlerBase(tornado.web.RequestHandler):
         # Associate session with user
         self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
         
-        # Promote playlists to be owned by user
+        # Promote playlists and uploaded images to be owned by user
         self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
+                        user_id, session_id)
+        self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
         
         # Set cookies for user_id and user_name
@@ -185,6 +192,73 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+        
+class ImageHandlerBase(HandlerBase):
+    STATIC_DIR = 'static'
+    
+    def _handle_image(self, buffer):
+        result = {'status': 'OK', 'images': {}}
+        
+        # Open image and verify it.
+        try:
+            image = Image.open(buffer)
+            image.verify()
+        except IOError:
+            result['status'] = 'No valid image at that URL.'
+            return result
+        
+        # Rewind buffer and open image again
+        buffer.seek(0)
+        image = Image.open(buffer)
+        
+        user = self.get_current_user()
+        id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
+                             user.id if user else None,
+                             self._set_session_cookie())
+        
+        filename_original = '{0:x}.{1:s}'.format(id, image.format)
+        filename_medium = '{0:x}-medium.{1:s}'.format(id, image.format)
+        
+        url = '/images/uploaded/' + filename_original
+        image.save(self.STATIC_DIR + url, image.format)
+        result['images']['original'] = url
+        
+        # Crop to square for thumbnail versions
+        cropped_side_length = min(image.size)
+        square = ((image.size[0] - cropped_side_length) / 2, 
+                  (image.size[1] - cropped_side_length) / 2,
+                  (image.size[0] + cropped_side_length) / 2, 
+                  (image.size[1] + cropped_side_length) / 2)
+        cropped = image.crop(square)
+        
+        medium = cropped.copy()
+        medium_size = (160, 160)
+        medium.thumbnail(medium_size, Image.ANTIALIAS)
+        url = '/images/uploaded/' + filename_medium
+        medium.save(self.STATIC_DIR + url, medium.format)
+        result['images']['medium'] = url
+        
+        return result
+    
+         
+class ImageUrlHandler(ImageHandlerBase):
+    @tornado.web.asynchronous
+    def post(self):
+        image_url = self.get_argument('image_url')
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(image_url, callback=self.on_response)
+        
+    @tornado.web.asynchronous
+    def get(self):
+        # TODO: Remove this. It's just for testing.
+        self.post()
+        
+    def on_response(self, response):
+        result = self._handle_image(response.buffer)
+        self.write(result)
+        self.finish()
+        
+   
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');
@@ -199,10 +273,15 @@ class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
     
-""" Any handler that involves playlists should extend this. """
 class PlaylistHandlerBase(HandlerBase):
-    """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
+    ''' 
+    Any handler that involves playlists should extend this.
+    ''' 
+    
     def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
+        ''' 
+        Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent.
+        ''' 
         playlist_dict = {
             "status": "ok",
             "id": id,
