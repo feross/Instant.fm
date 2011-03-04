@@ -15,7 +15,7 @@ import lastfm
 import lastfm_cache
 import bcrypt
 import Image
-import hashlib
+import tornadorpc.json
 
 from datetime import datetime
 from optparse import OptionParser
@@ -64,7 +64,7 @@ class Application(tornado.web.Application):
             user=options.mysql_user, password=options.mysql_password)
 
         self.lastfm_api = lastfm.Api(self.API_KEY)
-        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))                
+        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
@@ -128,7 +128,7 @@ class HandlerBase(tornado.web.RequestHandler):
                 pass
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
-        
+    
     def _set_session_cookie(self, 
                             user_id=None, 
                             expire_on_browser_close=False):
@@ -192,6 +192,11 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+        
+class RpcTest(tornadorpc.json.JSONRPCHandler):
+    def my_method(self, my_arg):
+        return my_arg
+    
         
 class ImageHandlerBase(HandlerBase):
     STATIC_DIR = 'static'
