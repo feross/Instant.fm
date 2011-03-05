@@ -64,7 +64,7 @@ class Application(tornado.web.Application):
             user=options.mysql_user, password=options.mysql_password)
 
         self.lastfm_api = lastfm.Api(self.API_KEY)
-        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))                
+        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
@@ -128,7 +128,7 @@ class HandlerBase(tornado.web.RequestHandler):
                 pass
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
-        
+    
     def _set_session_cookie(self, 
                             user_id=None, 
                             expire_on_browser_close=False):
@@ -180,8 +180,10 @@ class HandlerBase(tornado.web.RequestHandler):
         # Associate session with user
         self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
         
-        # Promote playlists to be owned by user
+        # Promote playlists and uploaded images to be owned by user
         self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
+                        user_id, session_id)
+        self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
         
         # Set cookies for user_id and user_name
@@ -190,54 +192,84 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+        
 class GetImagesHandler(HandlerBase):
     def get(self):
         user = self.get_current_user()
         if user is not None:
-            image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s', user.id)
+            image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s OR session_id = %s',
+                                       user.id, self._set_session_cookie())
             self.write(json.dumps(image_rows))
             return
         
         self.write(json.dumps([]))
         
         
-class ImageUrlHandler(HandlerBase):
-    @tornado.web.asynchronous
-    def post(self):
-        image_url = self.get_argument('image_url')
-        http = tornado.httpclient.AsyncHTTPClient()
-        http.fetch(image_url, callback=self.on_response)
-        
-    @tornado.web.asynchronous
-    def get(self):
-        # TODO: Remove this. It's just for testing.
-        self.post()
-        
-    def on_response(self, response):
-        self._set_session_cookie()
-        result = {'status': 'OK'}
-        if response.body is None:
-            result['status'] = 'Nothing there.'
-            self.write(json.dumps(result))
-            self.finish()
-            return
+class ImageHandlerBase(HandlerBase):
+    STATIC_DIR = 'static'
+    
+    def _handle_image(self, buffer):
+        result = {'status': 'OK', 'images': {}}
         
         # Open image and verify it.
-        image = Image.open(response.buffer)
-        image.verify()
+        try:
+            image = Image.open(buffer)
+            image.verify()
+        except IOError:
+            result['status'] = 'No valid image at that URL.'
+            return result
         
         # Rewind buffer and open image again
-        response.buffer.seek(0)
-        image = Image.open(response.buffer)
+        buffer.seek(0)
+        image = Image.open(buffer)
         
         user = self.get_current_user()
         id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
                              user.id if user else None,
                              self._set_session_cookie())
         
-        filename = '{0:x}.{1:s}'.format(id, image.format)
-        image.save('static/images/uploaded/' + filename, image.format)
+        filename_original = '{0:x}.{1:s}'.format(id, image.format)
+        filename_medium = '{0:x}-medium.{1:s}'.format(id, image.format)
         
+        path = '/images/uploaded/' + filename_original
+        image.save(self.STATIC_DIR + path, image.format)
+        result['images']['original'] = path
+        self.db.execute('UPDATE uploaded_images SET original_path = %s WHERE id = %s',
+                        path, id)
+        
+        # Crop to square for thumbnail versions
+        cropped_side_length = min(image.size)
+        square = ((image.size[0] - cropped_side_length) / 2, 
+                  (image.size[1] - cropped_side_length) / 2,
+                  (image.size[0] + cropped_side_length) / 2, 
+                  (image.size[1] + cropped_side_length) / 2)
+        cropped = image.crop(square)
+        
+        medium = cropped.copy()
+        medium_size = (160, 160)
+        medium.thumbnail(medium_size, Image.ANTIALIAS)
+        path = '/images/uploaded/' + filename_medium
+        medium.save(self.STATIC_DIR + path, medium.format)
+        result['images']['medium'] = path
+        self.db.execute('UPDATE uploaded_images SET original_path = %s WHERE id = %s',
+                        path, id)
+        
+        return result
+    
+         
+class ImageUrlHandler(ImageHandlerBase):
+    @tornado.web.asynchronous
+    def post(self):
+        image_url = self.get_argument('image_url')
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(image_url, callback=self.on_response)
+        
+    def on_response(self, response):
+        result = self._handle_image(response.buffer)
+        self.write(result)
+        self.finish()
+        
+   
 class ArtistAutocompleteHandler(HandlerBase):
     def get(self):
         prefix = self.get_argument('term');

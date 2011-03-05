@@ -60,14 +60,14 @@ Player.prototype.increaseVolume = function() {
     if (player.ytplayer.isMuted()) {
         player.ytplayer.unMute();
     }
-    player.volume += 20;
+    player.volume += 15;
     player.volume = (player.volume <= 100) ? player.volume : 100;
     
     player.ytplayer.setVolume(player.volume);
 };
 
 Player.prototype.decreaseVolume = function() {
-    player.volume -= 20;
+    player.volume -= 15;
     player.volume = (player.volume >= 0) ? player.volume : 0;
     
     player.ytplayer.setVolume(player.volume);
@@ -149,7 +149,8 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 window.setTimeout(function() {
                     $('.playing')
                         .removeClass('paused')
-                        .addClass('missing');
+                        .addClass('missing')
+                        .removeClass('playing');
                     if (player.songIndex == srcIndex) {
                         player.playNextSong();
                     }
