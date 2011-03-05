@@ -15,7 +15,6 @@ import lastfm
 import lastfm_cache
 import bcrypt
 import Image
-import hashlib
 
 from datetime import datetime
 from optparse import OptionParser
@@ -46,6 +45,7 @@ class Application(tornado.web.Application):
             (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
             (r"/upload-img-url", ImageUrlHandler),
+            (r"/get-images", GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -190,6 +190,17 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+class GetImagesHandler(HandlerBase):
+    def get(self):
+        user = self.get_current_user()
+        if user is not None:
+            image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s', user.id)
+            self.write(json.dumps(image_rows))
+            return
+        
+        self.write(json.dumps([]))
+        
+        
 class ImageUrlHandler(HandlerBase):
     @tornado.web.asynchronous
     def post(self):
@@ -207,7 +218,6 @@ class ImageUrlHandler(HandlerBase):
         result = {'status': 'OK'}
         if response.body is None:
             result['status'] = 'Nothing there.'
-            print(result['status'])
             self.write(json.dumps(result))
             self.finish()
             return
@@ -225,7 +235,6 @@ class ImageUrlHandler(HandlerBase):
                              user.id if user else None,
                              self._set_session_cookie())
         
-        # Filenames are the md5 of the full size image.
         filename = '{0:x}.{1:s}'.format(id, image.format)
         image.save('static/images/uploaded/' + filename, image.format)
         
