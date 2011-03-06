@@ -521,7 +521,34 @@ class PlaylistEditHandler(PlaylistHandlerBase):
         self.write(json.dumps({'status': 'Malformed edit request'}))        
         
         
-class UploadHandler(PlaylistHandlerBase):
+class UploadHandlerBase(HandlerBase):
+    def _get_request_content(self):
+        # If the file is directly uploaded in the POST body
+        # Make a dict of the headers with all lowercase keys
+        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
+        if 'up-filename' in lower_headers:
+            filename = lower_headers['up-filename']
+
+            if self.get_argument('base64', 'false') == 'true':
+                try:                    
+                    contents = base64.b64decode(self.request.body)
+                except Exception:
+                    return {'status': 'Invalid request'}
+            else:
+                contents = self.request.body
+        # If the file is in form/multipart data
+        else:
+            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
+                return {'status': 'No file specified'}
+        
+            uploaded_file = self.request.files['file'][0]
+            filename = uploaded_file['filename']
+            contents = uploaded_file['body']
+            
+        return (filename, contents)
+        
+        
+class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
     """Handles playlist upload requests"""
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -619,29 +646,7 @@ class UploadHandler(PlaylistHandlerBase):
                 
         return res_arr
        
-    def _handle_request(self):
-        # If the file is directly uploaded in the POST body
-        # Make a dict of the headers with all lowercase keys
-        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
-        if 'up-filename' in lower_headers:
-            filename = lower_headers['up-filename']
-
-            if self.get_argument('base64', 'false') == 'true':
-                try:                    
-                    contents = base64.b64decode(self.request.body)
-                except Exception:
-                    return {'status': 'Invalid request'}
-            else:
-                contents = self.request.body
-        # If the file is in form/multipart data
-        else:
-            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
-                return {'status': 'No file specified'}
-        
-            uploaded_file = self.request.files['file'][0]
-            filename = uploaded_file['filename']
-            contents = uploaded_file['body']
-
+    def _handle_request(self, filename, contents):
         title, ext = os.path.splitext(filename)
         
         # Parse the file based on the format
@@ -665,7 +670,8 @@ class UploadHandler(PlaylistHandlerBase):
     
     def post(self):
         self._get_session_cookie()
-        result = self._handle_request()
+        (filename, contents) = self._get_request_content()
+        result = self._handle_request(filename, contents)
         
         if self.get_argument('redirect', 'false') == 'true':
             playlist_id = result['playlist_id']
