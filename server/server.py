@@ -207,8 +207,9 @@ class GetImagesHandler(HandlerBase):
         
 class ImageHandlerBase(HandlerBase):
     STATIC_DIR = 'static'
+    IMAGE_DIR = '/images/uploaded/'
     
-    def _handle_image(self, buffer):
+    def _handle_image(self, buffer, playlist_id):
         result = {'status': 'OK', 'images': {}}
         
         # Open image and verify it.
@@ -227,34 +228,39 @@ class ImageHandlerBase(HandlerBase):
         id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
                              user.id if user else None,
                              self._set_session_cookie())
+        self.db.execute('UPDATE playlists SET bg_image_id = %s WHERE playlist_id = %s',
+                        id, playlist_id)
         
-        filename_original = '{0:x}.{1:s}'.format(id, image.format)
-        filename_medium = '{0:x}-medium.{1:s}'.format(id, image.format)
-        
-        path = '/images/uploaded/' + filename_original
-        image.save(self.STATIC_DIR + path, image.format)
-        result['images']['original'] = path
-        self.db.execute('UPDATE uploaded_images SET original_path = %s WHERE id = %s',
-                        path, id)
-        
-        # Crop to square for thumbnail versions
-        cropped_side_length = min(image.size)
-        square = ((image.size[0] - cropped_side_length) / 2, 
-                  (image.size[1] - cropped_side_length) / 2,
-                  (image.size[0] + cropped_side_length) / 2, 
-                  (image.size[1] + cropped_side_length) / 2)
-        cropped = image.crop(square)
-        
-        medium = cropped.copy()
-        medium_size = (160, 160)
-        medium.thumbnail(medium_size, Image.ANTIALIAS)
-        path = '/images/uploaded/' + filename_medium
-        medium.save(self.STATIC_DIR + path, medium.format)
-        result['images']['medium'] = path
-        self.db.execute('UPDATE uploaded_images SET original_path = %s WHERE id = %s',
-                        path, id)
-        
+        sizes = [('original', None), ('medium', 160)]
+        result['images'] = self._save_images(id, image, sizes)
         return result
+    
+    def _save_images(self, id, original, sizes):
+        # Crop to square for thumbnail versions
+        format = original.format
+        cropped_side_length = min(original.size)
+        square = ((original.size[0] - cropped_side_length) / 2, 
+                  (original.size[1] - cropped_side_length) / 2,
+                  (original.size[0] + cropped_side_length) / 2, 
+                  (original.size[1] + cropped_side_length) / 2)
+        cropped_image = original.crop(square)
+        
+        images = {}
+        for name, side_length in sizes:
+            if side_length is None:
+                image = original
+            else:
+                image = cropped_image.copy()
+                size = (side_length, side_length)
+                image.thumbnail(size, Image.ANTIALIAS)
+            filename = '{0:x}-{1:s}.{2:s}'.format(id, name, format.lower())
+            path = os.path.join(self.IMAGE_DIR, filename)
+            image.save(self.STATIC_DIR + path, format=format)
+            images[name] = path
+            self.db.execute('UPDATE uploaded_images SET medium_size_path = %s WHERE id = %s',
+                            path, id)
+    
+        return images
     
          
 class ImageUrlHandler(ImageHandlerBase):
@@ -264,8 +270,14 @@ class ImageUrlHandler(ImageHandlerBase):
         http = tornado.httpclient.AsyncHTTPClient()
         http.fetch(image_url, callback=self.on_response)
         
+    @tornado.web.asynchronous
+    def get(self):
+        # TODO: Remove this. It's for testing.
+        self.post()
+        
     def on_response(self, response):
-        result = self._handle_image(response.buffer)
+        playlist_id = self.get_argument('playlist_id', default=None)
+        result = self._handle_image(response.buffer, playlist_id)
         self.write(result)
         self.finish()
         
