@@ -159,7 +159,7 @@ function loginStatusChanged() {
     if (isLoggedIn()) {
         $('html').addClass('loggedIn');
         $('html').removeClass('loggedOut');
-        $('.username').html(unescape(user_name));
+        $('.username').text(unescape(user_name)).shorten({width: 20});
     } else {
         $('html').addClass('loggedOut');
         $('html').removeClass('loggedIn');
@@ -180,7 +180,7 @@ function ownershipStatusChanged() {
         $('html').addClass('isOwner');
         $('html').removeClass('isNotOwner');
   	    var user_name = readCookie('user_name');
-        $('.username').html(unescape(user_name));
+        $('.username').text(unescape(user_name)).shorten({width: 20});
         
         // If we own the playlist, make sure user_id is set
         var user_id = readCookie('user_id');

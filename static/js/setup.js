@@ -210,7 +210,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
          
-        playlist && nowplaying.tryLoadComments(playlist.url, playlist.title);
+        playlist && nowplaying.tryLoadComments(playlist.url);
     };
     
     (function() {

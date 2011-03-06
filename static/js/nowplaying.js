@@ -9,15 +9,15 @@ function NowPlaying() {
 NowPlaying.prototype.setupHandlers = function() {
     $('#addComment').click(function(event) {
         event.preventDefault();
-        if (!$('#commentsDiv').data('loaded')) {
+        if (!$('#comments').data('loaded')) {
             return;
         }
-        if ($('#commentsDiv').is(':visible')) {
+        if ($('#comments').is(':visible')) {
             $('#addComment').html('Add a Comment');
-            $('#commentsDiv').slideUp('fast');
+            $('#comments').slideUp();
         } else {
             $('#addComment').html('Hide Comments');
-            $('#commentsDiv').slideDown('fast');
+            $('#comments').slideDown();
         }
     });
     
@@ -82,7 +82,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         trackName: trackName,
         artistName: artistName,
         callback: function() {
-            // Add colorbox to artist image
+            // Add colorbox to album image
             if (albumImg) {
                 $('#curAlbumImg').colorbox({
                     href: albumImg,
@@ -95,6 +95,17 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
                     event.preventDefault();
                 });
             }
+            
+            // Add colorbox to MP3 link
+            $('#curButtons .mp3').colorbox({
+                height: 600,
+                href: 'http://www.downloads.nl/results/mp3/1/'+encodeURIComponent(trackName+' '+artistName),
+                iframe: true,
+                returnFocus: false,
+                title: '&nbsp;', // don't show a title
+                width: 600
+            });
+            log('http://www.downloads.nl/results/mp3/1/'+encodeURIComponent(artistName));
         }
     });
 
@@ -268,8 +279,8 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         $('#curAlbumBlockTemplate')
             .tmpl(data)
             .appendTo('#curAlbumBlock');
-        FB.XFBML.parse($('#curButtons').get(0), function(reponse) {
-            $('#curButtons').fadeIn('fast');
+        FB.XFBML.parse($('#curSongLike').get(0), function(reponse) {
+            $('#curSongLike').fadeIn('fast');
         });
         data.callback && data.callback();
         $('#curAlbumBlock').fadeIn('fast');
@@ -319,37 +330,29 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
 };
 
 // Optimization: Don't load Facebook comments until video is playing
-NowPlaying.prototype.tryLoadComments = function(url, title) {    
+NowPlaying.prototype.tryLoadComments = function(url) {    
     if (player.isPlaying()) {
-        var xid = url.replace(new RegExp('/', 'gi'), '_');
-        nowplaying._loadComments(xid, title);
+        nowplaying._loadComments(url);
     } else {
         window.setTimeout(function() {
-            nowplaying.tryLoadComments(url, title);
-        }, 2000);
+            nowplaying.tryLoadComments(url);
+        }, 500);
     }
 };
 
 // Private method to load playlist's comments
-NowPlaying.prototype._loadComments = function(xid, title) {
-    $('#commentsDiv').remove();
-    $('<div id="commentsDiv"><section id="comments"></section></div>')
-        .appendTo('#devNull');
+NowPlaying.prototype._loadComments = function(url) {
     $('#addComment').html('Add a Comment');
-    
+
     // Load Facebook comment box
     $('#comments')
-        .html('<fb:comments numposts="5" width="480" simple="1" publish_feed="true" css="http://instant.fm/css/fbcomments.css?58" notify="true" title="'+title+'" xid="'+xid+'"></fb:comments>');
-    FB.XFBML.parse(document.getElementById('comments'), function(response) {
-        $('#commentsDiv')
+        .empty()
+        .html('<fb:comments href="http://instant.fm'+url+'" num_posts="3" width="480"></fb:comments>');
+    FB.XFBML.parse($('#comments').get(0), function(response) {
+        $('#comments')
             .appendTo('#playlistActions')
             .hide()
             .data('loaded', true);
-    });
-    
-    // Resize comment box on comment
-    FB.Event.subscribe('comments.add', function(response) {
-        $('#commentsDiv').height('auto'); // default
     });
 };
 

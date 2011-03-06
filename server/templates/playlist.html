@@ -94,7 +94,7 @@
                 Share on Twitter
               </a>
             </section> <!-- end of #playlistActions -->
-        
+                
             <hr class="separator">
 
             <section id="curPlaying">
@@ -124,7 +124,11 @@
                     <h4></h4>
                   </div>
                   
-                  <div id="curButtons" style="display:none;">
+                  <div id="curButtons">
+                    <a class="small awesome white mp3" href="#mp3">MP3</a>
+                  </div>
+                  
+                  <div id="curSongLike" style="display:none;">
                     <fb:like href="${songHref}" show_faces="true" width="340"></fb:like>
                   </div>
                   
@@ -370,9 +374,12 @@
         {{ xsrf_form_html() }}
 
       </form>
-              
+          
     </div>
   </div> <!-- end of #signupBox -->    
+
+  <section id="comments"></section>
+
 </div> <!-- end of #devNull -->
 
 {% end %}
