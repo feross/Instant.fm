@@ -71,10 +71,13 @@
             <script id="curPlaylistTemplate" type="text/x-jquery-tmpl">
               <header class="clearfix">
                 <h2 id="curPlaylistTitle">${title}</h2>
+                {% comment My god this method of escaping is awful. %}
+                {{ '{{if owner_url && owner_name}' + '}' }}
                 <div>
                   by
                   <a href=${owner_url}> ${owner_name} </a>
                 </div>
+                {{ '{{/if}' + '}' }}
               </header>
             
               <article>
