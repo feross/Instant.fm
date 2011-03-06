@@ -16,14 +16,17 @@ import lastfm_cache
 import bcrypt
 import Image
 import urllib2
+import string
 
 from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
 
 def canonicalize(str):
-    url_special_chars = re.compile('[^a-zA-Z0-9-]+');
-    return url_special_chars.sub('-', str).lower()
+    str = re.sub('[^a-zA-Z0-9-]+', ' ', str)
+    str = string.capwords(str)
+    str = re.sub(' ', '-', str)
+    return str
 
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
@@ -80,8 +83,9 @@ class DBConnection(tornado.database.Connection):
             cursor.close()
             
 class HandlerBase(tornado.web.RequestHandler):
-    # This is used to cache the session_id so we don't set more than one 
-    # session cookie in the same request by accident. Kind of a hack.
+    """This is used to cache the session_id so we don't set more than one 
+    session cookie in the same request by accident. Kind of a hack.
+    """
     session_id = None
     
     @property
@@ -211,6 +215,7 @@ class HandlerBase(tornado.web.RequestHandler):
 
             
 class PlaylistHandlerBase(HandlerBase):
+    
     ''' 
     Any handler that involves playlists should extend this.
     ''' 
@@ -252,10 +257,7 @@ class PlaylistHandlerBase(HandlerBase):
         
         return json.dumps(playlist)
     
-    """Handles requests for a playlist and inserts the correct playlist JavaScript"""
     def _get_playlist_by_id(self, playlist_id):
-        """Renders a page with the specified playlist."""
-        print "Getting playlist ID: " + str(playlist_id)
         playlist = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
         if not playlist:
             print "Couldn't find playlist"
@@ -297,6 +299,9 @@ class PlaylistHandlerBase(HandlerBase):
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
  
+    def render_profile_url(self):
+        user = self.get_current_user()
+        
         
 class UploadHandlerBase(HandlerBase):
     def _get_request_content(self):
@@ -759,12 +764,23 @@ class FbSignupHandler(UserHandlerBase,
         if user['id'] == self.get_argument('fb_user_id'):
             hashed_pass = self._hash_password(self.get_argument('password'))
             
+            # Find an unused profile name to use
+            name = self.get_argument('name') 
+            unique_profile = profile = canonicalize(name)
+            collisions = self.db.query('SELECT profile FROM users WHERE profile LIKE %s',
+                                       profile) 
+            suffix = 0
+            while unique_profile in [row['profile'] for row in collisions]:
+                suffix += 1
+                unique_profile = profile + '-' + str(suffix)
+            
             # Write the user to DB
-            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, create_date) VALUES (%s, %s, %s, %s, NOW())',
+            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, profile, create_date) VALUES (%s, %s, %s, %s, %s, NOW())',
                                       self.get_argument('fb_user_id'),
-                                      self.get_argument('name'),
+                                      name,
                                       self.get_argument('email'),
-                                      hashed_pass)
+                                      hashed_pass,
+                                      unique_profile)
             
             self._log_user_in(user_id)
             self.write(json.dumps(True))

@@ -64,7 +64,7 @@ CREATE TABLE `lastfm_request_queue` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_url` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=680 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=906 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,10 +81,10 @@ CREATE TABLE `playlists` (
   `songs` mediumtext,
   `user_id` int(11) DEFAULT NULL,
   `session_id` int(11) DEFAULT NULL,
-  `bg_file` varchar(256) DEFAULT NULL,
   `editKey` varchar(8) DEFAULT NULL,
+  `bg_image_id` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`playlist_id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=76 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=175 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -99,7 +99,24 @@ CREATE TABLE `sessions` (
   `create_date` datetime DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=223 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=276 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `uploaded_images`
+--
+
+DROP TABLE IF EXISTS `uploaded_images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `uploaded_images` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL,
+  `session_id` int(10) unsigned NOT NULL,
+  `original_size_path` varchar(128) DEFAULT NULL,
+  `medium_size_path` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=49 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -111,16 +128,16 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `users` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `fb_id` int(10) unsigned NOT NULL,
+  `fb_id` bigint(20) unsigned NOT NULL,
   `create_date` datetime NOT NULL,
   `email` varchar(320) NOT NULL,
   `password` varchar(60) NOT NULL,
-  `salt` varchar(29) NOT NULL,
   `name` varchar(32) NOT NULL,
+  `profile` varchar(64) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `fb_id` (`fb_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=MyISAM AUTO_INCREMENT=47 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=59 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -132,4 +149,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2011-02-20  0:43:28
+-- Dump completed on 2011-03-06  0:54:18
