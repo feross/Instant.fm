@@ -154,12 +154,13 @@ function eraseCookie(name) {
  * display. 
  */
 function loginStatusChanged() {
-    var user_id = readCookie('user_id');
-    var user_name = readCookie('user_name');
     if (isLoggedIn()) {
+        var user_name = readCookie('user_name');
+        var profile_url = readCookie('profile_url');
         $('html').addClass('loggedIn');
         $('html').removeClass('loggedOut');
         $('.username').html(unescape(user_name));
+        $('.profileLink').attr('href', unescape(profile_url));
     } else {
         $('html').addClass('loggedOut');
         $('html').removeClass('loggedIn');
@@ -172,6 +173,7 @@ function isLoggedIn() {
     var user_name = readCookie('user_name');
     var session_num = readCookie('session_num');
     var session_id = readCookie('session_id');
+    var profile_url = readCookie('profile_url');
     return (user_id && user_name && session_num && session_id);
 }
 

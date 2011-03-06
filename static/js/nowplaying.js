@@ -231,11 +231,11 @@ NowPlaying.prototype._handleArtistInfo = function(artistName, srcIndex, data) {
     }
 };
 
-NowPlaying.prototype.renderPlaylistInfo = function(data) {    
+NowPlaying.prototype.renderPlaylistInfo = function(playlist) {    
     $('#curPlaylist').fadeOut('fast', function() {
         $('#curPlaylist').empty();
         $('#curPlaylistTemplate')
-            .tmpl(data)
+            .tmpl(playlist)
             .appendTo('#curPlaylist');
         
         $('.editLink').remove(); // remove all edit links

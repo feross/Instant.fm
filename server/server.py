@@ -174,7 +174,11 @@ class HandlerBase(tornado.web.RequestHandler):
                                session_id)
         else:
             return None
-        
+         
+    def get_profile_url(self):
+        user = self.get_current_user()
+        return '/user/' + user.profile if user is not None else ''
+ 
     def owns_playlist(self, playlist):
         if playlist is None:
             return False
@@ -202,6 +206,7 @@ class HandlerBase(tornado.web.RequestHandler):
         expires_days = 30 if not expire_on_browser_close else None
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
+        self.set_cookie('profile_url', urllib2.quote(self.get_profile_url()), expires_days=expires_days)
         
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
@@ -212,6 +217,7 @@ class HandlerBase(tornado.web.RequestHandler):
         self.clear_cookie('session_num')
         self.clear_cookie('user_id')
         self.clear_cookie('user_name')
+        self.clear_cookie('profile')
 
             
 class PlaylistHandlerBase(HandlerBase):
@@ -220,10 +226,14 @@ class PlaylistHandlerBase(HandlerBase):
     Any handler that involves playlists should extend this.
     ''' 
     
-    def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
-        ''' 
-        Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent.
-        ''' 
+    def _build_playlist(self, id, url, title, description = None, songs=[], 
+                        session_id=None, user_id=None, owner_name=None, 
+                        owner_url=None):
+        """ Factory method to build a playlist dictionary. 
+        
+        We use this to make sure that playlist dictionaries are always 
+        consistent. I'm no longer sure this method is a good idea.
+        """ 
         playlist_dict = {
             "status": "ok",
             "id": id,
@@ -233,6 +243,8 @@ class PlaylistHandlerBase(HandlerBase):
             "user_id": user_id,
             "session_id": session_id,
             "songs": songs,
+            "owner_name": owner_name,
+            "owner_url": owner_url
         }
         return playlist_dict
     
@@ -265,13 +277,12 @@ class PlaylistHandlerBase(HandlerBase):
         
         url = '/p/' + self.base10_36(playlist_id)
         songs = json.loads(playlist.songs)
-        return self._build_playlist(playlist_id, 
-                                    url, 
-                                    playlist.title, 
-                                    playlist.description, 
-                                    songs, 
-                                    playlist.session_id, 
-                                    playlist.user_id)
+        owner = self.db.get('SELECT * FROM users WHERE id = %s', playlist.user_id)
+        return self._build_playlist(playlist_id, url, playlist.title, 
+                                    playlist.description, songs, 
+                                    playlist.session_id, playlist.user_id,
+                                    owner.name if owner is not None else None, 
+                                    owner.profile if owner is not None else None)
         
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name;
@@ -280,8 +291,8 @@ class PlaylistHandlerBase(HandlerBase):
     def _is_partial(self):
         return self.get_argument('partial', default=False)
         
-    """ Creates a new playlist owned by the current user/session """
     def _new_playlist(self, title, description, songs=[]):
+        """ Creates a new playlist owned by the current user/session """
         songs_json = json.dumps(songs)
         if not songs_json:
             self.send_error(500)
@@ -298,11 +309,7 @@ class PlaylistHandlerBase(HandlerBase):
         user = self.get_current_user()
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
- 
-    def render_profile_url(self):
-        user = self.get_current_user()
-        
-        
+       
 class UploadHandlerBase(HandlerBase):
     def _get_request_content(self):
         # If the file is directly uploaded in the POST body
