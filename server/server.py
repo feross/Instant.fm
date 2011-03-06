@@ -14,6 +14,7 @@ import tornado.auth
 import lastfm
 import lastfm_cache
 import bcrypt
+import Image
 import urllib2
 
 from datetime import datetime
@@ -33,6 +34,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
+            (r"/upload/?$", ImageUploadHandler),  # TODO: Change the path here.
             (r"/upload/?$", UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
@@ -44,6 +46,8 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
+            (r"/upload-img-url", ImageUrlHandler),
+            (r"/get-images", GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
             (r".*", ErrorHandler),
@@ -62,7 +66,7 @@ class Application(tornado.web.Application):
             user=options.mysql_user, password=options.mysql_password)
 
         self.lastfm_api = lastfm.Api(self.API_KEY)
-        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))                
+        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
@@ -126,31 +130,39 @@ class HandlerBase(tornado.web.RequestHandler):
                 pass
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
-        
-    def _set_session_cookie(self, 
-                            user_id=None, 
-                            expire_on_browser_close=False):
-        """Checks if a user_id cookie is set and sets one if not"""
-        expires_days = None if expire_on_browser_close else 30
+    
+    def _set_session_cookie(self, expire_on_browser_close=False):
+        '''
+        This will always send a cookie down to the user.
+        '''
         session_id = self.get_secure_cookie('session_id')
-        session_num = self.get_cookie('session_num')
-        
-        # This makes sure that we don't set session_id more than once per request.
         if session_id is None:
             session_id = self.session_id
             
         if session_id is None:
-            session_id = self.db.execute("INSERT INTO sessions (create_date, user_id) VALUES (NOW(), %s);", 
-                                     str(user_id) if user_id else None)
-            print('Set session id: ' + str(session_id))
-            
-        # Set the cookies. This may be redundant, but it's possible that the expiry date changed.
+            session_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (NOW());")
+        
+        expires_days = None if expire_on_browser_close else 30
         self.set_secure_cookie('session_id', str(session_id), expires_days=expires_days)
         self.set_cookie('session_num', str(session_id), expires_days=expires_days)
         self.session_id = session_id
             
         return session_id
+     
+    def _get_session_cookie(self):
+        '''
+        This will only send a cookie to the user if none exists.
+        '''
+        session_id = self.get_secure_cookie('session_id')
+        if session_id is None:
+            session_id = self.session_id
             
+        # If the session_id is still None, we must set a new one.
+        if session_id is None:
+            session_id = self._set_session_cookie()
+            
+        return session_id
+           
     def get_current_user(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
@@ -172,12 +184,14 @@ class HandlerBase(tornado.web.RequestHandler):
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
         
-        # Associate session with user
-        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
-        
-        # Promote playlists to be owned by user
+        # Promote playlists and uploaded images to be owned by user
         self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
+        self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
+                        user_id, session_id)
+        
+        # Associate session with user
+        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
         
         # Set cookies for user_id and user_name
         user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
@@ -185,24 +199,26 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
-class ArtistAutocompleteHandler(HandlerBase):
-    def get(self):
-        prefix = self.get_argument('term');
-        artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
-        self.write(json.dumps(artists))
-    
-class HomeHandler(HandlerBase):
-    def get(self):
-        self.render("index.html")
-        
-class TermsHandler(HandlerBase):
-    def get(self):
-        self.render("terms.html")
-    
-""" Any handler that involves playlists should extend this. """
+    def _log_user_out(self):
+        session_id = self.get_secure_cookie('session_id')
+        if session_id:
+            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
+            
+        self.clear_cookie('session_id')
+        self.clear_cookie('session_num')
+        self.clear_cookie('user_id')
+        self.clear_cookie('user_name')
+
+            
 class PlaylistHandlerBase(HandlerBase):
-    """ Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent. """
+    ''' 
+    Any handler that involves playlists should extend this.
+    ''' 
+    
     def _build_playlist(self, id, url, title, description = None, songs=[], session_id=None, user_id=None):
+        ''' 
+        Factory method to build a playlist dictionary. We use this to make sure that playlist dictionaries are always consistent.
+        ''' 
         playlist_dict = {
             "status": "ok",
             "id": id,
@@ -268,7 +284,7 @@ class PlaylistHandlerBase(HandlerBase):
         if not songs_json:
             self.send_error(500)
         
-        session_id = self._set_session_cookie()
+        session_id = self._get_session_cookie()
         user = self.get_current_user()
              
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
@@ -280,7 +296,151 @@ class PlaylistHandlerBase(HandlerBase):
         user = self.get_current_user()
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
-       
+ 
+        
+class UploadHandlerBase(HandlerBase):
+    def _get_request_content(self):
+        # If the file is directly uploaded in the POST body
+        # Make a dict of the headers with all lowercase keys
+        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
+        if 'up-filename' in lower_headers:
+            filename = lower_headers['up-filename']
+
+            if self.get_argument('base64', 'false') == 'true':
+                try:                    
+                    contents = base64.b64decode(self.request.body)
+                except Exception:
+                    return {'status': 'Invalid request'}
+            else:
+                contents = self.request.body
+        # If the file is in form/multipart data
+        else:
+            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
+                return {'status': 'No file specified'}
+        
+            uploaded_file = self.request.files['file'][0]
+            filename = uploaded_file['filename']
+            contents = uploaded_file['body']
+            
+        return (filename, contents)
+        
+
+class UserHandlerBase(HandlerBase):
+    def _verify_pwd(self, password, hashed):
+        return bcrypt.hashpw(password, hashed) == hashed
+        
+    def _hash_password(self, password):
+        return bcrypt.hashpw(password, bcrypt.gensalt())
+    
+    def _validate_args(self, args, errors):
+        for name, types in args.iteritems():
+            value = self.get_argument(name, '', True)
+            email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
+            if "email" in types and None == email_regex.match(value):
+                errors[name] = 'Please enter a valid email.' 
+            if "password" in types and len(value) < 4:
+                errors[name] = 'Passwords must be at least 4 characters.' 
+            if "required" in types and value == '':
+                errors[name] = 'The field "' + name + '" is required.' 
+            
+    def _send_errors(self, errors):
+        """ Send errors if there are any. """
+        if not errors:
+            return False
+        
+        result = {'errors': errors, 'success': False}
+        self.write(json.dumps(result))
+        self.finish()
+        return True
+    
+    def _is_registered_fbid(self, fbid):
+        return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
+         
+         
+class ImageHandlerBase(HandlerBase):
+    STATIC_DIR = 'static'
+    IMAGE_DIR = '/images/uploaded/'
+    
+    def _handle_image(self, buffer, playlist_id):
+        result = {'status': 'OK', 'images': {}}
+        
+        # Open image and verify it.
+        try:
+            image = Image.open(buffer)
+            image.verify()
+        except:
+            result['status'] = 'No valid image at that URL.'
+            return result
+        
+        # Rewind buffer and open image again
+        buffer.seek(0)
+        image = Image.open(buffer)
+        
+        user = self.get_current_user()
+        id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
+                             user.id if user else None,
+                             self._get_session_cookie())
+        self.db.execute('UPDATE playlists SET bg_image_id = %s WHERE playlist_id = %s',
+                        id, playlist_id)
+        
+        sizes = [('original', None), ('medium', 160)]
+        result['images'] = self._save_images(id, image, sizes)
+        return result
+    
+    def _save_images(self, id, original, sizes):
+        # Crop to square for thumbnail versions
+        format = original.format
+        cropped_side_length = min(original.size)
+        square = ((original.size[0] - cropped_side_length) / 2, 
+                  (original.size[1] - cropped_side_length) / 2,
+                  (original.size[0] + cropped_side_length) / 2, 
+                  (original.size[1] + cropped_side_length) / 2)
+        cropped_image = original.crop(square)
+        
+        images = {}
+        for name, side_length in sizes:
+            if side_length is None:
+                image = original
+            else:
+                image = cropped_image.copy()
+                size = (side_length, side_length)
+                image.thumbnail(size, Image.ANTIALIAS)
+            filename = '{0:x}-{1:s}.{2:s}'.format(id, name, format.lower())
+            path = os.path.join(self.IMAGE_DIR, filename)
+            image.save(self.STATIC_DIR + path, format=format)
+            images[name] = path
+            self.db.execute('UPDATE uploaded_images SET medium_size_path = %s WHERE id = %s',
+                            path, id)
+    
+        return images
+    
+  
+class GetImagesHandler(HandlerBase):
+    def get(self):
+        user = self.get_current_user()
+        if user is not None:
+            image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s OR session_id = %s',
+                                       user.id, self._get_session_cookie())
+            self.write(json.dumps(image_rows))
+            return
+        
+        self.write(json.dumps([]))
+        
+   
+class ArtistAutocompleteHandler(HandlerBase):
+    def get(self):
+        prefix = self.get_argument('term');
+        artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
+        self.write(json.dumps(artists))
+    
+class HomeHandler(HandlerBase):
+    def get(self):
+        self.render("index.html")
+        
+class TermsHandler(HandlerBase):
+    def get(self):
+        self.render("terms.html")
+      
 class PlaylistHandler(PlaylistHandlerBase):
     def _render_playlist_json(self, playlist_id):
         """Renders the specified playlist's JSON representation"""
@@ -305,6 +465,7 @@ class PlaylistHandler(PlaylistHandlerBase):
             self.write(json.dumps(playlist))
         else:
             self.render('playlist.html', playlist=playlist);
+            
    
 class SearchHandler(PlaylistHandlerBase):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
@@ -397,9 +558,13 @@ class PlaylistEditHandler(PlaylistHandlerBase):
         
         self.write(json.dumps({'status': 'Malformed edit request'}))        
         
-        
-class UploadHandler(PlaylistHandlerBase):
-    """Handles playlist upload requests"""
+       
+class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
+    
+    """
+    Handles playlist upload requests
+    """
+    
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
         
@@ -496,29 +661,7 @@ class UploadHandler(PlaylistHandlerBase):
                 
         return res_arr
        
-    def _handle_request(self):
-        # If the file is directly uploaded in the POST body
-        # Make a dict of the headers with all lowercase keys
-        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
-        if 'up-filename' in lower_headers:
-            filename = lower_headers['up-filename']
-
-            if self.get_argument('base64', 'false') == 'true':
-                try:                    
-                    contents = base64.b64decode(self.request.body)
-                except Exception:
-                    return {'status': 'Invalid request'}
-            else:
-                contents = self.request.body
-        # If the file is in form/multipart data
-        else:
-            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
-                return {'status': 'No file specified'}
-        
-            uploaded_file = self.request.files['file'][0]
-            filename = uploaded_file['filename']
-            contents = uploaded_file['body']
-
+    def _handle_request(self, filename, contents):
         title, ext = os.path.splitext(filename)
         
         # Parse the file based on the format
@@ -541,8 +684,9 @@ class UploadHandler(PlaylistHandlerBase):
         return self._new_playlist(title, description, songs)
     
     def post(self):
-        self._set_session_cookie()
-        result = self._handle_request()
+        self._get_session_cookie()
+        (filename, contents) = self._get_request_content()
+        result = self._handle_request(filename, contents)
         
         if self.get_argument('redirect', 'false') == 'true':
             playlist_id = result['playlist_id']
@@ -551,36 +695,32 @@ class UploadHandler(PlaylistHandlerBase):
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
 
-class UserHandlerBase(HandlerBase):
-    def _verify_pwd(self, password, hashed):
-        return bcrypt.hashpw(password, hashed) == hashed
+
+class ImageUploadHandler(ImageHandlerBase, UploadHandlerBase):
+    def post(self):
+        self._get_session_cookie()
+        (filename, contents) = self._get_request_content()
+        # TODO: Finish this
+         
+         
+class ImageUrlHandler(ImageHandlerBase):
+    @tornado.web.asynchronous
+    def post(self):
+        image_url = self.get_argument('image_url')
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(image_url, callback=self.on_response)
         
-    def _hash_password(self, password):
-        return bcrypt.hashpw(password, bcrypt.gensalt())
-    
-    def _validate_args(self, args, errors):
-        for name, types in args.iteritems():
-            value = self.get_argument(name, '', True)
-            email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
-            if "email" in types and None == email_regex.match(value):
-                errors[name] = 'Please enter a valid email.' 
-            if "password" in types and len(value) < 4:
-                errors[name] = 'Passwords must be at least 4 characters.' 
-            if "required" in types and value == '':
-                errors[name] = 'The field "' + name + '" is required.' 
-            
-    def _send_errors(self, errors):
-        """ Send errors if there are any. """
-        if not errors:
-            return False
+    @tornado.web.asynchronous
+    def get(self):
+        # TODO: Remove this. It's for testing.
+        self.post()
         
-        result = {'errors': errors, 'success': False}
-        self.write(json.dumps(result))
+    def on_response(self, response):
+        playlist_id = self.get_argument('playlist_id', default=None)
+        result = self._handle_image(response.buffer, playlist_id)
+        self.write(result)
         self.finish()
-        return True
-    
-    def _is_registered_fbid(self, fbid):
-        return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
+   
          
 class FbSignupHandler(UserHandlerBase, 
                       tornado.auth.FacebookGraphMixin):
@@ -633,9 +773,11 @@ class FbSignupHandler(UserHandlerBase,
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
             
+            
 class FbCheckHandler(UserHandlerBase):
     def get(self):
         self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
+        
         
 class LoginHandler(UserHandlerBase):
     def post(self):
@@ -681,11 +823,9 @@ class NewPlaylistHandler(PlaylistHandlerBase):
         
 class LogoutHandler(UserHandlerBase):
     def post(self):
-        self.clear_all_cookies()
-        session_id = self.get_secure_cookie('session_id')
-        if session_id:
-            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
-
+        self._log_user_out()
+        
+        
 class ErrorHandler(HandlerBase):
     def prepare(self):
         self.send_error(404)    
