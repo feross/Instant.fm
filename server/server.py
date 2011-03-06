@@ -282,7 +282,7 @@ class PlaylistHandlerBase(HandlerBase):
                                     playlist.description, songs, 
                                     playlist.session_id, playlist.user_id,
                                     owner.name if owner is not None else None, 
-                                    owner.profile if owner is not None else None)
+                                    '/user/' + owner.profile if owner is not None else None)
         
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name;
