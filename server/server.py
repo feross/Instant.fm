@@ -775,7 +775,7 @@ class FbSignupHandler(UserHandlerBase,
             name = self.get_argument('name') 
             unique_profile = profile = canonicalize(name)
             collisions = self.db.query('SELECT profile FROM users WHERE profile LIKE %s',
-                                       profile) 
+                                       profile + '%') 
             suffix = 0
             while unique_profile in [row['profile'] for row in collisions]:
                 suffix += 1
