@@ -15,6 +15,7 @@ import lastfm
 import lastfm_cache
 import bcrypt
 import Image
+import urllib2
 
 from datetime import datetime
 from optparse import OptionParser
@@ -129,33 +130,38 @@ class HandlerBase(tornado.web.RequestHandler):
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
     
-    def _set_session_cookie(self, 
-                            user_id=None, 
-                            expire_on_browser_close=False):
+    def _set_session_cookie(self, expire_on_browser_close=False):
         '''
-        TODO: After logging in, this ignores the "expire on browser close" option.
+        This will always send a cookie down to the user.
         '''
-        """Checks if a user_id cookie is set and sets one if not"""
-        expires_days = None if expire_on_browser_close else 30
         session_id = self.get_secure_cookie('session_id')
-        session_num = self.get_cookie('session_num')
-        
-        # This makes sure that we don't set session_id more than once per request.
         if session_id is None:
             session_id = self.session_id
             
         if session_id is None:
-            session_id = self.db.execute("INSERT INTO sessions (create_date, user_id) VALUES (NOW(), %s);", 
-                                     str(user_id) if user_id else None)
-            print('Set session id: ' + str(session_id))
-            
-        # Set the cookies. This may be redundant, but it's possible that the expiry date changed.
+            session_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (NOW());")
+        
+        expires_days = None if expire_on_browser_close else 30
         self.set_secure_cookie('session_id', str(session_id), expires_days=expires_days)
         self.set_cookie('session_num', str(session_id), expires_days=expires_days)
         self.session_id = session_id
             
         return session_id
+     
+    def _get_session_cookie(self):
+        '''
+        This will only send a cookie to the user if none exists.
+        '''
+        session_id = self.get_secure_cookie('session_id')
+        if session_id is None:
+            session_id = self.session_id
             
+        # If the session_id is still None, we must set a new one.
+        if session_id is None:
+            session_id = self._set_session_cookie()
+            
+        return session_id
+           
     def get_current_user(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
@@ -177,14 +183,14 @@ class HandlerBase(tornado.web.RequestHandler):
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
         
-        # Associate session with user
-        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
-        
         # Promote playlists and uploaded images to be owned by user
         self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
         self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
                         user_id, session_id)
+        
+        # Associate session with user
+        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
         
         # Set cookies for user_id and user_name
         user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
@@ -192,13 +198,23 @@ class HandlerBase(tornado.web.RequestHandler):
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
         
+    def _log_user_out(self):
+        session_id = self.get_secure_cookie('session_id')
+        if session_id:
+            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
+            
+        self.clear_cookie('session_id')
+        self.clear_cookie('session_num')
+        self.clear_cookie('user_id')
+        self.clear_cookie('user_name')
+
         
 class GetImagesHandler(HandlerBase):
     def get(self):
         user = self.get_current_user()
         if user is not None:
             image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s OR session_id = %s',
-                                       user.id, self._set_session_cookie())
+                                       user.id, self._get_session_cookie())
             self.write(json.dumps(image_rows))
             return
         
@@ -216,7 +232,7 @@ class ImageHandlerBase(HandlerBase):
         try:
             image = Image.open(buffer)
             image.verify()
-        except IOError:
+        except:
             result['status'] = 'No valid image at that URL.'
             return result
         
@@ -227,7 +243,7 @@ class ImageHandlerBase(HandlerBase):
         user = self.get_current_user()
         id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
                              user.id if user else None,
-                             self._set_session_cookie())
+                             self._get_session_cookie())
         self.db.execute('UPDATE playlists SET bg_image_id = %s WHERE playlist_id = %s',
                         id, playlist_id)
         
@@ -261,6 +277,11 @@ class ImageHandlerBase(HandlerBase):
                             path, id)
     
         return images
+    
+    
+class ImageUploadHandler(ImageHandlerBase):
+    def post(self):
+        pass
     
          
 class ImageUrlHandler(ImageHandlerBase):
@@ -370,7 +391,7 @@ class PlaylistHandlerBase(HandlerBase):
         if not songs_json:
             self.send_error(500)
         
-        session_id = self._set_session_cookie()
+        session_id = self._get_session_cookie()
         user = self.get_current_user()
              
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
@@ -643,7 +664,7 @@ class UploadHandler(PlaylistHandlerBase):
         return self._new_playlist(title, description, songs)
     
     def post(self):
-        self._set_session_cookie()
+        self._get_session_cookie()
         result = self._handle_request()
         
         if self.get_argument('redirect', 'false') == 'true':
@@ -783,11 +804,9 @@ class NewPlaylistHandler(PlaylistHandlerBase):
         
 class LogoutHandler(UserHandlerBase):
     def post(self):
-        self.clear_all_cookies()
-        session_id = self.get_secure_cookie('session_id')
-        if session_id:
-            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
-
+        self._log_user_out()
+        
+        
 class ErrorHandler(HandlerBase):
     def prepare(self):
         self.send_error(404)    
