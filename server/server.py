@@ -82,6 +82,7 @@ class DBConnection(tornado.database.Connection):
         finally:
             cursor.close()
             
+            
 class HandlerBase(tornado.web.RequestHandler):
     """This is used to cache the session_id so we don't set more than one 
     session cookie in the same request by accident. Kind of a hack.
@@ -228,7 +229,7 @@ class PlaylistHandlerBase(HandlerBase):
     
     def _build_playlist(self, id, url, title, description = None, songs=[], 
                         session_id=None, user_id=None, owner_name=None, 
-                        owner_url=None):
+                        owner_url=None, bg_original=None, bg_medium=None):
         """ Factory method to build a playlist dictionary. 
         
         We use this to make sure that playlist dictionaries are always 
@@ -244,7 +245,9 @@ class PlaylistHandlerBase(HandlerBase):
             "session_id": session_id,
             "songs": songs,
             "owner_name": owner_name,
-            "owner_url": owner_url
+            "owner_url": owner_url,
+            "bg_original": bg_original,
+            "bg_medium": bg_medium,
         }
         return playlist_dict
     
