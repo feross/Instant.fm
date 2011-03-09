@@ -203,7 +203,7 @@ function ownershipStatusChanged() {
 function isOwner() {
     var user_id = readCookie('user_id');
     var session_num = readCookie('session_num');
-    if ((user_id && user_id == model.playlist.user_id) ||
+    if ((user_id && user_id == model.playlist.owner_id) ||
         (session_num && session_num == model.playlist.session_id)) {
         
         return true;

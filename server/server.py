@@ -187,8 +187,8 @@ class HandlerBase(tornado.web.RequestHandler):
         session_id = self.get_secure_cookie('session_id')
         user = self.get_current_user()
         
-        return ((session_id is not None and str(session_id) == str(playlist['session_id'])) 
-                or (user is not None and str(user.id) == str(playlist['user_id'])))
+        return ((session_id is not None and str(session_id) == str(playlist.session_id)) 
+                or (user is not None and str(user.id) == str(playlist.owner_id)))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
@@ -220,6 +220,22 @@ class HandlerBase(tornado.web.RequestHandler):
         self.clear_cookie('user_name')
         self.clear_cookie('profile')
 
+
+class Playlist(object):
+    def __init__(self, id, url, title):
+        self.status = "ok"
+        self.id = id
+        self.url = url
+        self.title = title
+        self.description = None
+        self.user_id = None
+        self.session_id = None
+        self.songs = None
+        self.owner_name = None
+        self.owner_url = None
+        self.bg_original = None
+        self.bg_medium = None
+    
             
 class PlaylistHandlerBase(HandlerBase):
     
@@ -227,33 +243,9 @@ class PlaylistHandlerBase(HandlerBase):
     Any handler that involves playlists should extend this.
     ''' 
     
-    def _build_playlist(self, id, url, title, description = None, songs=[], 
-                        session_id=None, user_id=None, owner_name=None, 
-                        owner_url=None, bg_original=None, bg_medium=None):
-        """ Factory method to build a playlist dictionary. 
-        
-        We use this to make sure that playlist dictionaries are always 
-        consistent. I'm no longer sure this method is a good idea.
-        """ 
-        playlist_dict = {
-            "status": "ok",
-            "id": id,
-            "url": url,
-            "title": title,
-            "description": description,
-            "user_id": user_id,
-            "session_id": session_id,
-            "songs": songs,
-            "owner_name": owner_name,
-            "owner_url": owner_url,
-            "bg_original": bg_original,
-            "bg_medium": bg_medium,
-        }
-        return playlist_dict
-    
     def _sanitize_songlist_json(self, json_str):
         uploaded_list = json.loads(json_str)
-        playlist = []
+        songlist = []
         
         url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
         
@@ -268,25 +260,42 @@ class PlaylistHandlerBase(HandlerBase):
                     new_song['i'] = image
                 else:
                     new_song['i'] = None # Mark the album art fetch as attempted, so the client doesn't attempt to fetch it again
-                playlist.append(new_song)
+                songlist.append(new_song)
         
-        return json.dumps(playlist)
+        return json.dumps(songlist)
     
     def _get_playlist_by_id(self, playlist_id):
-        playlist = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
-        if not playlist:
-            print "Couldn't find playlist"
+        playlist_row = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
+        if not playlist_row:
+            print "Couldn't find playlist_row"
             raise tornado.web.HTTPError(404)
         
         url = '/p/' + self.base10_36(playlist_id)
-        songs = json.loads(playlist.songs)
-        owner = self.db.get('SELECT * FROM users WHERE id = %s', playlist.user_id)
-        return self._build_playlist(playlist_id, url, playlist.title, 
-                                    playlist.description, songs, 
-                                    playlist.session_id, playlist.user_id,
-                                    owner.name if owner is not None else None, 
-                                    '/user/' + owner.profile if owner is not None else None)
+        songs = json.loads(playlist_row.songs)
+        owner = None
+        backgrounds = None
+        if playlist_row.user_id is not None:
+            owner = self.db.get('SELECT * FROM users WHERE id = %s', playlist_row.user_id)
+        if playlist_row.bg_image_id is not None:
+            backgrounds = self.db.get('SELECT * \
+                                       FROM uploaded_images \
+                                       WHERE id = %s',
+                                       playlist_row.bg_image_id)
         
+        playlist = Playlist(playlist_id, url, playlist_row.title)
+        playlist.description = playlist_row.description
+        playlist.session_id = playlist_row.session_id
+        playlist.songs = songs
+        if owner is not None:
+            playlist.owner_id = owner.id
+            playlist.owner_name = owner.name
+            playlist.owner_url = '/user/' + owner.profile
+        if backgrounds is not None:
+            playlist.bg_original = backgrounds.original
+            playlist.bg_medium = backgrounds.medium
+        
+        return playlist
+       
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name;
         self.render(template, is_partial=self._is_partial(), playlist=playlist, **kwargs)
@@ -424,7 +433,7 @@ class ImageHandlerBase(HandlerBase):
             path = os.path.join(self.IMAGE_DIR, filename)
             image.save(self.STATIC_DIR + path, format=format)
             images[name] = path
-            self.db.execute('UPDATE uploaded_images SET medium_size_path = %s WHERE id = %s',
+            self.db.execute('UPDATE uploaded_images SET ' + name + ' = %s WHERE id = %s',
                             path, id)
     
         return images
@@ -833,6 +842,7 @@ class LoginHandler(UserHandlerBase):
         self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
+        
 class NewPlaylistHandler(PlaylistHandlerBase):
     def post(self):
         title = self.get_argument('title', strip=True)
@@ -844,8 +854,10 @@ class NewPlaylistHandler(PlaylistHandlerBase):
             self.send_error(500)
             return
         
-        self.write(json.dumps(self._new_playlist(title, description)))
+        playlist = self._new_playlist(title, description)
+        self.write(json.dumps(playlist.__dict__))
         return
+    
         
 class LogoutHandler(UserHandlerBase):
     def post(self):

@@ -248,6 +248,9 @@ NowPlaying.prototype.renderPlaylistInfo = function(playlist) {
         
         $('#curPlaylist').fadeIn('fast');
     });
+    
+    // Change the background image
+    nowplaying.setBackground(playlist.bg_original);
 };
 
 NowPlaying.prototype.renderAlbumBlock = function(data) {
@@ -307,6 +310,15 @@ NowPlaying.prototype.renderArtistDesc = function(data) {
         }
     });
 };
+
+NowPlaying.prototype.setBackground = function(image_url) {
+    // TODO: Make this a nice cross-fade animation.
+    var bg_style_str = "";
+    if (image_url && image_url != '') {
+        bg_style_str = "background-image:url('" + image_url + "');";
+    }
+    $('#background').attr('style', bg_style_str);
+}
 
 NowPlaying.prototype.updateOpenButtonText = function(text) {
     $('#nowPlayingHeader .right')
