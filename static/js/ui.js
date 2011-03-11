@@ -69,7 +69,6 @@ function showHideUI() {
     var container = $('#container');
     var message = $('#backgroundMsg');
     
-    log(Math.round(container.css('opacity')));
     if (Math.round(container.css('opacity')) == 0) {
         showElement(container);
         hideElement(message);

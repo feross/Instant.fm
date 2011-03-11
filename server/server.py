@@ -833,7 +833,7 @@ class ErrorHandler(HandlerBase):
 def main():
     # Command line options
     # TODO: These don't actually work...
-    define("port", default=8000, help="run on the given port", type=int)
+    define("port", default=7000, help="run on the given port", type=int)
     define("mysql_host", default="instant.fm:3306", help="database host")
     define("mysql_database", default="instantfm", help="database name")
     define("mysql_user", default="instantfm", help="database user")
@@ -854,7 +854,7 @@ def main():
             print 'python-daemon not installed; not running as daemon'
 
     http_server = tornado.httpserver.HTTPServer(Application(), xheaders=True)
-    http_server.listen(8000)
+    http_server.listen(7000)
 
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
