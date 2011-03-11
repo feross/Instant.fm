@@ -457,10 +457,7 @@ Player.prototype.renderPlaylist = function(playlist) {
         player.reorderedSong = null; // we're done dragging now
     });
     
-    nowplaying.renderPlaylistInfo({
-        title: playlist.title,
-        description: playlist.description
-    });
+    nowplaying.renderPlaylistInfo(playlist);
     $('#altPlaylistTitle').text(playlist.title);
 };
 

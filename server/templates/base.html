@@ -37,32 +37,34 @@
 </head>
 
 <body id="{% block bodyId %}{% end %}">
-  {% block body %}{% end %}
+  <div id="background" style="{% block backgroundStyle %}{% end %}">
+    {% block body %}{% end %}
+    
+    <div id="fb-root"></div>
   
-  <div id="fb-root"></div>
-
-  <!-- START SCRIPTS -->
-  {% include "plugins.html" %}
-  {% block scripts %}{% end %}
+    <!-- START SCRIPTS -->
+    {% include "plugins.html" %}
+    {% block scripts %}{% end %}
+    
+    <script src="/js/main.js"></script>
+    
+    <!-- END SCRIPTS -->
   
-  <script src="/js/main.js"></script>
+    <!-- yui profiler and profileviewer - remove for production -->
+    <!-- <script src="js/profiling/yahoo-profiling.min.js"></script>
+    <script src="js/profiling/config.js"></script> -->
+    <!-- end profiling code -->
   
-  <!-- END SCRIPTS -->
-
-  <!-- yui profiler and profileviewer - remove for production -->
-  <!-- <script src="js/profiling/yahoo-profiling.min.js"></script>
-  <script src="js/profiling/config.js"></script> -->
-  <!-- end profiling code -->
-
-  <script>
-   var _gaq = [['_setAccount', 'UA-3898076-11'], ['_trackPageview']];
-   (function(d, t) {
-    var g = d.createElement(t),
-        s = d.getElementsByTagName(t)[0];
-    g.async = true;
-    g.src = ('https:' == location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    s.parentNode.insertBefore(g, s);
-   })(document, 'script');
-  </script>
+    <script>
+     var _gaq = [['_setAccount', 'UA-3898076-11'], ['_trackPageview']];
+     (function(d, t) {
+      var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      g.async = true;
+      g.src = ('https:' == location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      s.parentNode.insertBefore(g, s);
+     })(document, 'script');
+    </script>
+  </div>
 </body>
 </html>
