@@ -188,7 +188,7 @@ class HandlerBase(tornado.web.RequestHandler):
         user = self.get_current_user()
         
         return ((session_id is not None and str(session_id) == str(playlist.session_id)) 
-                or (user is not None and str(user.id) == str(playlist.owner_id)))
+                or (user is not None and str(user.id) == str(playlist.user_id)))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
@@ -287,7 +287,7 @@ class PlaylistHandlerBase(HandlerBase):
         playlist.session_id = playlist_row.session_id
         playlist.songs = songs
         if owner is not None:
-            playlist.owner_id = owner.id
+            playlist.user_id = owner.id
             playlist.owner_name = owner.name
             playlist.owner_url = '/user/' + owner.profile
         if backgrounds is not None:
