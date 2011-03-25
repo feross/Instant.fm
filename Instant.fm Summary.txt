@@ -1,0 +1,167 @@
+::: Instant.fm :::
+
+The idea is to make it very easy to upload, create, and share music playlists using YouTube music videos as the source of the audio.
+
+
+::: Instant.fm Features :::
+
+Playlist Creation
+- No login required
+- Build your playlist on site
+- Or, upload a .m3u, .txt, or .pls file from iTunes, Windows Media Player, or WinAmp
+- Each playlist gets a unique, shareable, short URL
+- Background image uploading
+
+Playlist Editing
+- Drag and drop to re-order songs
+- Buttons to Move song to top & Remove song
+- Change playlist name/title with an inline edit (no refresh)
+
+Playlist Viewing
+- Shuffle, repeat, show/hide video
+- Suggest songs to be added to playlist (TODO)
+- Keyboard shortcuts for power users
+
+Social Features
+- Share playlist on Facebook, Twitter
+- Share current song on Facebook, Twitter (TODO song permalinks)
+
+Mini-browser
+- Pane which behaves like an iOS navigation view, with a stack of 'views'
+- Allows searching and browsing artist/album information without stopping the music
+- Clicking links doesn't cause user's browser to leave the page
+- Uses fancy animations, which look great
+
+Non-stop Music
+- On top music sites, clicking something may stop the music (it's not consistent).
+- On Instant.fm, everything is AJAX, so nothing stops the music.
+- Even logging in/out works without a page refresh (the correct playlist edit tools are shown/hidden).
+
+
+::: How We Built It :::
+
+HTML5 Boilerplate (rock-solid default for HTML5 websites)
+- Build script for minifying and hyper-optimizing JS, CSS, and HTML.
+- CSS reset, base styles, cross-browser normalization, non-semantic helper classes.
+- Server side optimization to reduce total page weight.
+
+CSS3
+- 1660 lines of hand-written CSS.
+- CSS3 hotness (transitions, box-shadow, border-radius, gradient, box-reflect, text-shadow)
+- Degrades gracefully in older browsers
+
+
+::: JavaScript Libraries :::
+
+jQuery 1.5
+- The best
+
+jQuery UI 1.8
+- We use sortable / draggable.
+
+Modernizr
+- HTML5 feature detection in JS and CSS.
+- HTML5 shiv so semantic elements like <header> work in IE.
+
+YepNope
+- Conditional JS resource loader for polyfills
+- Asynchronous script loading
+
+
+::: Backend :::
+
+Python
+- Server-side image resizing
+- Playlist file (.m3u, .txt., .pls) parsing after upload
+
+Tornado
+- Asynchronous non-blocking Python web server
+- Modules
+	- tornado.database
+	- tornado.httpserver
+	- tornado.web
+	- tornado.auth
+	- tornado.ioloop
+
+Nginx web server
+- Used as proxy for Tornado
+
+Supervisord
+- Used to daemonize the Tornado server instances
+
+MySQL
+- No ORM, plain SQL
+
+
+::: APIs :::
+
+Last.fm
+- Artist, song, album information
+- Artist, album pictures
+- Powers our search results
+- Uses HTML5 Local Storage to cache search results
+
+Facebook
+- Connect
+- Social plugins (Like button, Comments widget)
+
+YouTube
+- Search API
+- Embedded player JavaScript API
+
+
+::: jQuery Plugins :::
+
+jQuery Templates
+- Render data into a template and insert into DOM
+- Officially supported plugin
+
+JSizes
+- Adds support for querying and setting additional CSS properties
+- Min-width, min-height, max-width, max-height, border-*-width, margin, padding
+
+Jeditable
+- In place form editing
+
+Auto Expanding Text Area
+- Ala Facebook and Quora
+
+ColorBox
+- Light-weight, customizable lightbox
+
+jQuery Tools Validator
+- HTML5 form validation helper
+
+Shorten
+- Automatically shorten text to fit in a block
+
+
+::: Graphics :::
+
+Helveticons
+- High quality commercial icon package
+
+Photoshop CS5
+- All other images, icons, logo, custom missing album/artist images are ours.
+
+
+::: Misc Notes :::
+
+Instantfm.COM
+- Redirects to Instant.FM, in case users get confused with the .FM extension.
+- Purchased for $800 from BuyDomains.
+
+Lines of Code (our code, not including libraries)
+- Python: 962 lines
+- HTML: 702 lines
+- CSS: 1662 lines
+- JavaScript: 3293 lines
+
+377 git commits
+
+
+::: Long-term Todos :::
+
+- iTunes library in the browser
+- MP3 download
+- Song lyrics
