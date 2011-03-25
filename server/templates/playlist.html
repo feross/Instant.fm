@@ -72,30 +72,31 @@
             <script id="curPlaylistTemplate" type="text/x-jquery-tmpl">
               <header class="clearfix">
                 <h2 id="curPlaylistTitle">${title}</h2>
-                <div>
-                  {% comment My god this method of escaping is awful. %}
-                  {{'{{'}}if owner_name}}
-                    by
-                    {{'{{'}}if owner_url}}
-                      <a href=${owner_url}>
-                    {{'{{'}}/if}}
-                    ${owner_name} 
-                    {{'{{'}}if owner_url}}
-                      </a>
-                    {{'{{'}}/if}}
-                  {{'{{'}}/if}}
-                </div>
               </header>
+
+              <div>
+                {% comment My god this method of escaping is awful. %}
+                {{'{{'}}if owner_name}}
+                  by
+                  {{'{{'}}if owner_url}}
+                    <a href=${owner_url}>
+                  {{'{{'}}/if}}
+                  ${owner_name} 
+                  {{'{{'}}if owner_url}}
+                    </a>
+                  {{'{{'}}/if}}
+                {{'{{'}}/if}}
+              </div>
             
+						  <!-- <a href="#TODO" id="curPlaylistAuthor">
+	              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
+	              <div>Feross Aboukhadijeh</div>
+	            </a> -->
+
               <article>
                 <span id="curPlaylistDesc">${description}</span>
               </article>
             </script>
-            
-            <!-- <a href="#TODO" id="curPlaylistAuthor">
-              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-              <div>Feross Aboukhadijeh</div>
-            </a> -->
             
             <section id="playlistActions">
               <a href="#addComment" id="addComment" class="awesome white">
