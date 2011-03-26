@@ -1,308 +1,95 @@
-/*  HTML5 ✰ Boilerplate  */
-/* Our blue: #499bd1 */
+/* HTML5 ✰ Boilerplate */
 
-html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
 small, strong, sub, sup, var, b, i, dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, figcaption, figure,  footer, header, hgroup, 
-menu, nav, section, summary, time, mark, audio, video {
-  margin:0;
-  padding:0;
-  border:0;
-  outline:0;
-  font-size:100%;
-  vertical-align:baseline;
-  background:transparent;
-}                  
-article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section { 
-    display:block;
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
-nav ul { list-style:none; }
-blockquote, q { quotes:none; }
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+blockquote, q { quotes: none; }
 blockquote:before, blockquote:after,
-q:before, q:after { content:''; content:none; }
-a { margin:0; padding:0; font-size:100%; vertical-align:baseline; background:transparent; }
-ins { background-color:#ff9; color:#000; text-decoration:none; }
-mark { background-color:#ff9; color:#000; font-style:italic; font-weight:bold; }
+q:before, q:after { content: ""; content: none; }
+ins { background-color: #ff9; color: #000; text-decoration: none; }
+mark { background-color: #ff9; color: #000; font-style: italic; font-weight: bold; }
 del { text-decoration: line-through; }
-abbr[title], dfn[title] { border-bottom:1px dotted; cursor:help; }
-table { border-collapse:collapse; border-spacing:0; }
-hr { display:block; height:1px; border:0; border-top:1px solid #ccc; margin:1em 0; padding:0; }
-input, select { vertical-align:middle; }
+abbr[title], dfn[title] { border-bottom: 1px dotted; cursor: help; }
+table { border-collapse: collapse; border-spacing: 0; }
+hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0; }
+input, select { vertical-align: middle; }
 
-html { overflow: hidden; }
-
-body { font:13px/1.231 sans-serif; *font-size:small; } 
+body { font:13px/1.231 sans-serif; *font-size:small; }
 select, input, textarea, button { font:99% sans-serif; }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
-body, select, input, textarea { color: #333; }
-
-h1,h2,h3,h4,h5,h6 { font-weight: bold; }
-
+html { overflow-y: scroll; }
 a:hover, a:active { outline: none; }
-a, a:active, a:visited { color: #499bd1; text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-ul, ol { margin-left: 1.8em; }
+ul, ol { margin-left: 2em; }
 ol { list-style-type: decimal; }
-
-nav ul, nav li { margin: 0; } 
+nav ul, nav li { margin: 0; list-style:none; list-style-image: none; }
 small { font-size: 85%; }
 strong, th { font-weight: bold; }
-td, td img { vertical-align: top; } 
-sub { vertical-align: sub; font-size: smaller; }
-sup { vertical-align: super; font-size: smaller; }
-pre {  padding: 15px;  white-space: pre;  white-space: pre-wrap;  white-space: pre-line;  word-wrap: break-word; }
-textarea { resize: none; overflow: auto; } 
+td { vertical-align: top; }
+sub, sup { font-size: 75%; line-height: 0; position: relative; }
+sup { top: -0.5em; }
+sub { bottom: -0.25em; }
+
+pre { white-space: pre; white-space: pre-wrap; word-wrap: break-word; padding: 15px; }
+textarea { overflow: auto; } 
 .ie6 legend, .ie7 legend { margin-left: -7px; } 
 input[type="radio"] { vertical-align: text-bottom; }
 input[type="checkbox"] { vertical-align: bottom; }
 .ie7 input[type="checkbox"] { vertical-align: baseline; }
 .ie6 input { vertical-align: text-bottom; }
-label, input[type=button], input[type=submit], button, .pointer { cursor: pointer; }
-input[type=button], input[type=submit], button { border: 0; }
+label, input[type="button"], input[type="submit"], input[type="image"], button { cursor: pointer; }
 button, input, select, textarea { margin: 0; }
 input:valid, textarea:valid   {  }
-/*input:invalid, textarea:invalid { border-radius: 1px;  -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red;  box-shadow: 0px 0px 5px red; }
-.no-boxshadow input:invalid, 
-.no-boxshadow textarea:invalid { background-color: #f0dddd; }*/
+input:invalid, textarea:invalid { border-radius: 1px; -moz-box-shadow: 0px 0px 5px red; -webkit-box-shadow: 0px 0px 5px red; box-shadow: 0px 0px 5px red; }
+.no-boxshadow input:invalid, .no-boxshadow textarea:invalid { background-color: #f0dddd; }
 
-::-moz-selection{ background: #499bd1; color:#fff; text-shadow: none; }
-::selection { background:#499bd1; color:#fff; text-shadow: none; } 
-a:link { -webkit-tap-highlight-color: #FF5E99; } 
 
-button {  width: auto; overflow: visible; border: 0; }
+::-moz-selection{ background: #FF5E99; color:#fff; text-shadow: none; }
+::selection { background:#FF5E99; color:#fff; text-shadow: none; }
+a:link { -webkit-tap-highlight-color: #FF5E99; }
+button {  width: auto; overflow: visible; }
 .ie7 img { -ms-interpolation-mode: bicubic; }
 
-.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
-.hidden { display: none; visibility: hidden; } 
-.visuallyhidden { position: absolute !important; clip: rect(1px 1px 1px 1px);  clip: rect(1px, 1px, 1px, 1px); }
-.invisible { visibility: hidden; }
-.clearfix:before, .clearfix:after {  content: "\0020"; display: block; height: 0; visibility: hidden;	 } 
-.clearfix:after { clear: both; }
-.clearfix { zoom: 1; }
-
-
-
-
-
-
-/*
-    ColorBox Core Style
-    The following rules are the styles that are consistant between themes.
-    Avoid changing this area to maintain compatability with future versions of ColorBox.
-*/
-#colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:9999; overflow:hidden;}
-#cboxOverlay{position:fixed; width:100%; height:100%;}
-#cboxMiddleLeft, #cboxBottomLeft{clear:left;}
-#cboxContent{position:relative; overflow:hidden;}
-#cboxLoadedContent{padding:5px;overflow:auto;}
-#cboxLoadedContent iframe{display:block; width:100%; height:100%; border:0;}
-#cboxTitle{margin:0;}
-#cboxLoadingOverlay, #cboxLoadingGraphic{position:absolute; top:0; left:0; width:100%;}
-#cboxPrevious, #cboxNext, #cboxClose, #cboxSlideshow{cursor:pointer;}
-
-/* 
-    Example user style
-    The following rules are ordered and tabbed in a way that represents the
-    order/nesting of the generated HTML, so that the structure easier to understand.
-*/
-#cboxOverlay{
-    background-color: rgba(20,20,20,0.65);
-/*    background:url(/images/colorbox/overlay80.png) repeat 0 0;*/
-}
-#colorbox{}
-    #cboxTopLeft{width:21px; height:21px; background:url(/images/colorbox/controls.png) no-repeat -100px 0;}
-    #cboxTopRight{width:21px; height:21px; background:url(/images/colorbox/controls.png) no-repeat -129px 0;}
-    #cboxBottomLeft{width:21px; height:21px; background:url(/images/colorbox/controls.png) no-repeat -100px -29px;}
-    #cboxBottomRight{width:21px; height:21px; background:url(/images/colorbox/controls.png) no-repeat -129px -29px;}
-    #cboxMiddleLeft{width:21px; background:url(/images/colorbox/controls.png) left top repeat-y;}
-    #cboxMiddleRight{width:21px; background:url(/images/colorbox/controls.png) right top repeat-y;}
-    #cboxTopCenter{height:21px; background:url(/images/colorbox/border.png) 0 0 repeat-x;}
-    #cboxBottomCenter{height:21px; background:url(/images/colorbox/border.png) 0 -29px repeat-x;}
-    #cboxContent{background:#fff;}
-        #cboxLoadedContent{margin-bottom:5px;}
-        #cboxTitle{position:absolute; bottom:14px; left:0; text-align:center; width:100%; color:#949494;}
-        #cboxCurrent{position:absolute; bottom:4px; left:58px; color:#949494;}
-        #cboxSlideshow{position:absolute; bottom:4px; right:30px; color:#0092ef;}
-        #cboxPrevious{position:absolute; bottom:0; left:0px; background:url(/images/colorbox/controls.png) no-repeat -75px 0px; width:25px; height:25px; text-indent:-9999px;}
-        #cboxPrevious.hover{background-position:-75px -25px;}
-        #cboxNext{position:absolute; bottom:0; left:27px; background:url(/images/colorbox/controls.png) no-repeat -50px 0px; width:25px; height:25px; text-indent:-9999px;}
-        #cboxNext.hover{background-position:-50px -25px;}
-        #cboxLoadingOverlay{background:url(/images/colorbox/loading_background.png) no-repeat center center;}
-        #cboxLoadingGraphic{background:url(/images/colorbox/loading.gif) no-repeat center center;}
-        #cboxClose{position:absolute; top:0; right:0; background:url(/images/colorbox/controls.png) no-repeat -25px 0px; width:25px; height:25px; text-indent:-9999px;}
-        #cboxClose.hover{background-position:-25px -25px;}
-
-/*
-    The following fixes png-transparency for IE6.  
-    It is also necessary for png-transparency in IE7 & IE8 to avoid 'black halos' with the fade transition
-    
-    Since this method does not support CSS background-positioning, it is incompatible with CSS sprites.
-    Colorbox preloads navigation hover classes to account for this.
-    
-    !! Important Note: AlphaImageLoader src paths are relative to the HTML document,
-    while regular CSS background /images/colorbox are relative to the CSS document.
-*/
-.cboxIE #cboxTopLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderTopLeft.png, sizingMethod='scale');}
-.cboxIE #cboxTopCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderTopCenter.png, sizingMethod='scale');}
-.cboxIE #cboxTopRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderTopRight.png, sizingMethod='scale');}
-.cboxIE #cboxBottomLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderBottomLeft.png, sizingMethod='scale');}
-.cboxIE #cboxBottomCenter{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderBottomCenter.png, sizingMethod='scale');}
-.cboxIE #cboxBottomRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderBottomRight.png, sizingMethod='scale');}
-.cboxIE #cboxMiddleLeft{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderMiddleLeft.png, sizingMethod='scale');}
-.cboxIE #cboxMiddleRight{background:transparent; filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src=/images/colorbox/internet_explorer/borderMiddleRight.png, sizingMethod='scale');}
-
-
-
-
-
-
-
-/* Awesome Buttons (source: http://goo.gl/K9Nit) */
-
-a.awesome:hover { text-decoration: none; }
-.awesome, .awesome:visited {
-	background: #222 url('/images/alert-overlay.png') repeat-x; 
-	display: inline-block; 
-	padding: 5px 10px 6px; 
-	color: #fff; 
-	text-decoration: none;
-    -moz-border-radius: 4px; 
-	-webkit-border-radius: 4px;
-	border-radius: 4px;
-	position: relative;
-	cursor: pointer;
-}
- 
-.awesome:hover { background-color: #111; color: #fff; }
-/*.awesome:active { top: 1px; }*/
-.small.awesome, .small.awesome:visited { font-size: 11px; }
-.awesome, .awesome:visited, .medium.awesome, .medium.awesome:visited {
-    font-size: 13px;
-    font-weight: bold;
-    line-height: 1;
-    text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
-}
-.large.awesome, .large.awesome:visited          { font-size: 14px; padding: 8px 14px 9px; }
-.green.awesome, .green.awesome:visited          { background-color: #91bd09; }
-.green.awesome:hover                            { background-color: #749a02; }
-.red.awesome, .red.awesome:visited              { background-color: #e33100; }
-.red.awesome:hover                              { background-color: #872300; }
-.magenta.awesome, .magenta.awesome:visited      { background-color: #a9014b; }
-.magenta.awesome:hover                          { background-color: #630030; }
-.orange.awesome, .orange.awesome:visited        { background-color: #ff5c00; }
-.orange.awesome:hover                           { background-color: #d45500; }
-.yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
-.yellow.awesome:hover                           { background-color: #fc9200; }
-.blue.awesome, .blue.awesome:visited {
-    background-color: #2daebf;
-    background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #56d7e8),
-        color-stop(0.65, #2daebf)
-    );
-    background-image: -moz-linear-gradient(
-        center top,
-        #56d7e8 0%,
-        #2daebf 65%
-    );
-}
-.blue.awesome:hover {
-    background-color: #007d9a;
-    background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #2daebf),
-        color-stop(0.65, #007d9a)
-    );
-    background-image: -moz-linear-gradient(
-        center top,
-        #2daebf 0%,
-        #007d9a 65%
-    );
-}
-.darkblue.awesome, .darkblue.awesome:visited {
-    background-color: #3b5998;
-    background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #688abd),
-        color-stop(0.65, #3b5998)
-    );
-    background-image: -moz-linear-gradient(
-        center top,
-        #688abd 0%,
-        #3b5998 65%
-    );
-}
-.darkblue.awesome:hover {
-    background-color: #0e2873;
-    background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #3b5998),
-        color-stop(0.65, #0e2873)
-    );
-    background-image: -moz-linear-gradient(
-        center top,
-        #3b5998 0%,
-        #0e2873 65%
-    );
-}
-
-
-/* White iTunes-esque buttons */
-.white.awesome, .white.awesome:visited {
-    background-color: #ddd;
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0, #d6d6d6),
-        color-stop(0.65, #fff)
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        #d6d6d6 0%,
-        #fff 65%
-    );
-    border: 1px solid #bbb;
-    color: #333;
-    text-shadow: none;
-}
-.white.awesome:hover {
-    background-image: -webkit-gradient(
-        linear,
-        left bottom,
-        left top,
-        color-stop(0, #b4b4b4),
-        color-stop(0.65, #ddd)
-    );
-    background-image: -moz-linear-gradient(
-        center bottom,
-        #b4b4b4 0%,
-        #ddd 65%
-    );
-}
-
-.dulled {
-    -moz-opacity: 0.4;
-    filter: alpha(opacity: 40);
-    opacity: 0.4;
-}
-
+body, select, input, textarea { color: #444; }
+h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+a, a:active, a:visited { color: #607890; }
+a:hover { color: #036; }
 
 
 
 /* Primary Styles */
+/* Our blue: #499bd1 */
+
+body, select, input, textarea { color: #333; }
+h1,h2,h3,h4,h5,h6 { font-weight: bold; }
+a, a:active, a:visited { color: #499bd1; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+html { overflow: hidden; }
+textarea { resize: none; overflow: auto; } 
+.pointer { cursor: pointer; }
+input[type=button], input[type=submit], button { border: 0; }
+::-moz-selection{ background: #499bd1; color:#fff; text-shadow: none; }
+::selection { background:#499bd1; color:#fff; text-shadow: none; }
 
 body {
     background: #080808 url('/images/bg2.jpg') no-repeat fixed center top;
@@ -1629,30 +1416,40 @@ nav a:hover { text-decoration: underline; }
 
 
 
+.ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
+.hidden { display: none; visibility: hidden; }
+.visuallyhidden { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus { clip: auto; height: auto; margin: 0; overflow: visible; position: static; width: auto; }
+.invisible { visibility: hidden; }
+.clearfix:before, .clearfix:after { content: "\0020"; display: block; height: 0; overflow: hidden; }
+.clearfix:after { clear: both; }
+.clearfix { zoom: 1; }
 
 
-@media all and (orientation:portrait) { 
-  
+@media all and (orientation:portrait) {
+
 }
 
-@media all and (orientation:landscape) { 
-  
+@media all and (orientation:landscape) {
+
 }
 
 @media screen and (max-device-width: 480px) {
   
-  
   /* html { -webkit-text-size-adjust:none; -ms-text-size-adjust:none; } */
 }
 
+
 @media print {
-  * { background: transparent !important; color: #444 !important; text-shadow: none !important; }
+  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important;
+  -ms-filter: none !important; } 
   a, a:visited { color: #444 !important; text-decoration: underline; }
-  a:after { content: " (" attr(href) ")"; } 
-  abbr:after { content: " (" attr(title) ")"; }
-  .ir a:after { content: ""; }  
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  
   pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
-  thead { display: table-header-group; }  
+  thead { display: table-header-group; } 
   tr, img { page-break-inside: avoid; }
   @page { margin: 0.5cm; }
   p, h2, h3 { orphans: 3; widows: 3; }

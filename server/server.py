@@ -885,7 +885,7 @@ def main():
     if options.daemonize:
         try:
             import daemon
-            log = open('tornado.log', 'a+')
+            log = open('static/tornado.log', 'a+')
             context = daemon.DaemonContext(stdout=log, stderr=log, working_directory='.')
             context.open()
         except ImportError:

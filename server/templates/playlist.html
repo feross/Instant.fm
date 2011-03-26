@@ -402,6 +402,7 @@
 {% block scripts %}
   {% block scripts-partial %}{% end %}
   <script>
+		{% import json %}
     var initial_playlist = {{ json.dumps(playlist.__dict__).replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
       $(function() {
           onloadPlaylist();

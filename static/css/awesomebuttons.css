@@ -1,0 +1,137 @@
+/* Awesome Buttons (source: http://goo.gl/K9Nit) */
+
+a.awesome:hover { text-decoration: none; }
+.awesome, .awesome:visited {
+	background: #222 url('/images/alert-overlay.png') repeat-x; 
+	display: inline-block; 
+	padding: 5px 10px 6px; 
+	color: #fff; 
+	text-decoration: none;
+    -moz-border-radius: 4px; 
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	position: relative;
+	cursor: pointer;
+}
+ 
+.awesome:hover { background-color: #111; color: #fff; }
+/*.awesome:active { top: 1px; }*/
+.small.awesome, .small.awesome:visited { font-size: 11px; }
+.awesome, .awesome:visited, .medium.awesome, .medium.awesome:visited {
+    font-size: 13px;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
+}
+.large.awesome, .large.awesome:visited          { font-size: 14px; padding: 8px 14px 9px; }
+.green.awesome, .green.awesome:visited          { background-color: #91bd09; }
+.green.awesome:hover                            { background-color: #749a02; }
+.red.awesome, .red.awesome:visited              { background-color: #e33100; }
+.red.awesome:hover                              { background-color: #872300; }
+.magenta.awesome, .magenta.awesome:visited      { background-color: #a9014b; }
+.magenta.awesome:hover                          { background-color: #630030; }
+.orange.awesome, .orange.awesome:visited        { background-color: #ff5c00; }
+.orange.awesome:hover                           { background-color: #d45500; }
+.yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
+.yellow.awesome:hover                           { background-color: #fc9200; }
+.blue.awesome, .blue.awesome:visited {
+    background-color: #2daebf;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #56d7e8),
+        color-stop(0.65, #2daebf)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #56d7e8 0%,
+        #2daebf 65%
+    );
+}
+.blue.awesome:hover {
+    background-color: #007d9a;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #2daebf),
+        color-stop(0.65, #007d9a)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #2daebf 0%,
+        #007d9a 65%
+    );
+}
+.darkblue.awesome, .darkblue.awesome:visited {
+    background-color: #3b5998;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #688abd),
+        color-stop(0.65, #3b5998)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #688abd 0%,
+        #3b5998 65%
+    );
+}
+.darkblue.awesome:hover {
+    background-color: #0e2873;
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #3b5998),
+        color-stop(0.65, #0e2873)
+    );
+    background-image: -moz-linear-gradient(
+        center top,
+        #3b5998 0%,
+        #0e2873 65%
+    );
+}
+
+
+/* White iTunes-esque buttons */
+.white.awesome, .white.awesome:visited {
+    background-color: #ddd;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, #d6d6d6),
+        color-stop(0.65, #fff)
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        #d6d6d6 0%,
+        #fff 65%
+    );
+    border: 1px solid #bbb;
+    color: #333;
+    text-shadow: none;
+}
+.white.awesome:hover {
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, #b4b4b4),
+        color-stop(0.65, #ddd)
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        #b4b4b4 0%,
+        #ddd 65%
+    );
+}
+
+.dulled {
+    -moz-opacity: 0.4;
+    filter: alpha(opacity: 40);
+    opacity: 0.4;
+}
