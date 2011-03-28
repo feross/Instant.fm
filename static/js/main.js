@@ -97,6 +97,7 @@ function onloadPlaylist() {
     setupLogin();
     setupLogout();
     setupNewPlaylist();
+    setupRpc();
    
     setupDragDropUploader('p', function(response) {
         playlist = $.parseJSON(response);

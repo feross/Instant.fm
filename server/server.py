@@ -17,15 +17,33 @@ import bcrypt
 import Image
 import urllib2
 import string
+import tornadorpc.json
+import functools
 
 from optparse import OptionParser
 from tornado.options import define, options
+
+
+class MustOwnPlaylistException(Exception):
+    pass
+
 
 def canonicalize(str):
     str = re.sub('[^a-zA-Z0-9-]+', ' ', str)
     str = string.capwords(str)
     str = re.sub(' ', '-', str)
     return str
+
+
+def ownsPlaylist(method):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        playlist_id = self.get_cookie('playlist_id')
+        if not self.owns_playlist(playlist_id):
+            raise MustOwnPlaylistException()
+        return method(self, *args, **kwargs)
+    return wrapper
+
 
 class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
@@ -36,7 +54,8 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", HomeHandler),
-            (r"/upload/?$", ImageUploadHandler),  # TODO: Change the path here.
+            (r"/json-rpc/?$", JsonRpcHandler),
+            (r"/upload-img/?$", ImageUploadHandler),
             (r"/upload/?$", UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
             (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
@@ -70,6 +89,7 @@ class Application(tornado.web.Application):
         self.lastfm_api = lastfm.Api(self.API_KEY)
         self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
+        
 class DBConnection(tornado.database.Connection):
     """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
     Why is this functionality not built-in???"""
@@ -81,11 +101,27 @@ class DBConnection(tornado.database.Connection):
         finally:
             cursor.close()
             
+
+class Playlist(object):
+    def __init__(self, id, url, title):
+        self.status = "ok"
+        self.id = id
+        self.url = url
+        self.title = title
+        self.description = None
+        self.user_id = None
+        self.session_id = None
+        self.songs = None
+        self.owner_name = None
+        self.owner_url = None
+        self.bg_original = None
+        self.bg_medium = None
+    
             
 class HandlerBase(tornado.web.RequestHandler):
-    """This is used to cache the session_id so we don't set more than one 
-    session cookie in the same request by accident. Kind of a hack.
-    """
+    """ All handlers should extend this """
+    
+    # Cache the session ID so we don't set it more than once per request
     session_id = None
     
     @property
@@ -219,28 +255,10 @@ class HandlerBase(tornado.web.RequestHandler):
         self.clear_cookie('user_name')
         self.clear_cookie('profile')
 
-
-class Playlist(object):
-    def __init__(self, id, url, title):
-        self.status = "ok"
-        self.id = id
-        self.url = url
-        self.title = title
-        self.description = None
-        self.user_id = None
-        self.session_id = None
-        self.songs = None
-        self.owner_name = None
-        self.owner_url = None
-        self.bg_original = None
-        self.bg_medium = None
-    
             
 class PlaylistHandlerBase(HandlerBase):
-    
-    ''' 
-    Any handler that involves playlists should extend this.
-    ''' 
+    """ Any handler that involves playlists should extend this.
+    """ 
     
     def _sanitize_songlist_json(self, json_str):
         uploaded_list = json.loads(json_str)
@@ -320,6 +338,7 @@ class PlaylistHandlerBase(HandlerBase):
         user = self.get_current_user()
         name = user.name if user else ''
         return '<span class="username">' + name + '</span>'
+       
        
 class UploadHandlerBase(HandlerBase):
     def _get_request_content(self):
@@ -437,7 +456,15 @@ class ImageHandlerBase(HandlerBase):
     
         return images
     
-  
+    
+class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, HandlerBase):
+
+    @ownsPlaylist
+    def echo(self, str):
+        """ This is just for testing JSON RPC """
+        return str
+    
+    
 class GetImagesHandler(HandlerBase):
     def get(self):
         user = self.get_current_user()
@@ -451,18 +478,22 @@ class GetImagesHandler(HandlerBase):
         
    
 class ArtistAutocompleteHandler(HandlerBase):
+    """ Not used. """
     def get(self):
         prefix = self.get_argument('term');
         artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
         self.write(json.dumps(artists))
+        
     
 class HomeHandler(HandlerBase):
     def get(self):
         self.render("index.html")
         
+        
 class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
+        
       
 class PlaylistHandler(PlaylistHandlerBase):
     def _render_playlist_json(self, playlist_id):
@@ -494,10 +525,12 @@ class SearchHandler(PlaylistHandlerBase):
     """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
     def get(self):
         self._render_playlist_view('search.html')
+        
 
 class ArtistHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name):
         
+        # TODO: This method of caching is inefficient because the result needs to be parsed every time.
         try:
             search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
             artist = search_results[0]
@@ -524,6 +557,7 @@ class ArtistHandler(PlaylistHandlerBase):
             print('Error retrieving artist:')
             print(e)
             self._render_playlist_view('artist.html', artist='')
+            
 
 class AlbumHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name, requested_album_name):
@@ -545,6 +579,7 @@ class AlbumHandler(PlaylistHandlerBase):
             print('Exception while retrieving album:')
             print(e)
             self._render_playlist_view('album.html', album=None)
+       
        
 class PlaylistEditHandler(PlaylistHandlerBase):
     """Handles updates to playlists in the database"""

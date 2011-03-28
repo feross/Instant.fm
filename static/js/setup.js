@@ -526,3 +526,12 @@ function setupSignup() {
         }
     });
 }
+
+function setupRpc() {
+    var methods = ['echo'];
+    instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
+                                     "sanitize": true,
+                                     "protocol": 'JSON-RPC',
+                                     "methods": methods,
+    }); 
+}
