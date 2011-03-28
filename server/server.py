@@ -89,25 +89,13 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
         
         # TODO: Change this to use UNIX domain sockets?
-        self.db = DBConnection(
+        self.db = tornado.database.Connection(
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
 
         self.lastfm_api = lastfm.Api(self.API_KEY)
         self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
-        
-class DBConnection(tornado.database.Connection):
-    """This is a hacky subclass of Tornado's MySQL connection that allows the number of rows affected by a query to be retreived.
-    Why is this functionality not built-in???"""
-    def execute_count(self, query, *parameters):
-        """Executes the given query, returning the number of rows affected by the query."""
-        cursor = self._cursor()
-        try:
-            return self._execute(cursor, query, parameters)
-        finally:
-            cursor.close()
-            
 
 class Playlist(object):
     def __init__(self, id, url, title):
@@ -469,7 +457,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
                      UserHandlerBase, ImageHandlerBase):
    
     def _update_playlist_col(self, playlist_id, col_name, col_value):
-        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
+        return self.db.execute("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id)
     
     @ownsPlaylist
     def update_songlist(self, playlist_id, songlist):
