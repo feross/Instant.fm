@@ -376,7 +376,7 @@ class UploadHandlerBase(HandlerBase):
         
 
 class UserHandlerBase(HandlerBase):
-    def _verify_pwd(self, password, hashed):
+    def _verify_password(self, password, hashed):
         return bcrypt.hashpw(password, hashed) == hashed
         
     def _hash_password(self, password):
@@ -841,7 +841,7 @@ class LoginHandler(UserHandlerBase):
             if self._send_errors(errors):
                 return
             
-        if not self._verify_pwd(self.get_argument('password'), user.password):
+        if not self._verify_password(self.get_argument('password'), user.password):
             errors['password'] = 'Incorrect password.'
             if self._send_errors(errors):
                 return
