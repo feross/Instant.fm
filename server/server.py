@@ -66,7 +66,6 @@ class Application(tornado.web.Application):
             (r"/login", LoginHandler),
             (r"/new-list", NewPlaylistHandler),
             (r"/logout", LogoutHandler),
-            (r"/upload-img-url", ImageUrlHandler),
             (r"/get-images", GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", AlbumHandler),
             (r"/([^/]+)/?", ArtistHandler),
@@ -457,33 +456,47 @@ class ImageHandlerBase(HandlerBase):
         return images
     
     
-class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, UserHandlerBase):
+class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, UserHandlerBase, ImageHandlerBase):
     
     @ownsPlaylist
     def echo(self, str):
         """ This is just for testing JSON RPC """
         return str
     
-    @ownsPlaylist
     def _update_playlist_col(self, col_name, col_value):
         playlist_id = self.get_cookie('playlist_id')
         return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
     
+    @ownsPlaylist
     def update_songlist(self, songlist):
         songlist_json = self._sanitize_songlist_json(json.dumps(songlist))
         self._update_playlist_col('songs', songlist_json)
         
+    @ownsPlaylist
     def update_title(self, title):
         self._update_playlist_col('title', title)
         
+    @ownsPlaylist
     def update_description(self, description):
         self._update_playlist_col('description', description)
         
+    @ownsPlaylist
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it responds to RPC """
         return self._is_registered_fbid(fb_id)
     
-    
+    @tornadorpc.async
+    @ownsPlaylist
+    def set_image_from_url(self, url):
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(url, callback=self._on_set_image_from_url_response)
+       
+    def _on_set_image_from_url_response(self, response):
+        playlist_id = self.get_cookie('playlist_id')
+        result = self._handle_image(response.buffer, playlist_id)
+        self.result(result)
+     
+     
 class GetImagesHandler(HandlerBase):
     def get(self):
         user = self.get_current_user()
@@ -743,25 +756,6 @@ class ImageUploadHandler(ImageHandlerBase, UploadHandlerBase):
         (filename, contents) = self._get_request_content()
         # TODO: Finish this
          
-         
-class ImageUrlHandler(ImageHandlerBase):
-    @tornado.web.asynchronous
-    def post(self):
-        image_url = self.get_argument('image_url')
-        http = tornado.httpclient.AsyncHTTPClient()
-        http.fetch(image_url, callback=self.on_response)
-        
-    @tornado.web.asynchronous
-    def get(self):
-        # TODO: Remove this. It's for testing.
-        self.post()
-        
-    def on_response(self, response):
-        playlist_id = self.get_argument('playlist_id', default=None)
-        result = self._handle_image(response.buffer, playlist_id)
-        self.write(result)
-        self.finish()
-   
          
 class FbSignupHandler(UserHandlerBase, 
                       tornado.auth.FacebookGraphMixin):

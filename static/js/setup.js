@@ -202,8 +202,8 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          //appId: appSettings.fbAppId, // 'Instant.fm' API Key
-          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          appId: appSettings.fbAppId, // 'Instant.fm' API Key
+          // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
@@ -528,7 +528,7 @@ function setupSignup() {
 
 function setupRpc() {
     var methods = ['echo', 'update_songlist', 'update_title',
-        'update_description', 'is_registered_fbid'];
+        'update_description', 'is_registered_fbid', 'set_image_from_url'];
         
     instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
                                      "sanitize": true,
