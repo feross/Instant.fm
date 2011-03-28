@@ -366,7 +366,6 @@ Player.prototype.loadPlaylist = function(playlist) {
         nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
     }
         
-    createCookie('playlist_id', playlist.id);
     model.updatePlaylist(playlist);
     player.renderPlaylist(playlist);
 

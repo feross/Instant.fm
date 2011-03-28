@@ -42,16 +42,17 @@ Model.prototype.removeSong = function(songNum) {
 };
 
 Model.prototype.saveSongs = function() {
-    instantfm.update_songlist({
-        "params": [model.playlist.songs],
-    })
+    instantfm.update_songlist({ "params": {
+        "playlist_id": model.playlist.id,
+        "songlist": model.playlist.songs,
+    }});
 };
 
 Model.prototype.updateTitle = function(newTitle) {
     model.playlist.title = $.trim(newTitle);
     
     instantfm.update_title({
-        "params": [model.playlist.title],
+        "params": [model.playlist.id, model.playlist.title],
     });
 };
 
@@ -59,7 +60,7 @@ Model.prototype.updateDesc = function(newDesc) {
     model.playlist.description = $.trim(newDesc);
     
     instantfm.update_title({
-        "params": [model.playlist.description],
+        "params": [model.playlist.id, model.playlist.description],
     });   
 };
 

@@ -36,9 +36,18 @@ def canonicalize(str):
 
 
 def ownsPlaylist(method):
+    """ Decorator: throws an exception if user doesn't own current playlist
+    
+    NOTE: playlist_id must be the 1st positional arg.
+    Though unlikely, if you put some other value as the 1st positional arg it
+    could be a security issue (as this would check that the user owns the 
+    wrong playlist ID.) So make sure playlist_id is the first positional arg.
+    """ 
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        playlist_id = self.get_cookie('playlist_id')
+        playlist_id = kwargs['playlist_id'] if 'playlist_id' in kwargs else args[0]
+        if playlist_id is None:
+            playlist_id = args[0]
         playlist = self._get_playlist_by_id(playlist_id)
         if not self.owns_playlist(playlist):
             raise MustOwnPlaylistException()
@@ -456,44 +465,42 @@ class ImageHandlerBase(HandlerBase):
         return images
     
     
-class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, UserHandlerBase, ImageHandlerBase):
-    
+class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, 
+                     UserHandlerBase, ImageHandlerBase):
     @ownsPlaylist
     def echo(self, str):
         """ This is just for testing JSON RPC """
         return str
     
-    def _update_playlist_col(self, col_name, col_value):
-        playlist_id = self.get_cookie('playlist_id')
+    def _update_playlist_col(self, playlist_id, col_name, col_value):
         return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
     
     @ownsPlaylist
-    def update_songlist(self, songlist):
+    def update_songlist(self, playlist_id, songlist):
         songlist_json = self._sanitize_songlist_json(json.dumps(songlist))
-        self._update_playlist_col('songs', songlist_json)
+        self._update_playlist_col(playlist_id, 'songs', songlist_json)
         
     @ownsPlaylist
-    def update_title(self, title):
-        self._update_playlist_col('title', title)
+    def update_title(self, playlist_id, title):
+        self._update_playlist_col(playlist_id, 'title', title)
         
     @ownsPlaylist
-    def update_description(self, description):
-        self._update_playlist_col('description', description)
+    def update_description(self, playlist_id, description):
+        self._update_playlist_col(playlist_id, 'description', description)
         
-    @ownsPlaylist
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it responds to RPC """
         return self._is_registered_fbid(fb_id)
     
     @tornadorpc.async
     @ownsPlaylist
-    def set_image_from_url(self, url):
+    def set_image_from_url(self, playlist_id, url):
+        self.playlist_id = playlist_id
         http = tornado.httpclient.AsyncHTTPClient()
         http.fetch(url, callback=self._on_set_image_from_url_response)
        
     def _on_set_image_from_url_response(self, response):
-        playlist_id = self.get_cookie('playlist_id')
-        result = self._handle_image(response.buffer, playlist_id)
+        result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
      
      
