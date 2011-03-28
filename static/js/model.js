@@ -59,7 +59,7 @@ Model.prototype.updateTitle = function(newTitle) {
 Model.prototype.updateDesc = function(newDesc) {
     model.playlist.description = $.trim(newDesc);
     
-    instantfm.update_title({
+    instantfm.update_description({
         "params": [model.playlist.id, model.playlist.description],
     });   
 };
