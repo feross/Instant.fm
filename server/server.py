@@ -18,7 +18,6 @@ import Image
 import urllib2
 import string
 
-from datetime import datetime
 from optparse import OptionParser
 from tornado.options import define, options
 
