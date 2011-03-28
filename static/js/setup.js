@@ -202,8 +202,8 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          appId: appSettings.fbAppId, // 'Instant.fm' API Key
-          // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          //appId: appSettings.fbAppId, // 'Instant.fm' API Key
+          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true
@@ -442,17 +442,16 @@ function setupSignup() {
                 var form = $('#fbSignupForm');
                 
                 // Check that they're not already registered
-                $.ajax({
-                    url: '/signup/fb-check',
-                    dataType: 'json',
-                    data: {'fb_id': response.id},
-                    success: function(is_registered) {
+                instantfm.is_registered_fbid({
+                    "params": [response.id],
+                    onSuccess: function(is_registered) {
                         if (is_registered) {
                             form.hide();
                             $('#registrationMsg').text('This Facebook user is already registered on Instant.fm. Try logging in instead.');
                         }
                     }
                 });
+                
                 $('input[name=name]', form).val(response.name);
                 $('input[name=email]', form).val(response.email);
                 $('input[name=fb_user_id]', form).val(response.id);
@@ -528,7 +527,9 @@ function setupSignup() {
 }
 
 function setupRpc() {
-    var methods = ['echo'];
+    var methods = ['echo', 'update_songlist', 'update_title',
+        'update_description', 'is_registered_fbid'];
+        
     instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
                                      "sanitize": true,
                                      "protocol": 'JSON-RPC',

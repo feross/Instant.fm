@@ -42,40 +42,28 @@ Model.prototype.removeSong = function(songNum) {
 };
 
 Model.prototype.saveSongs = function() {
-    model.savePlaylist('&songs='+encodeURIComponent(JSON.stringify(model.playlist.songs)));
+    instantfm.update_songlist({
+        "params": [model.playlist.songs],
+    })
 };
 
 Model.prototype.updateTitle = function(newTitle) {
     model.playlist.title = $.trim(newTitle);
     
-    model.savePlaylist('&title='+encodeURIComponent(model.playlist.title));
+    instantfm.update_title({
+        "params": [model.playlist.title],
+    });
 };
 
 Model.prototype.updateDesc = function(newDesc) {
     model.playlist.description = $.trim(newDesc);
     
-    model.savePlaylist('&description='+encodeURIComponent(model.playlist.description));
+    instantfm.update_title({
+        "params": [model.playlist.description],
+    });   
 };
 
 Model.prototype.updateAlbumImg = function(index, albumImg) {
     model.playlist.songs[index].i = albumImg;
     model.saveSongs();
-};
-
-Model.prototype.savePlaylist = function(data) {
-    if (!model.isEditable()) {
-        log('Playlist not saved. Playlist is uneditable.');
-        return;
-    }
-    
-    var edit_url = model.playlist.url+'/edit';
-    $.ajax({
-        data: data,
-        dataType: 'json',
-        type: 'POST',
-        url: edit_url,
-        success: function(responseData, textStatus, XMLHttpRequest) {
-            log('Server received updated playlist.');
-        }
-    });
 };

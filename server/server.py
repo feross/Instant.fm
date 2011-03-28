@@ -24,8 +24,8 @@ from optparse import OptionParser
 from tornado.options import define, options
 
 
-class MustOwnPlaylistException(Exception):
-    pass
+class MustOwnPlaylistException(Exception): pass
+class PlaylistNotFoundException(Exception): pass
 
 
 def canonicalize(str):
@@ -39,7 +39,8 @@ def ownsPlaylist(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         playlist_id = self.get_cookie('playlist_id')
-        if not self.owns_playlist(playlist_id):
+        playlist = self._get_playlist_by_id(playlist_id)
+        if not self.owns_playlist(playlist):
             raise MustOwnPlaylistException()
         return method(self, *args, **kwargs)
     return wrapper
@@ -58,11 +59,9 @@ class Application(tornado.web.Application):
             (r"/upload-img/?$", ImageUploadHandler),
             (r"/upload/?$", UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", PlaylistHandler),
-            (r"/p/([a-zA-Z0-9]+)/edit/?$", PlaylistEditHandler),
             (r"/terms/?$", TermsHandler),
             (r"/suggest/?$", ArtistAutocompleteHandler),
             (r"/search/?$", SearchHandler),
-            (r"/signup/fb-check/?$", FbCheckHandler),
             (r"/signup/fb", FbSignupHandler),
             (r"/login", LoginHandler),
             (r"/new-list", NewPlaylistHandler),
@@ -146,6 +145,7 @@ class HandlerBase(tornado.web.RequestHandler):
         return playlist_id      
         
     def base10_36(self, playlist_id):
+        playlist_id = int(playlist_id)  # Make sure it's an int
         """Converts an integer id to base 36 (0-9a-z)"""
         alpha_id = ''
         while playlist_id > 0:
@@ -210,7 +210,7 @@ class HandlerBase(tornado.web.RequestHandler):
                                session_id)
         else:
             return None
-         
+        
     def get_profile_url(self):
         user = self.get_current_user()
         return '/user/' + user.profile if user is not None else ''
@@ -457,12 +457,31 @@ class ImageHandlerBase(HandlerBase):
         return images
     
     
-class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, HandlerBase):
-
+class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, UserHandlerBase):
+    
     @ownsPlaylist
     def echo(self, str):
         """ This is just for testing JSON RPC """
         return str
+    
+    @ownsPlaylist
+    def _update_playlist_col(self, col_name, col_value):
+        playlist_id = self.get_cookie('playlist_id')
+        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
+    
+    def update_songlist(self, songlist):
+        songlist_json = self._sanitize_songlist_json(json.dumps(songlist))
+        self._update_playlist_col('songs', songlist_json)
+        
+    def update_title(self, title):
+        self._update_playlist_col('title', title)
+        
+    def update_description(self, description):
+        self._update_playlist_col('description', description)
+        
+    def is_registered_fbid(self, fb_id):
+        """ Wraps the inherited function so it responds to RPC """
+        return self._is_registered_fbid(fb_id)
     
     
 class GetImagesHandler(HandlerBase):
@@ -580,43 +599,7 @@ class AlbumHandler(PlaylistHandlerBase):
             print(e)
             self._render_playlist_view('album.html', album=None)
        
-       
-class PlaylistEditHandler(PlaylistHandlerBase):
-    """Handles updates to playlists in the database"""
-    
-    # SECURITY WARNING: Do NOT user user-input for col_name, that would be BAD!
-    #                   Also, authenticate the user before calling this.
-    def _update_playlist(self, playlist_id, col_name, col_value):
-        print "Updating playlist ID: " + str(playlist_id)
-        return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
-    
-    def post(self, playlist_alpha_id):
-        playlist_id = self.base36_10(playlist_alpha_id)
-        playlist = self._get_playlist_by_id(playlist_id)
-        
-        if not self.owns_playlist(playlist):
-            self.write(json.dumps({'status': 'User doesn\'t own playlist'}))
-            return
-        
-            
-        updatableColumns = ['songs', 'title', 'description']
-        for col_name in updatableColumns:
-            col_value = self.get_argument(col_name, None)
-            if col_value is not None:
-                
-                # Sanitize the column value
-                if col_name == 'songs':
-                    col_value = self._sanitize_songlist_json(col_value)
-                    
-                if self._update_playlist(playlist_id, col_name, col_value):
-                    self.write(json.dumps({'status': 'Updated'}))
-                else:
-                    self.write(json.dumps({'status': 'Playlist not editable'}))
-                return
-        
-        self.write(json.dumps({'status': 'Malformed edit request'}))        
-        
-       
+      
 class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
     
     """
@@ -842,11 +825,6 @@ class FbSignupHandler(UserHandlerBase,
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
             
-            
-class FbCheckHandler(UserHandlerBase):
-    def get(self):
-        self.write(json.dumps(self._is_registered_fbid(self.get_argument('fb_id'))))
-        
         
 class LoginHandler(UserHandlerBase):
     def post(self):
