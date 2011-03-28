@@ -467,11 +467,7 @@ class ImageHandlerBase(HandlerBase):
     
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, 
                      UserHandlerBase, ImageHandlerBase):
-    @ownsPlaylist
-    def echo(self, str):
-        """ This is just for testing JSON RPC """
-        return str
-    
+   
     def _update_playlist_col(self, playlist_id, col_name, col_value):
         return self.db.execute_count("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id) == 1
     
