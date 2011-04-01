@@ -4,7 +4,7 @@
 
 {% block bodyId %}p{% end %}
 
-{% block backgroundStyle %}{% if playlist.bg_original is not None %}background-image:url('{{playlist.bg_original}}'){% end %}{% end %}
+{% block backgroundStyle %}{% if playlist.image is not None %}background-image:url('{{playlist.image.original}}'){% end %}{% end %}
 {% block body %}
 <div id="container">
   <header class="clearfix" id="header">
@@ -402,10 +402,9 @@
 {% block scripts %}
   {% block scripts-partial %}{% end %}
   <script>
-		{% import json %}
-    var initial_playlist = {{ json.dumps(playlist.__dict__).replace('<', '\u003c').replace('>', '\u003e') if playlist else 'null' }};
-      $(function() {
-          onloadPlaylist();
-      });
+    var initial_playlist = {{ playlist.to_json() if playlist is not None else 'null' }};
+        $(function() {
+            onloadPlaylist();
+        });
   </script>
 {% end %}

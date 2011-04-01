@@ -56,7 +56,7 @@ class User(object):
     
     def to_dict(self):
         return {
-            "id": self.id,
+            "id": int(self.id),
             "name": self.name,
             "profile_url": self.get_url()
         }
@@ -72,8 +72,8 @@ class Playlist(object):
     def to_dict(self):
         return {
             "status": "ok",
-            "id": self.id,
-            "url": self.getUrl(),
+            "id": int(self.id),
+            "url": self.get_url(),
             "title": self.title,
             "description": self.description,
             "songs": json.loads(self.songs),
@@ -81,6 +81,8 @@ class Playlist(object):
             "image": self.image.to_dict(),
         }
 
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
 class Image(object):
     def to_dict(self):

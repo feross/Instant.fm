@@ -20,6 +20,7 @@ import string
 import tornadorpc.json
 import functools
 import model
+import base36
 
 from optparse import OptionParser
 from tornado.options import define, options
@@ -175,11 +176,11 @@ class HandlerBase(tornado.web.RequestHandler):
         if playlist is None:
             return False
         
-        session_id = self.get_secure_cookie('session_id')
+        session = self.get_current_session()
         user = self.get_current_user()
         
-        return ((session_id is not None and str(session_id) == str(playlist.session_id)) 
-                or (user is not None and str(user.id) == str(playlist.user_id)))
+        return ((session.id is not None and str(session.id) == playlist.session_id) 
+                or (user is not None and user.id == playlist.user_id))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
@@ -486,33 +487,24 @@ class TermsHandler(HandlerBase):
         
       
 class PlaylistHandler(PlaylistHandlerBase):
-    def _render_playlist_json(self, playlist_id):
-        """Renders the specified playlist's JSON representation"""
-        try:
-            playlist = self._get_playlist_by_id(playlist_id)
-            self.write(json.dumps(playlist))
-        except:
-            print "Couldn't find playlist"
-            self.write(json.dumps({'status': 'Not found'}))
-            return
-
     """Landing page for a playlist"""
     def get(self, playlist_alpha_id):
-        playlist_id = self.base36_10(playlist_alpha_id)
-        playlist = self._get_playlist_by_id(playlist_id)
+        playlist_id = base36.base36_10(playlist_alpha_id)
+        playlist = self.db_session.query(model.Playlist).get(playlist_id)
         
         if playlist is None:
             self.send_error(404)
             return
         
         if self.get_argument('json', default=False):
-            self.write(json.dumps(playlist))
+            self.write(playlist.to_json())
         else:
             self.render('playlist.html', playlist=playlist);
             
    
 class SearchHandler(PlaylistHandlerBase):
-    """Landing page for search. I'm not sure we want this linkable, but we'll go with that for now."""
+    """Landing page for search. 
+    """
     def get(self):
         self._render_playlist_view('search.html')
         
