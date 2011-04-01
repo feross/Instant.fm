@@ -19,6 +19,7 @@ import urllib2
 import string
 import tornadorpc.json
 import functools
+import model
 
 from optparse import OptionParser
 from tornado.options import define, options
@@ -112,12 +113,15 @@ class Playlist(object):
         self.bg_original = None
         self.bg_medium = None
     
-            
 class HandlerBase(tornado.web.RequestHandler):
     """ All handlers should extend this """
     
     # Cache the session ID so we don't set it more than once per request
     session_id = None
+    
+    def __init__(self, application, request, **kwargs):
+        super(HandlerBase, self).__init__(application, request, **kwargs)
+        self.session = model.DbSession()
     
     @property
     def db(self):
@@ -202,8 +206,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def get_current_user(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
-            return self.db.get('SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE id = %s)',
-                               session_id)
+            return self.session.query(model.Session).get(session_id).user
         else:
             return None
         
