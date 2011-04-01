@@ -43,12 +43,15 @@ def ownsPlaylist(method):
     Though unlikely, if you put some other value as the 1st positional arg it
     could be a security issue (as this would check that the user owns the 
     wrong playlist ID.) So make sure playlist_id is the first positional arg.
+    
+    I need to read more about python to figure out if there's a better way to
+    do this.
     """ 
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        playlist_id = kwargs['playlist_id'] if 'playlist_id' in kwargs else args[0]
-        if playlist_id is None:
-            playlist_id = args[0]
+        playlist_id = (kwargs['playlist_id'] 
+                       if 'playlist_id' in kwargs 
+                       else args[0])
         playlist = self._get_playlist_by_id(playlist_id)
         if not self.owns_playlist(playlist):
             raise MustOwnPlaylistException()
@@ -94,8 +97,8 @@ class Application(tornado.web.Application):
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
 
-        self.lastfm_api = lastfm.Api(self.API_KEY)
-        self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
+        #self.lastfm_api = lastfm.Api(self.API_KEY)
+        #self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
         
 
 class Playlist(object):
@@ -113,54 +116,21 @@ class Playlist(object):
         self.bg_original = None
         self.bg_medium = None
     
+    
 class HandlerBase(tornado.web.RequestHandler):
     """ All handlers should extend this """
     
-    # Cache the session ID so we don't set it more than once per request
-    session_id = None
-    
-    def __init__(self, application, request, **kwargs):
-        super(HandlerBase, self).__init__(application, request, **kwargs)
-        self.session = model.DbSession()
+    db_session = model.DbSession()
+    # Cache the session and user
+    current_session = None
+    current_user = None
     
     @property
     def db(self):
         """Provides access to the database connection"""
         return self.application.db
         
-    def base36_10(self, alpha_id):
-        """Converts a base 36 id (0-9a-z) to an integer"""
-        playlist_id = 0
-        index = 0
-        while index < len(alpha_id):
-            char = alpha_id[index]
-            if str.isdigit(char):
-                value = int(char)
-            else:
-                value = ord(char.lower()) - ord('a') + 10
-            playlist_id = playlist_id * 36 + value
-            
-            index += 1
-            
-        return playlist_id      
-        
-    def base10_36(self, playlist_id):
-        playlist_id = int(playlist_id)  # Make sure it's an int
-        """Converts an integer id to base 36 (0-9a-z)"""
-        alpha_id = ''
-        while playlist_id > 0:
-            value = playlist_id % 36
-            playlist_id = playlist_id // 36
-            
-            if value < 10:
-                char = str(value)
-            else:
-                char = chr(ord('a') + value - 10)
-                
-            alpha_id = char + alpha_id
-            
-        return alpha_id
-   
+  
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
         if status_code == 404:
@@ -170,45 +140,32 @@ class HandlerBase(tornado.web.RequestHandler):
                 pass
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
-    
-    def _set_session_cookie(self, expire_on_browser_close=False):
-        '''
-        This will always send a cookie down to the user.
-        '''
-        session_id = self.get_secure_cookie('session_id')
-        if session_id is None:
-            session_id = self.session_id
-            
-        if session_id is None:
-            session_id = self.db.execute("INSERT INTO sessions (create_date) VALUES (NOW());")
-        
-        expires_days = None if expire_on_browser_close else 30
-        self.set_secure_cookie('session_id', str(session_id), expires_days=expires_days)
-        self.set_cookie('session_num', str(session_id), expires_days=expires_days)
-        self.session_id = session_id
-            
-        return session_id
-     
-    def _get_session_cookie(self):
-        '''
-        This will only send a cookie to the user if none exists.
-        '''
-        session_id = self.get_secure_cookie('session_id')
-        if session_id is None:
-            session_id = self.session_id
-            
-        # If the session_id is still None, we must set a new one.
-        if session_id is None:
-            session_id = self._set_session_cookie()
-            
-        return session_id
-           
+          
     def get_current_user(self):
-        session_id = self.get_secure_cookie('session_id')
-        if session_id:
-            return self.session.query(model.Session).get(session_id).user
+        if self.current_user is not None:
+            return self.current_user
+        
+        self.current_user = (self.db_session.query(model.Session)
+                                .get(self.get_current_session().id)
+                                .user)
+        
+        return self.current_user
+    
+    def get_current_session(self):
+        if self.current_session is not None:
+            return self.current_session
+        
+        session_cookie = self.get_secure_cookie('session_id')
+        if session_cookie is not None:
+            self.session = (self.db_session.query(model.Session)
+                               .get(session_cookie))
         else:
-            return None
+            self.session = model.Session()
+            self.db_session.add(self.session)
+            self.db_session.commit()
+            self.set_secure_cookie('session_id', str(self.session.id))
+            
+        return self.session
         
     def get_profile_url(self):
         user = self.get_current_user()
@@ -225,22 +182,29 @@ class HandlerBase(tornado.web.RequestHandler):
                 or (user is not None and str(user.id) == str(playlist.user_id)))
           
     def _log_user_in(self, user_id, expire_on_browser_close=False):
-        session_id = self._set_session_cookie(expire_on_browser_close=expire_on_browser_close)
+        # Promote playlists, uploaded images, and session to be owned by user
+        session_id = self.get_current_session().id
         
-        # Promote playlists and uploaded images to be owned by user
-        self.db.execute('UPDATE playlists SET user_id = %s WHERE session_id = %s',
-                        user_id, session_id)
-        self.db.execute('UPDATE uploaded_images SET user_id = %s WHERE session_id = %s',
-                        user_id, session_id)
+        (self.db_session.query(model.Playlist)
+            .filter_by(session_id=session_id)
+            .update({"user_id": user_id}))
         
-        # Associate session with user
-        self.db.execute('UPDATE sessions SET user_id = %s WHERE id = %s', user_id, session_id)
+        (self.db_session.query(model.Image)
+            .filter_by(session_id=session_id)
+            .update({"user_id": user_id}))
         
+        (self.db_session.query(model.Session)
+            .filter_by(id=session_id)
+            .update({"user_id": user_id}))
+        
+        self.db_session.commit()
+       
         # Set cookies for user_id and user_name
-        user = self.db.get('SELECT * FROM users WHERE id=%s', user_id)
+        # TODO: Make this use javascript variables instead of cookies.
+        user = self.db_session.query(model.User).get(user_id)
         expires_days = 30 if not expire_on_browser_close else None
         self.set_cookie('user_id', str(user_id), expires_days=expires_days)
-        self.set_cookie('user_name', urllib2.quote(user['name']), expires_days=expires_days)
+        self.set_cookie('user_name', urllib2.quote(user.name), expires_days=expires_days)
         self.set_cookie('profile_url', urllib2.quote(self.get_profile_url()), expires_days=expires_days)
         
     def _log_user_out(self):

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block html-classes %}{% if current_user %}loggedIn{% else %}loggedOut{% end %} {% if handler.owns_playlist(playlist) %}isOwner{% else %}isNotOwner{% end %}{% end %}
+{% block html-classes %}{% if handler.get_current_user() is not None %}loggedIn{% else %}loggedOut{% end %} {% if handler.owns_playlist(playlist) %}isOwner{% else %}isNotOwner{% end %}{% end %}
 
 {% block bodyId %}p{% end %}
 
