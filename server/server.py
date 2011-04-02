@@ -7,20 +7,10 @@ import argparse
 import handlers
 import os
 
-_parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
-_parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
-_parser.add_argument("--port", default=7000, help="run on the given port", type=int)
-_parser.add_argument("--mysql_host", default="instant.fm:3306", help="database host")
-_parser.add_argument("--mysql_database", default="instantfm", help="database name")
-_parser.add_argument("--mysql_user", default="instantfm", help="database user")
-_parser.add_argument("--mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
-options = _parser.parse_args()
-        
+
 class Application(tornado.web.Application):
-    """Custom application class that keeps a database connection"""
     
-    # Last.fm API key
-    API_KEY = '386402dfcfeedad35dd7debb343a05d5'
+    """Custom application class that keeps a database connection"""
     
     def __init__(self):
         handlers = [
@@ -54,11 +44,8 @@ class Application(tornado.web.Application):
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
 
-        #self.lastfm_api = lastfm.Api(self.API_KEY)
-        #self.lastfm_api.set_cache(lastfm_cache.LastfmCache(self.db))
- 
+
 def main():
-   
     if options.debug:
         try:
             import daemon
@@ -74,5 +61,16 @@ def main():
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
 
+
+_parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
+_parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
+_parser.add_argument("--port", default=7000, help="run on the given port", type=int)
+_parser.add_argument("--mysql_host", default="instant.fm:3306", help="database host")
+_parser.add_argument("--mysql_database", default="instantfm", help="database name")
+_parser.add_argument("--mysql_user", default="instantfm", help="database user")
+_parser.add_argument("--mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
+_parser.add_argument("--lastfm_key", default="386402dfcfeedad35dd7debb343a05d5", help="lastfm API key")
+options = _parser.parse_args()
+        
 if __name__ == "__main__":    
     main()
