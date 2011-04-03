@@ -44,6 +44,17 @@ class Application(tornado.web.Application):
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
+    parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
+    parser.add_argument("--port", default=7000, help="run on the given port", type=int)
+    parser.add_argument("--mysql_host", default="instant.fm:3306", help="database host")
+    parser.add_argument("--mysql_database", default="instantfm", help="database name")
+    parser.add_argument("--mysql_user", default="instantfm", help="database user")
+    parser.add_argument("--mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
+    parser.add_argument("--lastfm_key", default="386402dfcfeedad35dd7debb343a05d5", help="lastfm API key")
+    return parser.parse_args()
+     
 
 def main():
     if options.debug:
@@ -62,15 +73,6 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 
-_parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
-_parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
-_parser.add_argument("--port", default=7000, help="run on the given port", type=int)
-_parser.add_argument("--mysql_host", default="instant.fm:3306", help="database host")
-_parser.add_argument("--mysql_database", default="instantfm", help="database name")
-_parser.add_argument("--mysql_user", default="instantfm", help="database user")
-_parser.add_argument("--mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
-_parser.add_argument("--lastfm_key", default="386402dfcfeedad35dd7debb343a05d5", help="lastfm API key")
-options = _parser.parse_args()
-        
+options = parse_arguments()
 if __name__ == "__main__":    
     main()
