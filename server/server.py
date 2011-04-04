@@ -44,6 +44,7 @@ class Application(tornado.web.Application):
             host=options.mysql_host, database=options.mysql_database,
             user=options.mysql_user, password=options.mysql_password)
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
     parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
@@ -57,7 +58,7 @@ def parse_arguments():
      
 
 def main():
-    if options.debug:
+    if not options.debug:
         try:
             import daemon
             log = open('static/tornado.log', 'a+')

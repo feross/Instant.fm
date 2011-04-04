@@ -15,7 +15,6 @@ import lastfm_cache
 import bcrypt
 import Image
 import urllib2
-import string
 import tornadorpc.json
 import functools
 import model
@@ -26,20 +25,20 @@ class MustOwnPlaylistException(Exception): pass
 class PlaylistNotFoundException(Exception): pass
 
 
-def canonicalize(str):
-    str = re.sub('[^a-zA-Z0-9-]+', ' ', str)
-    str = string.capwords(str)
-    str = re.sub(' ', '-', str)
-    return str
+def canonicalize(string):
+    string = re.sub('[^a-zA-Z0-9-]+', ' ', string)
+    ' '.join([string.capitalize() for string in string.split()])
+    string = re.sub(' ', '-', string)
+    return string
 
 
 def ownsPlaylist(method):
     """ Decorator: throws an exception if user doesn't own current playlist
     
-    NOTE: playlist_id must be the 1st positional arg.
-    Though unlikely, if you put some other value as the 1st positional arg it
-    could be a security issue (as this would check that the user owns the 
-    wrong playlist ID.) So make sure playlist_id is the first positional arg.
+    NOTE: playlist_id must be the 1st positional arg. If you put some other
+    value as the 1st positional arg it could be a security issue (as this 
+    would check that the user owns the wrong playlist ID.) So make sure 
+    playlist_id is the first positional arg.
     
     I need to read more about python to figure out if there's a better way to
     do this.
@@ -56,23 +55,6 @@ def ownsPlaylist(method):
     return wrapper
 
         
-
-class Playlist(object):
-    def __init__(self, id, url, title):
-        self.status = "ok"
-        self.id = id
-        self.url = url
-        self.title = title
-        self.description = None
-        self.user_id = None
-        self.session_id = None
-        self.songs = None
-        self.owner_name = None
-        self.owner_url = None
-        self.bg_original = None
-        self.bg_medium = None
-    
-    
 class HandlerBase(tornado.web.RequestHandler):
     """ All handlers should extend this """
     
@@ -90,10 +72,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
         if status_code == 404:
-            try:
-                return open('static/404.html', 'r').read()
-            except Exception:
-                pass
+            return open('static/404.html', 'r').read()
                 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
           
@@ -195,7 +174,7 @@ class PlaylistHandlerBase(HandlerBase):
                 if image.__class__ == unicode and url_re.match(image) is not None:
                     new_song['i'] = image
                 else:
-                    new_song['i'] = None # Mark the album art fetch as attempted, so the client doesn't attempt to fetch it again
+                    new_song['i'] = None
                 songlist.append(new_song)
         
         return json.dumps(songlist)
@@ -233,23 +212,28 @@ class PlaylistHandlerBase(HandlerBase):
         return playlist
        
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
-        template = ('partial/' if self._is_partial() else '') + template_name;
+        template = ('partial/' if self._is_partial() else '') + template_name
         self.render(template, is_partial=self._is_partial(), playlist=playlist, **kwargs)
         
     def _is_partial(self):
         return self.get_argument('partial', default=False)
         
-    def _new_playlist(self, title, description, songs=[]):
+    def _new_playlist(self, title, description, songs=None):
         """ Creates a new playlist owned by the current user/session """
+        if songs is None:
+            songs = []
         songs_json = json.dumps(songs)
         if not songs_json:
             self.send_error(500)
         
-        session_id = self._get_session_cookie()
         user = self.get_current_user()
              
         new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-            title, description, songs_json, user.id if user else None, session_id)
+                                 title, 
+                                 description, 
+                                 songs_json, 
+                                 user.id if user else None, 
+                                 self.get_current_session().id)
 
         return self._get_playlist_by_id(new_id)
  
@@ -270,7 +254,7 @@ class UploadHandlerBase(HandlerBase):
             if self.get_argument('base64', 'false') == 'true':
                 try:                    
                     contents = base64.b64decode(self.request.body)
-                except Exception:
+                except:
                     return {'status': 'Invalid request'}
             else:
                 contents = self.request.body
@@ -322,39 +306,39 @@ class ImageHandlerBase(HandlerBase):
     STATIC_DIR = 'static'
     IMAGE_DIR = '/images/uploaded/'
     
-    def _handle_image(self, buffer, playlist_id):
+    def _handle_image(self, data, playlist_id):
         result = {'status': 'OK', 'images': {}}
         
         # Open image and verify it.
         try:
-            image = Image.open(buffer)
+            image = Image.open(data)
             image.verify()
         except:
             result['status'] = 'No valid image at that URL.'
             return result
         
         # Rewind buffer and open image again
-        buffer.seek(0)
-        image = Image.open(buffer)
+        data.seek(0)
+        image = Image.open(data)
         
         user = self.get_current_user()
-        id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
+        image_id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
                              user.id if user else None,
                              self._get_session_cookie())
         self.db.execute('UPDATE playlists SET bg_image_id = %s WHERE playlist_id = %s',
-                        id, playlist_id)
+                        image_id, playlist_id)
         
         sizes = [('original', None), ('medium', 160)]
-        result['images'] = self._save_images(id, image, sizes)
+        result['images'] = self._save_images(image_id, image, sizes)
         return result
     
-    def _save_images(self, id, original, sizes):
+    def _save_images(self, image_id, original, sizes):
         # Crop to square for thumbnail versions
-        format = original.format
+        img_format = original.format
         cropped_side_length = min(original.size)
-        square = ((original.size[0] - cropped_side_length) / 2, 
+        square = ((original.size[0] - cropped_side_length) / 2,
                   (original.size[1] - cropped_side_length) / 2,
-                  (original.size[0] + cropped_side_length) / 2, 
+                  (original.size[0] + cropped_side_length) / 2,
                   (original.size[1] + cropped_side_length) / 2)
         cropped_image = original.crop(square)
         
@@ -366,21 +350,21 @@ class ImageHandlerBase(HandlerBase):
                 image = cropped_image.copy()
                 size = (side_length, side_length)
                 image.thumbnail(size, Image.ANTIALIAS)
-            filename = '{0:x}-{1:s}.{2:s}'.format(id, name, format.lower())
+            filename = '{0:x}-{1:s}.{2:s}'.format(image_id, name, img_format.lower())
             path = os.path.join(self.IMAGE_DIR, filename)
-            image.save(self.STATIC_DIR + path, format=format)
+            image.save(self.STATIC_DIR + path, img_format=img_format)
             images[name] = path
-            self.db.execute('UPDATE uploaded_images SET ' + name + ' = %s WHERE id = %s',
-                            path, id)
+            self.db.execute('UPDATE uploaded_images SET ' + name + ' = %s WHERE image_id = %s',
+                            path, image_id)
     
         return images
     
     
-class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase, 
+class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
                      UserHandlerBase, ImageHandlerBase):
    
     def _update_playlist_col(self, playlist_id, col_name, col_value):
-        return self.db.execute("UPDATE playlists SET "+col_name+" = %s WHERE playlist_id = %s;", col_value, playlist_id)
+        return self.db.execute("UPDATE playlists SET " + col_name + " = %s WHERE playlist_id = %s;", col_value, playlist_id)
     
     @ownsPlaylist
     def update_songlist(self, playlist_id, songlist):
@@ -426,7 +410,7 @@ class GetImagesHandler(HandlerBase):
 class ArtistAutocompleteHandler(HandlerBase):
     """ Not used. """
     def get(self):
-        prefix = self.get_argument('term');
+        prefix = self.get_argument('term')
         artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
         self.write(json.dumps(artists))
         
@@ -454,7 +438,7 @@ class PlaylistHandler(PlaylistHandlerBase):
         if self.get_argument('json', default=False):
             self.write(playlist.to_json())
         else:
-            self.render('playlist.html', playlist=playlist);
+            self.render('playlist.html', playlist=playlist)
             
    
 class SearchHandler(PlaylistHandlerBase):
@@ -479,8 +463,8 @@ class ArtistHandler(PlaylistHandlerBase):
                 songs = []
                 for track in artist.top_tracks:
                     songs.append({
-                         "a": artist.name, 
-                         "t": track.name, 
+                         "a": artist.name,
+                         "t": track.name,
                          "i": track.image['small'] if 'small' in track.image else ''}
                     )
                     
@@ -489,7 +473,6 @@ class ArtistHandler(PlaylistHandlerBase):
             else:
                 self.redirect('/' + canonicalize(artist.name), permanent=True)
         except lastfm_cache.ResultNotCachedException:
-            """ Render the template with no artist """
             self._render_playlist_view('artist.html', artist='')
         except Exception, e:
             print('Error retrieving artist:')
@@ -572,7 +555,7 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
     def _parse_text(self, contents):
         try:
             decoded = contents.decode('utf-8')
-        except Exception:
+        except:
             decoded = contents.decode('utf-16')
         
         f = io.StringIO(decoded, newline=None)
@@ -649,39 +632,32 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         
         if self.get_argument('redirect', 'false') == 'true':
             playlist_id = result['playlist_id']
-            self.redirect("/p/"+playlist_id)
+            self.redirect("/p/" + playlist_id)
         else:
             self.set_header("Content-Type", "application/json")
             self.write(json.dumps(result))
 
 
-class ImageUploadHandler(ImageHandlerBase, UploadHandlerBase):
-    def post(self):
-        self._get_session_cookie()
-        (filename, contents) = self._get_request_content()
-        # TODO: Finish this
-         
-         
-class FbSignupHandler(UserHandlerBase, 
+class FbSignupHandler(UserHandlerBase,
                       tornado.auth.FacebookGraphMixin):
     @tornado.web.asynchronous
     def post(self):
         # TODO: Find a proper method of validation.
         errors = {}
         args = {'name': ['required'],
-                'email': ['required','email'],
-                'password': ['required', 'password'], 
+                'email': ['required', 'email'],
+                'password': ['required', 'password'],
                 'fb_user_id': ['required'],
-                'auth_token': ['required'], 
+                'auth_token': ['required'],
         }
         
         self._validate_args(args, errors)
            
         # Make sure that FBID and email aren't already taken
-        if self.db.get('SELECT * FROM users WHERE fb_id = %s', 
+        if self.db.get('SELECT * FROM users WHERE fb_id = %s',
                        self.get_argument('fb_user_id', '', True)):
             errors['fb_user_id'] = 'This Facebook user is already registered on Instant.fm. Try logging in instead.'
-        if self.db.get('SELECT * FROM users WHERE email = %s', 
+        if self.db.get('SELECT * FROM users WHERE email = %s',
                        self.get_argument('email', '', True)):
             errors['email'] = 'This email is already registered on Instant.fm. Try logging in instead.'
             
