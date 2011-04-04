@@ -220,8 +220,7 @@ class PlaylistHandlerBase(HandlerBase):
         
     def _new_playlist(self, title, description, songs=None):
         """ Creates a new playlist owned by the current user/session """
-        if songs is None:
-            songs = []
+        songs = songs or []
         songs_json = json.dumps(songs)
         if not songs_json:
             self.send_error(500)

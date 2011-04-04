@@ -3,8 +3,8 @@
 
 import tornado.httpserver
 import tornado.ioloop
-import argparse
 import handlers
+import options
 import os
 
 
@@ -13,10 +13,9 @@ class Application(tornado.web.Application):
     """Custom application class that keeps a database connection"""
     
     def __init__(self):
-        handlers = [
+        url_handlers = [
             (r"/", handlers.HomeHandler),
             (r"/json-rpc/?$", handlers.JsonRpcHandler),
-            (r"/upload-img/?$", handlers.ImageUploadHandler),
             (r"/upload/?$", handlers.UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
@@ -37,28 +36,11 @@ class Application(tornado.web.Application):
             xsrf_cookies=True,
             cookie_secret="SkxQTluCp02hm5k0zbiAJmgg2M3HOS7",
         )
-        tornado.web.Application.__init__(self, handlers, **settings)
+        tornado.web.Application.__init__(self, url_handlers, **settings)
         
-        # TODO: Change this to use UNIX domain sockets?
-        self.db = tornado.database.Connection(
-            host=options.mysql_host, database=options.mysql_database,
-            user=options.mysql_user, password=options.mysql_password)
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='The Instant.fm Tornado server')
-    parser.add_argument("-d", "--debug", help="don't daemonize (debug mode)", action='store_true', default=False)
-    parser.add_argument("--port", default=7000, help="run on the given port", type=int)
-    parser.add_argument("--mysql_host", default="instant.fm:3306", help="database host")
-    parser.add_argument("--mysql_database", default="instantfm", help="database name")
-    parser.add_argument("--mysql_user", default="instantfm", help="database user")
-    parser.add_argument("--mysql_password", default="CXZrPkkJEgk7lAZMnzbk5hb9g", help="database password")
-    parser.add_argument("--lastfm_key", default="386402dfcfeedad35dd7debb343a05d5", help="lastfm API key")
-    return parser.parse_args()
-     
 
 def main():
-    if not options.debug:
+    if not options.cli_args.debug:
         try:
             import daemon
             log = open('static/tornado.log', 'a+')
@@ -68,12 +50,11 @@ def main():
             print 'python-daemon not installed; not running as daemon'
 
     http_server = tornado.httpserver.HTTPServer(Application(), xheaders=True)
-    http_server.listen(7000)
+    http_server.listen(options.cli_args.port)
 
     # Start the main loop
     tornado.ioloop.IOLoop.instance().start()
 
 
-options = parse_arguments()
 if __name__ == "__main__":    
     main()

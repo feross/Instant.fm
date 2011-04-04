@@ -7,10 +7,17 @@ Created on Mar 29, 2011
 import sqlalchemy.orm
 import json
 import base36
+import options
 
 # Set up database connection
+_url = 'mysql+mysqldb://{0}:{1}@instant.fm/{2}'.format(
+    options.cli_args.mysql_user,
+    options.cli_args.mysql_password,
+    options.cli_args.mysql_database
+)
+
 engine = sqlalchemy.create_engine(
-    'mysql+mysqldb://instantfm:CXZrPkkJEgk7lAZMnzbk5hb9g@instant.fm/instantfm',
+    _url,
     pool_recycle=3600, 
     echo=True)
 metadata = sqlalchemy.MetaData()
