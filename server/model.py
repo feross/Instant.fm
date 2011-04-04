@@ -17,10 +17,12 @@ class User(object):
     def url(self):
         return '/user/' + self.profile
     
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    @property
+    def json(self):
+        return json.dumps(self.user_visible_properties())
     
-    def to_dict(self):
+    @property
+    def user_visible_properties(self):
         return {
             "id": int(self.id),
             "name": self.name,
@@ -30,6 +32,10 @@ class User(object):
         
 class Playlist(object):
     
+    def __init__(self, title):
+        self.title = title
+        self.songs = []
+     
     def _sanitize_songs(self, songs):
         sanitized_songs = []
         url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
@@ -57,16 +63,13 @@ class Playlist(object):
     def songs(self, songs):
         sanitized_songs = self._sanitize_songs(songs)
         self._songs = json.dumps(sanitized_songs)
-    
-    def __init__(self, title):
-        self.title = title
-        self.songs = []
-        
+       
     @property
     def url(self):
         return '/p/' + base36.base10_36(self.id)
     
-    def to_dict(self):
+    @property
+    def user_visible_properties(self):
         return {
             "status": "ok",
             "id": int(self.id),
@@ -74,15 +77,17 @@ class Playlist(object):
             "title": self.title,
             "description": self.description,
             "songs": self.songs,
-            "user": self.user.to_dict() if self.user is not None else None,
-            "image": self.image.to_dict() if self.image is not None else None,
+            "user": self.user.user_visible_properties if self.user is not None else None,
+            "image": self.image.user_visible_properties if self.image is not None else None,
         }
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    @property
+    def json(self):
+        return json.dumps(self.user_visible_properties)
 
 class Image(object):
-    def to_dict(self):
+    @property
+    def user_visible_properties(self):
         return {
             "original": self.original,
             "medium": self.medium,

@@ -24,7 +24,7 @@ class MustOwnPlaylistException(Exception): pass
 class UnsupportedFormatException(Exception): pass
 
 
-def canonicalize(string):
+def urlify(string):
     string = re.sub('[^a-zA-Z0-9]+', ' ', string)
     ' '.join([word.capitalize() for word in string.split()])
     string = re.sub(' ', '-', string)
@@ -137,7 +137,9 @@ class HandlerBase(tornado.web.RequestHandler):
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
-            self.db_session.query(model.Session).filter_by(id=session_id).delete()
+            (self.db_session.query(model.Session)
+                .filter_by(id=session_id)
+                .delete())
             
         self.clear_cookie('session_id')
         self.clear_cookie('session_num')
@@ -241,7 +243,10 @@ class ImageHandlerBase(HandlerBase):
         return image
     
     def _save_image(self, image_id, image_format, image):
-        filename = '{0:x}-{1}x{2}.{3}'.format(image_id, image.size[0], image.size[1], image_format.lower())
+        filename = '{0:x}-{1}x{2}.{3}'.format(image_id, 
+                                              image.size[0], 
+                                              image.size[1], 
+                                              image_format.lower())
         path = os.path.join(self.IMAGE_DIR, filename)
         image.save(self.STATIC_DIR + path, img_format=image.format)
         return path
@@ -266,7 +271,6 @@ class ImageHandlerBase(HandlerBase):
         image = model.Image()
         image.user = self.get_current_user()
         image.session = self.get_current_session()
-        print(image.session.id)
         self.db_session.add(image)
         playlist = self.db_session.query(model.Playlist).get(playlist_id)
         playlist.image = image
@@ -322,7 +326,7 @@ class GetImagesHandler(HandlerBase):
         if user is not None:
             query.filter_by(user_id=self.get_current_user().id)
         
-        return [image.to_json() for image in query.all()]
+        return [image.json() for image in query.all()]
             
     
 class HomeHandler(HandlerBase):
@@ -346,7 +350,7 @@ class PlaylistHandler(PlaylistHandlerBase):
             return
         
         if self.get_argument('json', default=False):
-            self.write(playlist.to_json())
+            self.write(playlist.json())
         else:
             self.render('playlist.html', playlist=playlist)
             
@@ -502,7 +506,7 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
             self.redirect(playlist.url)
         else:
             self.set_header("Content-Type", "application/json")
-            self.write(playlist.to_json())
+            self.write(playlist.json())
 
 
 class FbSignupHandler(UserHandlerBase,
@@ -545,7 +549,7 @@ class FbSignupHandler(UserHandlerBase,
             
             # Find an unused prefix name to use
             name = self.get_argument('name') 
-            profile = prefix = canonicalize(name)
+            profile = prefix = urlify(name)
             collisions = [user.profile for user in 
                             (self.db_session.query(model.User)
                              .filter(model.User.profile.startswith(prefix))
@@ -616,7 +620,7 @@ class NewPlaylistHandler(PlaylistHandlerBase):
         playlist.description = description
         self.db_session.add(playlist)
         self.db_session.commit()
-        self.write(playlist.to_json())
+        self.write(playlist.json())
         
         
 class LogoutHandler(UserHandlerBase):

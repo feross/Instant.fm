@@ -402,7 +402,7 @@
 {% block scripts %}
   {% block scripts-partial %}{% end %}
   <script>
-    var initial_playlist = {{ playlist.to_json() if playlist is not None else 'null' }};
+    var initial_playlist = {{ playlist.json if playlist is not None else 'null' }};
         $(function() {
             onloadPlaylist();
         });
