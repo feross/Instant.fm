@@ -19,7 +19,6 @@ class Application(tornado.web.Application):
             (r"/upload/?$", handlers.UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
-            (r"/suggest/?$", handlers.ArtistAutocompleteHandler),
             (r"/search/?$", handlers.SearchHandler),
             (r"/signup/fb", handlers.FbSignupHandler),
             (r"/login", handlers.LoginHandler),

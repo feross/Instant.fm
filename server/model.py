@@ -67,6 +67,9 @@ class User(object):
     def get_url(self):
         return '/user/' + self.profile
     
+    def to_json(self):
+        return json.dumps(self.to_dict())
+    
     def to_dict(self):
         return {
             "id": int(self.id),
