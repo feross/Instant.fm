@@ -70,8 +70,18 @@ class User(object):
         
         
 class Playlist(object):
+    
+    @property
+    def songs(self):
+        return json.loads(self._songs)
+    
+    @songs.setter
+    def songs(self, songs):
+        self._songs = json.dumps(songs)
+    
     def __init__(self, title):
         self.title = title
+        self.songs = []
         
     def get_url(self):
         return '/p/' + base36.base10_36(self.id)
@@ -83,9 +93,9 @@ class Playlist(object):
             "url": self.get_url(),
             "title": self.title,
             "description": self.description,
-            "songs": json.loads(self.songs),
-            "user": self.user.to_dict(),
-            "image": self.image.to_dict(),
+            "songs": self.songs,
+            "user": self.user.to_dict() if self.user is not None else None,
+            "image": self.image.to_dict() if self.image is not None else None,
         }
 
     def to_json(self):

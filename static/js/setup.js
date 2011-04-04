@@ -202,8 +202,8 @@ function setupKeyboardShortcuts() {
 function setupFBML(playlist) {
     window.fbAsyncInit = function() {
         FB.init({
-          appId: appSettings.fbAppId, // 'Instant.fm' API Key
-          // appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          //appId: appSettings.fbAppId, // 'Instant.fm' API Key
+          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
           status: true,
           cookie: true,
           xfbml: true

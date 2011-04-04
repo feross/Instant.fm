@@ -11,7 +11,6 @@ import io
 import base64
 import tornado.web
 import tornado.auth
-import lastfm_cache
 import bcrypt
 import Image
 import urllib2
@@ -26,8 +25,8 @@ class PlaylistNotFoundException(Exception): pass
 
 
 def canonicalize(string):
-    string = re.sub('[^a-zA-Z0-9-]+', ' ', string)
-    ' '.join([string.capitalize() for string in string.split()])
+    string = re.sub('[^a-zA-Z0-9]+', ' ', string)
+    ' '.join([word.capitalize() for word in string.split()])
     string = re.sub(' ', '-', string)
     return string
 
@@ -112,29 +111,28 @@ class HandlerBase(tornado.web.RequestHandler):
         return ((session.id is not None and str(session.id) == playlist.session_id) 
                 or (user is not None and user.id == playlist.user_id))
           
-    def _log_user_in(self, user_id, expire_on_browser_close=False):
+    def _log_user_in(self, user, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
         session_id = self.get_current_session().id
         
         (self.db_session.query(model.Playlist)
             .filter_by(session_id=session_id)
-            .update({"user_id": user_id}))
+            .update({"user_id": user.id}))
         
         (self.db_session.query(model.Image)
             .filter_by(session_id=session_id)
-            .update({"user_id": user_id}))
+            .update({"user_id": user.id}))
         
         (self.db_session.query(model.Session)
             .filter_by(id=session_id)
-            .update({"user_id": user_id}))
+            .update({"user_id": user.id}))
         
         self.db_session.commit()
        
         # Set cookies for user_id and user_name
         # TODO: Make this use javascript variables instead of cookies.
-        user = self.db_session.query(model.User).get(user_id)
         expires_days = 30 if not expire_on_browser_close else None
-        self.set_cookie('user_id', str(user_id), expires_days=expires_days)
+        self.set_cookie('user_id', str(user.id), expires_days=expires_days)
         self.set_cookie('user_name', urllib2.quote(user.name), expires_days=expires_days)
         self.set_cookie('profile_url', urllib2.quote(self.get_profile_url()), expires_days=expires_days)
         
@@ -182,24 +180,6 @@ class PlaylistHandlerBase(HandlerBase):
     def _is_partial(self):
         return self.get_argument('partial', default=False)
         
-    def _new_playlist(self, title, description, songs=None):
-        """ Creates a new playlist owned by the current user/session """
-        songs = songs or []
-        songs_json = json.dumps(songs)
-        if not songs_json:
-            self.send_error(500)
-        
-        user = self.get_current_user()
-             
-        new_id = self.db.execute("INSERT INTO playlists (title, description, songs, user_id, session_id) VALUES (%s,%s,%s,%s,%s);",
-                                 title, 
-                                 description, 
-                                 songs_json, 
-                                 user.id if user else None, 
-                                 self.get_current_session().id)
-
-        return self._get_playlist_by_id(new_id)
- 
     def render_user_name(self):
         user = self.get_current_user()
         name = user.name if user else ''
@@ -261,8 +241,8 @@ class UserHandlerBase(HandlerBase):
         self.finish()
         return True
     
-    def _is_registered_fbid(self, fbid):
-        return self.db.get('SELECT * FROM users WHERE fb_id = %s', fbid) != None
+    def _is_registered_fbid(self, fb_id):
+        return self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0
          
          
 class ImageHandlerBase(HandlerBase):
@@ -280,47 +260,49 @@ class ImageHandlerBase(HandlerBase):
             result['status'] = 'No valid image at that URL.'
             return result
         
+       
+        image = model.Image()
+        image.user = self.get_current_user()
+        image.session = self.get_current_session()
+        self.db_session.add(image)
+        self.db_session.commit()
+        
+        playlist = self.db_session.query(model.Playlist).get(playlist_id)
+        playlist.image = image
+        self.db_session.commit()
+        
         # Rewind buffer and open image again
         data.seek(0)
-        image = Image.open(data)
-        
-        user = self.get_current_user()
-        image_id = self.db.execute('INSERT INTO uploaded_images (user_id, session_id) VALUES (%s, %s)',
-                             user.id if user else None,
-                             self._get_session_cookie())
-        self.db.execute('UPDATE playlists SET bg_image_id = %s WHERE playlist_id = %s',
-                        image_id, playlist_id)
-        
-        sizes = [('original', None), ('medium', 160)]
-        result['images'] = self._save_images(image_id, image, sizes)
-        return result
+        image_data = Image.open(data)
+        sizes = [(image.original, None), (image.medium, 160)]
+        self._save_images(image, image_data, sizes)
+        return image
     
-    def _save_images(self, image_id, original, sizes):
+    def _save_images(self, image, image_data, sizes):
         # Crop to square for thumbnail versions
-        img_format = original.format
-        cropped_side_length = min(original.size)
-        square = ((original.size[0] - cropped_side_length) / 2,
-                  (original.size[1] - cropped_side_length) / 2,
-                  (original.size[0] + cropped_side_length) / 2,
-                  (original.size[1] + cropped_side_length) / 2)
-        cropped_image = original.crop(square)
+        img_format = image_data.format
+        cropped_side_length = min(image_data.size)
+        square = ((image_data.size[0] - cropped_side_length) / 2,
+                  (image_data.size[1] - cropped_side_length) / 2,
+                  (image_data.size[0] + cropped_side_length) / 2,
+                  (image_data.size[1] + cropped_side_length) / 2)
+        cropped_image = image_data.crop(square)
         
         images = {}
-        for name, side_length in sizes:
+        for field, side_length in sizes:
             if side_length is None:
-                image = original
+                image = image_data
             else:
                 image = cropped_image.copy()
                 size = (side_length, side_length)
                 image.thumbnail(size, Image.ANTIALIAS)
-            filename = '{0:x}-{1:s}.{2:s}'.format(image_id, name, img_format.lower())
+            filename = '{0:x}-{1:s}.{2:s}'.format(image.id, field, img_format.lower())
             path = os.path.join(self.IMAGE_DIR, filename)
             image.save(self.STATIC_DIR + path, img_format=img_format)
-            images[name] = path
-            self.db.execute('UPDATE uploaded_images SET ' + name + ' = %s WHERE image_id = %s',
+            field = path
+            image.value
+            self.db.execute('UPDATE uploaded_images SET ' + field + ' = %s WHERE image_id = %s',
                             path, image_id)
-    
-        return images
     
     
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
@@ -412,63 +394,20 @@ class SearchHandler(PlaylistHandlerBase):
         
 
 class ArtistHandler(PlaylistHandlerBase):
-    """ This doesn't work yet, and isn't used.
-    """
+    """ Renders an empty artist template """
     def get(self, requested_artist_name):
-        # TODO: This method of caching is inefficient because the result needs to be parsed every time.
-        try:
-            search_results = self.application.lastfm_api.search_artist(canonicalize(requested_artist_name), limit=1)
-            artist = search_results[0]
-            if len(artist.top_tracks) == 0:
-                raise Exception('Has no tracks')
-            
-            if canonicalize(artist.name) == requested_artist_name:
-                songs = []
-                for track in artist.top_tracks:
-                    songs.append({
-                         "a": artist.name,
-                         "t": track.name,
-                         "i": track.image['small'] if 'small' in track.image else ''}
-                    )
-                    
-                playlist = Playlist(songs)
-                self._render_playlist_view('artist.html', playlist=self.makePlaylistJSON(playlist), artist=artist)
-            else:
-                self.redirect('/' + canonicalize(artist.name), permanent=True)
-        except lastfm_cache.ResultNotCachedException:
-            self._render_playlist_view('artist.html', artist='')
-        except Exception, e:
-            print('Error retrieving artist:')
-            print(e)
-            self._render_playlist_view('artist.html', artist='')
+        self._render_playlist_view('artist.html', artist=None)
             
 
 class AlbumHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name, requested_album_name):
-        """ This doesn't work yet, and isn't used.
-        """
-        try:
-            search_str = canonicalize(requested_album_name) + ' ' + canonicalize(requested_artist_name)
-            search_results = self.application.lastfm_api.search_album(search_str)
-            album = search_results[0]
-            songs = album.tracks
-            print songs
-            if canonicalize(album.name) != requested_album_name or canonicalize(album.artist.name) != requested_artist_name:
-                self.redirect('/' + canonicalize(album.artist.name) + '/' + canonicalize(album.name))
-            else:
-                self._render_playlist_view('album.html', album=album)
-        except lastfm_cache.ResultNotCachedException:
-            self._render_playlist_view('album.html', album=None)
-        except Exception, e:
-            print('Exception while retrieving album:')
-            print(e)
-            self._render_playlist_view('album.html', album=None)
+        """ Renders an empty album template """
+        self._render_playlist_view('album.html', album=None)
        
       
 class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
     
-    """ Handles playlist upload requests
-    """
+    """ Handles playlist upload requests """
     
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -585,8 +524,11 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         # Just in case, we sanitize the playlist's json.
         songs = json.loads(self._sanitize_songlist_json(json.dumps(songs)))
             
-        description = 'Uploaded playlist.'
-        return self._new_playlist(title, description, songs)
+        playlist = model.Playlist(title)
+        playlist.songs = songs
+        self.db_session.add(playlist)
+        self.db_session.commit()
+        return playlist
     
     def post(self):
         self._get_session_cookie()
@@ -617,11 +559,11 @@ class FbSignupHandler(UserHandlerBase,
         self._validate_args(args, errors)
            
         # Make sure that FBID and email aren't already taken
-        if self.db.get('SELECT * FROM users WHERE fb_id = %s',
-                       self.get_argument('fb_user_id', '', True)):
+        fb_id = self.get_argument('fb_user_id', True)
+        email = self.get_argument('email', True)
+        if self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0:
             errors['fb_user_id'] = 'This Facebook user is already registered on Instant.fm. Try logging in instead.'
-        if self.db.get('SELECT * FROM users WHERE email = %s',
-                       self.get_argument('email', '', True)):
+        if self.db_session.query(model.User).filter_by(email=email).count() > 0:
             errors['email'] = 'This email is already registered on Instant.fm. Try logging in instead.'
             
         if len(errors.keys()) > 0:
@@ -639,25 +581,29 @@ class FbSignupHandler(UserHandlerBase,
         if user['id'] == self.get_argument('fb_user_id'):
             hashed_pass = self._hash_password(self.get_argument('password'))
             
-            # Find an unused profile name to use
+            # Find an unused prefix name to use
             name = self.get_argument('name') 
-            unique_profile = profile = canonicalize(name)
-            collisions = self.db.query('SELECT profile FROM users WHERE profile LIKE %s',
-                                       profile + '%') 
+            profile = prefix = canonicalize(name)
+            collisions = [user.profile for user in 
+                            (self.db_session.query(model.User)
+                             .filter(model.User.profile.startswith(prefix))
+                             .all())]
             suffix = 0
-            while unique_profile in [row['profile'] for row in collisions]:
+            while profile in collisions:
                 suffix += 1
-                unique_profile = profile + '-' + str(suffix)
+                profile = prefix + '-' + str(suffix)
             
             # Write the user to DB
-            user_id = self.db.execute('INSERT INTO users (fb_id, name, email, password, profile, create_date) VALUES (%s, %s, %s, %s, %s, NOW())',
-                                      self.get_argument('fb_user_id'),
-                                      name,
-                                      self.get_argument('email'),
-                                      hashed_pass,
-                                      unique_profile)
+            user = model.User()
+            user.fb_id = self.get_argument('fb_user_id')
+            user.name = name
+            user.email = self.get_argument('email')
+            user.password = hashed_pass
+            user.profile = profile
+            self.db_session.add(user)
+            self.db_session.commit()
             
-            self._log_user_in(user_id)
+            self._log_user_in(user)
             self.write(json.dumps(True))
             self.finish()
         else:
@@ -676,8 +622,7 @@ class LoginHandler(UserHandlerBase):
         if self._send_errors(errors):
             return
         
-        user = self.db.get('SELECT * FROM users WHERE email=%s',
-                           self.get_argument('email', '', True))
+        user = self.db_session.query(model.User).filter_by(email=self.get_argument('email', True)).first()
         if not user:
             errors['email'] = 'No account matching that e-mail address found.'
             if self._send_errors(errors):
@@ -690,7 +635,7 @@ class LoginHandler(UserHandlerBase):
             
         # If we haven't failed out yet, the login is valid.
         expire_on_browser_close = not self.get_argument('passwordless', False)
-        self._log_user_in(user.id, expire_on_browser_close=expire_on_browser_close)
+        self._log_user_in(user, expire_on_browser_close=expire_on_browser_close)
         self.write(json.dumps(True))
         
         
@@ -705,10 +650,12 @@ class NewPlaylistHandler(PlaylistHandlerBase):
             self.send_error(500)
             return
         
-        playlist = self._new_playlist(title, description)
-        self.write(json.dumps(playlist.__dict__))
-        return
-    
+        playlist = model.Playlist(title)
+        playlist.description = description
+        self.db_session.add(playlist)
+        self.db_session.commit()
+        self.write(playlist.to_json())
+        
         
 class LogoutHandler(UserHandlerBase):
     def post(self):

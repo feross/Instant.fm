@@ -10,7 +10,7 @@ import os
 
 class Application(tornado.web.Application):
     
-    """Custom application class that keeps a database connection"""
+    """Custom application class for Instant.fm"""
     
     def __init__(self):
         url_handlers = [
