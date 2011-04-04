@@ -44,7 +44,7 @@ Model.prototype.removeSong = function(songNum) {
 Model.prototype.saveSongs = function() {
     instantfm.update_songlist({ "params": {
         "playlist_id": model.playlist.id,
-        "songlist": model.playlist.songs,
+        "songs": model.playlist.songs,
     }});
 };
 

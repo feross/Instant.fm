@@ -304,21 +304,20 @@ class ImageHandlerBase(HandlerBase):
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
                      UserHandlerBase, ImageHandlerBase):
    
-    def _update_playlist_col(self, playlist_id, col_name, col_value):
-        return self.db.execute("UPDATE playlists SET " + col_name + " = %s WHERE playlist_id = %s;", col_value, playlist_id)
-    
     @ownsPlaylist
-    def update_songlist(self, playlist_id, songlist):
-        songlist_json = self._sanitize_songlist_json(json.dumps(songlist))
-        self._update_playlist_col(playlist_id, 'songs', songlist_json)
+    def update_songlist(self, playlist_id, songs):
+        self.db_session.query(model.Playlist).get(playlist_id).songs = songs
+        self.db_session.commit()
         
     @ownsPlaylist
     def update_title(self, playlist_id, title):
-        self._update_playlist_col(playlist_id, 'title', title)
+        self.db_session.query(model.Playlist).get(playlist_id).title = title
+        self.db_session.commit()
         
     @ownsPlaylist
     def update_description(self, playlist_id, description):
-        self._update_playlist_col(playlist_id, 'description', description)
+        self.db_session.query(model.Playlist).get(playlist_id).description = description
+        self.db_session.commit()
         
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it responds to RPC """
@@ -334,27 +333,18 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
     def _on_set_image_from_url_response(self, response):
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
-     
-     
+ 
+
 class GetImagesHandler(HandlerBase):
     def get(self):
         user = self.get_current_user()
+        query = self.db_session.query(model.Image)
+        query.filter_by(session_id=self.get_current_session())
         if user is not None:
-            image_rows = self.db.query('SELECT * FROM uploaded_images WHERE user_id = %s OR session_id = %s',
-                                       user.id, self._get_session_cookie())
-            self.write(json.dumps(image_rows))
-            return
+            query.filter_by(user_id=self.get_current_user().id)
         
-        self.write(json.dumps([]))
-        
-   
-class ArtistAutocompleteHandler(HandlerBase):
-    """ Not used. """
-    def get(self):
-        prefix = self.get_argument('term')
-        artists = self.db.query("SELECT name AS label FROM artist_popularity WHERE listeners > 0 AND (name LIKE %s OR sortname LIKE %s) ORDER BY listeners DESC LIMIT 5", prefix + '%', prefix + '%')
-        self.write(json.dumps(artists))
-        
+        return [image.to_json() for image in query.all()]
+            
     
 class HomeHandler(HandlerBase):
     def get(self):
@@ -383,8 +373,6 @@ class PlaylistHandler(PlaylistHandlerBase):
             
    
 class SearchHandler(PlaylistHandlerBase):
-    """Landing page for search. 
-    """
     def get(self):
         self._render_playlist_view('search.html')
         
