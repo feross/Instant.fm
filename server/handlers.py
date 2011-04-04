@@ -149,27 +149,6 @@ class HandlerBase(tornado.web.RequestHandler):
 class PlaylistHandlerBase(HandlerBase):
     """ Any handler that involves playlists should extend this.
     """ 
-    
-    def _sanitize_songlist_json(self, json_str):
-        uploaded_list = json.loads(json_str)
-        songlist = []
-        
-        url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
-        
-        for song in uploaded_list:
-            title = song['t'] if song.has_key('t') else None
-            artist = song['a'] if song.has_key('a') else None
-            image = song['i'] if song.has_key('i') else None
-            
-            if title.__class__ == unicode and artist.__class__ == unicode:
-                new_song = {'a': artist, 't': title}
-                if image.__class__ == unicode and url_re.match(image) is not None:
-                    new_song['i'] = image
-                else:
-                    new_song['i'] = None
-                songlist.append(new_song)
-        
-        return json.dumps(songlist)
 
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name
@@ -506,7 +485,7 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
             return {'status': 'Unsupported type'}
         
         # Just in case, we sanitize the playlist's json.
-        songs = json.loads(self._sanitize_songlist_json(json.dumps(songs)))
+        songs = json.loads(self._sanitize_songs(json.dumps(songs)))
             
         playlist = model.Playlist(title)
         playlist.songs = songs
