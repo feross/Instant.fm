@@ -47,7 +47,7 @@ def ownsPlaylist(method):
         playlist_id = (kwargs['playlist_id'] 
                        if 'playlist_id' in kwargs 
                        else args[0])
-        playlist = self._get_playlist_by_id(playlist_id)
+        playlist = self.db_session.query(model.Playlist).get(playlist_id)
         if not self.owns_playlist(playlist):
             raise MustOwnPlaylistException()
         return method(self, *args, **kwargs)
@@ -85,17 +85,18 @@ class HandlerBase(tornado.web.RequestHandler):
         if self.current_session is not None:
             return self.current_session
         
-        session_cookie = self.get_secure_cookie('session_id')
-        if session_cookie is not None:
-            self.session = (self.db_session.query(model.Session)
-                               .get(session_cookie))
-        else:
-            self.session = model.Session()
-            self.db_session.add(self.session)
-            self.db_session.commit()
-            self.set_secure_cookie('session_id', str(self.session.id))
+        session_id = self.get_secure_cookie('session_id')
+        if session_id is not None:
+            self.current_session = (self.db_session.query(model.Session)
+                                       .get(int(session_id)))
             
-        return self.session
+        if self.current_session is None:
+            self.current_session = model.Session()
+            self.db_session.add(self.current_session)
+            self.db_session.commit()
+            self.set_secure_cookie('session_id', str(self.current_session.id))
+            
+        return self.current_session
         
     def get_profile_url(self):
         user = self.get_current_user()
@@ -113,20 +114,17 @@ class HandlerBase(tornado.web.RequestHandler):
           
     def _log_user_in(self, user, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
-        session_id = self.get_current_session().id
+        session = self.get_current_session()
         
         (self.db_session.query(model.Playlist)
-            .filter_by(session_id=session_id)
+            .filter_by(session_id=session.id)
             .update({"user_id": user.id}))
         
         (self.db_session.query(model.Image)
-            .filter_by(session_id=session_id)
+            .filter_by(session_id=session.id)
             .update({"user_id": user.id}))
         
-        (self.db_session.query(model.Session)
-            .filter_by(id=session_id)
-            .update({"user_id": user.id}))
-        
+        session.user_id = user.id
         self.db_session.commit()
        
         # Set cookies for user_id and user_name
@@ -249,61 +247,59 @@ class ImageHandlerBase(HandlerBase):
     STATIC_DIR = 'static'
     IMAGE_DIR = '/images/uploaded/'
     
-    def _handle_image(self, data, playlist_id):
-        result = {'status': 'OK', 'images': {}}
-        
-        # Open image and verify it.
+    def _crop_to_square(self, image):
+        cropped_side_length = min(image.size)
+        square = ((image.size[0] - cropped_side_length) / 2,
+                  (image.size[1] - cropped_side_length) / 2,
+                  (image.size[0] + cropped_side_length) / 2,
+                  (image.size[1] + cropped_side_length) / 2)
+        return image.crop(square)
+    
+    def _resize(self, image, side_length):
+        image = image.copy()
+        size = (side_length, side_length)
+        image.thumbnail(size, Image.ANTIALIAS)
+        return image
+    
+    def _save_image(self, image_id, image_format, image):
+        filename = '{0:x}-{1}x{2}.{3}'.format(image_id, image.size[0], image.size[1], image_format.lower())
+        path = os.path.join(self.IMAGE_DIR, filename)
+        image.save(self.STATIC_DIR + path, img_format=image.format)
+        return path
+    
+    def _is_valid_image(self, data):
         try:
             image = Image.open(data)
             image.verify()
         except:
+            return False
+        
+        data.seek(0)
+        return True
+      
+    def _handle_image(self, data, playlist_id):
+        result = {'status': 'OK', 'images': {}}
+        
+        if self._is_valid_image(data) == False:
             result['status'] = 'No valid image at that URL.'
             return result
-        
        
         image = model.Image()
         image.user = self.get_current_user()
         image.session = self.get_current_session()
+        print(image.session.id)
         self.db_session.add(image)
-        self.db_session.commit()
-        
         playlist = self.db_session.query(model.Playlist).get(playlist_id)
         playlist.image = image
         self.db_session.commit()
         
-        # Rewind buffer and open image again
-        data.seek(0)
-        image_data = Image.open(data)
-        sizes = [(image.original, None), (image.medium, 160)]
-        self._save_images(image, image_data, sizes)
-        return image
-    
-    def _save_images(self, image, image_data, sizes):
-        # Crop to square for thumbnail versions
-        img_format = image_data.format
-        cropped_side_length = min(image_data.size)
-        square = ((image_data.size[0] - cropped_side_length) / 2,
-                  (image_data.size[1] - cropped_side_length) / 2,
-                  (image_data.size[0] + cropped_side_length) / 2,
-                  (image_data.size[1] + cropped_side_length) / 2)
-        cropped_image = image_data.crop(square)
+        original_image = Image.open(data)
+        cropped_image = self._crop_to_square(original_image)
         
-        images = {}
-        for field, side_length in sizes:
-            if side_length is None:
-                image = image_data
-            else:
-                image = cropped_image.copy()
-                size = (side_length, side_length)
-                image.thumbnail(size, Image.ANTIALIAS)
-            filename = '{0:x}-{1:s}.{2:s}'.format(image.id, field, img_format.lower())
-            path = os.path.join(self.IMAGE_DIR, filename)
-            image.save(self.STATIC_DIR + path, img_format=img_format)
-            field = path
-            image.value
-            self.db.execute('UPDATE uploaded_images SET ' + field + ' = %s WHERE image_id = %s',
-                            path, image_id)
-    
+        image.original = self._save_image(image.id, original_image.format, original_image)
+        image.medium = self._save_image(image.id, original_image.format, self._resize(cropped_image, 160))
+        self.db_session.commit()
+   
     
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
                      UserHandlerBase, ImageHandlerBase):

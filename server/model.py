@@ -28,10 +28,13 @@ bg_image_constraint = sqlalchemy.ForeignKeyConstraint(['bg_image_id'],
                                                       ['uploaded_images.id'])
 playlist_owner_constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], 
                                                             ['users.id'])
+playlist_session_constraint = sqlalchemy.ForeignKeyConstraint(['session_id'], 
+                                                           ['sessions.id'])
 playlists_table = sqlalchemy.Table('playlists', 
                                    metadata, 
                                    bg_image_constraint, 
                                    playlist_owner_constraint, 
+                                   playlist_session_constraint,
                                    autoload=True, 
                                    autoload_with=engine)
 
@@ -42,9 +45,12 @@ users_table = sqlalchemy.Table('users',
 
 image_owner_constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], 
                                                          ['users.id'])
+image_session_constraint = sqlalchemy.ForeignKeyConstraint(['session_id'], 
+                                                           ['sessions.id'])
 images_table = sqlalchemy.Table('uploaded_images', 
                                 metadata, 
                                 image_owner_constraint, 
+                                image_session_constraint,
                                 autoload=True, 
                                 autoload_with=engine)
 
@@ -115,10 +121,12 @@ class Session(object):
 sqlalchemy.orm.mapper(User, users_table)
 sqlalchemy.orm.mapper(Playlist, playlists_table, properties={
     'user': sqlalchemy.orm.relationship(User, backref='playlists'),
+    'session': sqlalchemy.orm.relationship(Session, backref='playlists'),
     'image': sqlalchemy.orm.relationship(Image, backref='playlists'),
 })
 sqlalchemy.orm.mapper(Image, images_table, properties={
-    'user': sqlalchemy.orm.relationship(User, backref='images')
+    'user': sqlalchemy.orm.relationship(User, backref='images'),
+    'session': sqlalchemy.orm.relationship(Session, backref='images'),
 })
 sqlalchemy.orm.mapper(Session, sessions_table, properties={
     'user': sqlalchemy.orm.relationship(User, backref='sessions')
