@@ -13,7 +13,8 @@ import re
 
 # Create object classes
 class User(object):
-    def get_url(self):
+    @property
+    def url(self):
         return '/user/' + self.profile
     
     def to_json(self):
@@ -23,7 +24,7 @@ class User(object):
         return {
             "id": int(self.id),
             "name": self.name,
-            "profile_url": self.get_url()
+            "profile_url": self.url
         }
         
         
@@ -61,14 +62,15 @@ class Playlist(object):
         self.title = title
         self.songs = []
         
-    def get_url(self):
+    @property
+    def url(self):
         return '/p/' + base36.base10_36(self.id)
     
     def to_dict(self):
         return {
             "status": "ok",
             "id": int(self.id),
-            "_url": self.get_url(),
+            "url": self.url,
             "title": self.title,
             "description": self.description,
             "songs": self.songs,

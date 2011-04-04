@@ -21,7 +21,7 @@ import base36
 
 
 class MustOwnPlaylistException(Exception): pass
-class PlaylistNotFoundException(Exception): pass
+class UnsupportedFormatException(Exception): pass
 
 
 def canonicalize(string):
@@ -482,11 +482,8 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
             songs = self._parse_pls(contents)
 
         else:
-            return {'status': 'Unsupported type'}
+            raise(UnsupportedFormatException())
         
-        # Just in case, we sanitize the playlist's json.
-        songs = json.loads(self._sanitize_songs(json.dumps(songs)))
-            
         playlist = model.Playlist(title)
         playlist.songs = songs
         self.db_session.add(playlist)
@@ -494,16 +491,18 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         return playlist
     
     def post(self):
-        self._get_session_cookie()
+        self.get_current_session()
         (filename, contents) = self._get_request_content()
-        result = self._handle_request(filename, contents)
+        try:
+            playlist = self._handle_request(filename, contents)
+        except UnsupportedFormatException:
+            self.write(json.dumps({"result": "Unsupported format"}))
         
         if self.get_argument('redirect', 'false') == 'true':
-            playlist_id = result['playlist_id']
-            self.redirect("/p/" + playlist_id)
+            self.redirect(playlist.url)
         else:
             self.set_header("Content-Type", "application/json")
-            self.write(json.dumps(result))
+            self.write(playlist.to_json())
 
 
 class FbSignupHandler(UserHandlerBase,
