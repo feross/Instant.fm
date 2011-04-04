@@ -31,7 +31,6 @@ class Playlist(object):
     
     def _sanitize_songs(self, songs):
         sanitized_songs = []
-        
         url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
         
         for song in songs:
@@ -91,22 +90,17 @@ class Session(object):
     pass
 
 def _setup():
-    # Set up database connection
-
     metadata = sqlalchemy.MetaData()
     
     # Set up tables
-    bg_image_constraint = sqlalchemy.ForeignKeyConstraint(['bg_image_id'], 
-                                                          ['uploaded_images.id'])
-    playlist_owner_constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], 
-                                                                ['users.id'])
-    playlist_session_constraint = sqlalchemy.ForeignKeyConstraint(['session_id'], 
-                                                               ['sessions.id'])
+    constraints = (
+        sqlalchemy.ForeignKeyConstraint(['bg_image_id'], ['images.id']),
+        sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id']),
+        sqlalchemy.ForeignKeyConstraint(['session_id'], ['sessions.id'])
+    )
     playlists_table = sqlalchemy.Table('playlists', 
                                        metadata, 
-                                       bg_image_constraint, 
-                                       playlist_owner_constraint, 
-                                       playlist_session_constraint,
+                                       *constraints,
                                        autoload=True, 
                                        autoload_with=_engine)
     
@@ -115,22 +109,20 @@ def _setup():
                                    autoload=True, 
                                    autoload_with=_engine)
     
-    image_owner_constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], 
-                                                             ['users.id'])
-    image_session_constraint = sqlalchemy.ForeignKeyConstraint(['session_id'], 
-                                                               ['sessions.id'])
-    images_table = sqlalchemy.Table('uploaded_images', 
+    constraints = (
+        sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id']), 
+        sqlalchemy.ForeignKeyConstraint(['session_id'], ['sessions.id'])
+    )
+    images_table = sqlalchemy.Table('images', 
                                     metadata, 
-                                    image_owner_constraint, 
-                                    image_session_constraint,
+                                    *constraints,
                                     autoload=True, 
                                     autoload_with=_engine)
     
-    session_owner_constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], 
-                                                               ['users.id'])
+    constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id'])
     sessions_table = sqlalchemy.Table('sessions', 
                                     metadata, 
-                                    session_owner_constraint, 
+                                    constraint, 
                                     autoload=True, 
                                     autoload_with=_engine)
     
