@@ -56,18 +56,14 @@ def ownsPlaylist(method):
 
         
 class HandlerBase(tornado.web.RequestHandler):
+    
     """ All handlers should extend this """
     
     db_session = model.DbSession()
+    
     # Cache the session and user
     current_session = None
     current_user = None
-    
-    @property
-    def db(self):
-        """Provides access to the database connection"""
-        return self.application.db
-        
   
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
@@ -145,7 +141,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
-            self.db.execute('DELETE FROM sessions WHERE id=%s', session_id)        
+            self.db_session.query(model.Session).filter_by(id=session_id).delete()
             
         self.clear_cookie('session_id')
         self.clear_cookie('session_num')
@@ -178,39 +174,7 @@ class PlaylistHandlerBase(HandlerBase):
                 songlist.append(new_song)
         
         return json.dumps(songlist)
-    
-    def _get_playlist_by_id(self, playlist_id):
-        playlist_row = self.db.get("SELECT * FROM playlists WHERE playlist_id = %s;", playlist_id)
-        if not playlist_row:
-            print "Couldn't find playlist_row"
-            raise tornado.web.HTTPError(404)
-        
-        url = '/p/' + self.base10_36(playlist_id)
-        songs = json.loads(playlist_row.songs)
-        owner = None
-        backgrounds = None
-        if playlist_row.user_id is not None:
-            owner = self.db.get('SELECT * FROM users WHERE id = %s', playlist_row.user_id)
-        if playlist_row.bg_image_id is not None:
-            backgrounds = self.db.get('SELECT * \
-                                       FROM uploaded_images \
-                                       WHERE id = %s',
-                                       playlist_row.bg_image_id)
-        
-        playlist = Playlist(playlist_id, url, playlist_row.title)
-        playlist.description = playlist_row.description
-        playlist.session_id = playlist_row.session_id
-        playlist.songs = songs
-        if owner is not None:
-            playlist.user_id = owner.id
-            playlist.owner_name = owner.name
-            playlist.owner_url = '/user/' + owner.profile
-        if backgrounds is not None:
-            playlist.bg_original = backgrounds.original
-            playlist.bg_medium = backgrounds.medium
-        
-        return playlist
-       
+
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         template = ('partial/' if self._is_partial() else '') + template_name
         self.render(template, is_partial=self._is_partial(), playlist=playlist, **kwargs)
