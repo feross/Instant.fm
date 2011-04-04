@@ -29,13 +29,7 @@ class Application(tornado.web.Application):
             (r"/([^/]+)/?", handlers.ArtistHandler),
             (r".*", handlers.ErrorHandler),
         ]
-        settings = dict(
-            debug=True, # always refresh templates
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            xsrf_cookies=True,
-            cookie_secret="SkxQTluCp02hm5k0zbiAJmgg2M3HOS7",
-        )
-        tornado.web.Application.__init__(self, url_handlers, **settings)
+        tornado.web.Application.__init__(self, url_handlers, **options.tornado_settings)
         
 
 def main():
