@@ -334,8 +334,6 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 
 /* Playlist related functions */
 
-// Load a playlist based on the xhr response or the initial embedded playlist
-// @response - response body
 Player.prototype.loadPlaylist = function(playlist) {
     if (!playlist) {
         log('Attempted to load null playlist.');
@@ -365,7 +363,6 @@ Player.prototype.loadPlaylist = function(playlist) {
             playlist.url
         );
         
-        //$('#main').effect('pulsate', {times: 1});
         nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
     }
         
