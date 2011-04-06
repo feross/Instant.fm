@@ -82,7 +82,7 @@ a:hover { color: #036; }
 body, select, input, textarea { color: #333; }
 h1,h2,h3,h4,h5,h6 { font-weight: bold; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { color: #499bd1; text-decoration: underline; }
 
 html { overflow: hidden; }
 textarea { resize: none; overflow: auto; } 
@@ -92,7 +92,7 @@ input[type=button], input[type=submit], button { border: 0; }
 ::selection { background:#499bd1; color:#fff; text-shadow: none; }
 
 body {
-    background: #080808 url('/images/bg2.jpg') no-repeat fixed center top;
+    background: #080808 url('/images/bob-marley.jpg') no-repeat fixed center top;
     text-align: center;
 }
 
