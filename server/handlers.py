@@ -22,7 +22,43 @@ import base36
 
 class MustOwnPlaylistException(Exception): pass
 class UnsupportedFormatException(Exception): pass
+class InvalidParameterException(Exception): pass
 
+class Validator(object):
+    errors = {}
+    def __init__(self, immediate_exceptions=False):
+        self._immediate_exceptions = immediate_exceptions
+        
+    def has_errors(self):
+        return len(self.errors) > 0
+    
+    def validate(self):
+        if self.has_errors():
+            raise InvalidParameterException()
+        
+    def add_error(self, name, message):
+        self.errors[name] = message
+        if self._immediate_exceptions:
+            raise InvalidParameterException(message)
+        
+    def add_rules(self, value, name, type=None, min_length=None, max_length=None, email=None):
+        if type is not None:
+            self.check_type(value, name, type)
+        if email is not None:
+            self.check_email(value, name)
+        
+    def check_type(self, value, name, type):
+        if value.__class__ is not type:
+            self.add_error(name, "Type must be " + str(type))
+            return False
+        return True
+    
+    def check_email(self, value, name):
+        email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
+        if None == email_regex.match(value):
+            self.add_error(name, "Must be a valid email.")
+            return False
+        return True
 
 def urlify(string):
     string = re.sub('[^a-zA-Z0-9]+', ' ', string)
@@ -51,6 +87,29 @@ def ownsPlaylist(method):
         if not self.owns_playlist(playlist):
             raise MustOwnPlaylistException()
         return method(self, *args, **kwargs)
+    return wrapper
+
+def validates(method, async=False):
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        original_result_func = self.result
+        def result_with_success(result):
+            print("yeah!!!!")
+            original_result_func(result)
+        self.result = result_with_success
+        
+        self.validator = Validator()
+        try:
+            result = method(self, *args, **kwargs)
+            return result
+        except InvalidParameterException:
+            result = {
+                 "success": False,
+                 "errors": self.validator.errors
+            }
+            if async:
+                self.result(result)
+            return result
     return wrapper
 
         
@@ -286,6 +345,11 @@ class ImageHandlerBase(HandlerBase):
     
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, PlaylistHandlerBase,
                      UserHandlerBase, ImageHandlerBase):
+    
+    @validates
+    def validation_test(self, str):
+        self.validator.add_rules(str, 'str', email=True)
+        self.validator.validate()
    
     @ownsPlaylist
     def update_songlist(self, playlist_id, songs):
@@ -585,8 +649,10 @@ class LoginHandler(UserHandlerBase):
             "password": ["required"],
         }
         self._validate_args(args, errors)
-        if self._send_errors(errors):
-            return
+            
+        validator = Validator(raise_exceptions=False)
+        validator.add_rules(self.get_argument('email', strip=True), 'Email', email=True)
+        print(validator.errors)
         
         user = self.db_session.query(model.User).filter_by(email=self.get_argument('email', True)).first()
         if not user:
