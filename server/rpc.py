@@ -15,6 +15,7 @@ import tornado.auth
 import handlers
 import model
 import utils
+import type_enforcement
 
 
 class MustOwnPlaylistException(Exception): pass
@@ -47,7 +48,7 @@ def owns_playlist(method):
         return method(self, *args, **kwargs)
     return wrapper
 
-def sends_validation_results(method):
+def validated(method):
     """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
     
     This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
@@ -70,7 +71,7 @@ def sends_validation_results(method):
     return wrapper
 
 
-def sends_validation_results_async(method):
+def validated_async(method):
     """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
     
     This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
@@ -110,19 +111,13 @@ class Validator(object):
         if self._immediate_exceptions:
             raise InvalidParameterException(self.errors)
 
-    def add_rule(self, value, name='', type=None, min_length=None, max_length=None, email=None):
-        if type is not None:
-            self._check_type(value, name, type)
+    def add_rule(self, value, name='', min_length=None, max_length=None, email=None):
         if email is not None:
             self._check_email(value, name)
         if min_length is not None:
             self._check_min_length(value, name, min_length)
         if max_length is not None:
             self._check_max_length(value, name, max_length)
-
-    def _check_type(self, value, name, type):
-        if value.__class__ is not type:
-            self.error("Type must be " + str(type), name)
 
     def _check_email(self, value, name):
         email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
@@ -141,7 +136,7 @@ class Validator(object):
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBase,
                      handlers.UserHandlerBase, handlers.ImageHandlerBase, tornado.auth.FacebookGraphMixin):
 
-    @sends_validation_results
+    @validated
     def validation_test(self, str):
         validator = Validator()
         validator.add_rules(str, 'str', email=True)
@@ -149,26 +144,31 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         return str
 
     @owns_playlist
+    @type_enforcement.types(playlist_id=int, songs=list)
     def update_songlist(self, playlist_id, songs):
         self.db_session.query(model.Playlist).get(playlist_id).songs = songs
         self.db_session.commit()
 
     @owns_playlist
+    @type_enforcement.types(playlist_id=int, title=unicode)
     def update_title(self, playlist_id, title):
         self.db_session.query(model.Playlist).get(playlist_id).title = title
         self.db_session.commit()
 
     @owns_playlist
+    @type_enforcement.types(playlist_id=int, description=unicode)
     def update_description(self, playlist_id, description):
         self.db_session.query(model.Playlist).get(playlist_id).description = description
         self.db_session.commit()
 
+    @type_enforcement.types(fb_id=int)
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it can be called via RPC """
         return self._is_registered_fbid(fb_id)
 
     @tornadorpc.async
     @owns_playlist
+    @type_enforcement.types(playlist_id=int, url=unicode)
     def set_image_from_url(self, playlist_id, url):
         self.playlist_id = playlist_id
         http = tornado.httpclient.AsyncHTTPClient()
@@ -178,7 +178,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
 
-    @sends_validation_results
+    @validated
     def login(self, email, password, remember_me):
         email = email.strip()
         validator = Validator(immediate_exceptions=True)
@@ -195,19 +195,17 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
         return user.user_visible_attrs
 
-    @sends_validation_results
     def logout(self):
-        print(1 / 0)
         self._log_user_out()
         return True
 
-    @sends_validation_results
+    @validated
     def new_playlist(self, title, description):
         title = title.strip()
         description = description.strip()
         validator = Validator(immediate_exceptions=False)
-        validator.add_rule(title, 'Title', type=unicode, min_length=1, max_length=64)
-        validator.add_rule(title, 'Description', type=unicode, min_length=1, max_length=64)
+        validator.add_rule(title, 'Title', min_length=1, max_length=64)
+        validator.add_rule(title, 'Description', min_length=1, max_length=64)
         validator.validate()
 
         playlist = model.Playlist(title)
@@ -216,7 +214,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         self.db_session.commit()
         self.write(playlist.json())
 
-    @sends_validation_results_async
+    @validated_async
     @tornadorpc.async
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
@@ -247,7 +245,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
             access_token=auth_token,
             callback=self.async_callback(self._on_fb_auth))
 
-    @sends_validation_results_async
+    @validated_async
     def _on_fb_auth(self, user):
         validator = Validator(immediate_exceptions=True)
         #if user['id'] != self._fb_id:
