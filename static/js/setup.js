@@ -382,11 +382,10 @@ function setupLogin() {
 
 function setupLogout() {
 	$('a[href="#logout"]').click(function(event) {
-      event.preventDefault();
-    	$.post('/logout', function() {
-        	loginStatusChanged();
-            log('Logged out.');
-        });
+        event.preventDefault();
+		instantfm.logout();
+		$('html').removeClass('loggedIn')
+		$('html').addClass('loggedOut')
     });
 }
 
