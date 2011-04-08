@@ -42,9 +42,7 @@ class HandlerBase(tornado.web.RequestHandler):
         if self._current_user is not None:
             return self._current_user
 
-        self._current_user = (self.db_session.query(model.Session)
-                                .get(self.get_current_session().id)
-                                .user)
+        self._current_user = self.get_current_session().user
 
         return self._current_user
 
@@ -53,13 +51,14 @@ class HandlerBase(tornado.web.RequestHandler):
             return self._current_session
 
         session_id = self.get_secure_cookie('session_id')
-        if session_id is not None:
+        if session_id:
             self._current_session = (self.db_session.query(model.Session)
                                        .get(int(session_id)))
 
         if self._current_session is None:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
+            self.db_session.flush()
             self.set_secure_cookie('session_id', str(self._current_session.id))
 
         return self._current_session
