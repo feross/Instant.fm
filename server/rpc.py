@@ -6,6 +6,8 @@ Created on Apr 7, 2011
 
 import functools
 import tornadorpc.json
+import tornadorpc.base
+import jsonrpclib.jsonrpc
 import model
 import re
 import tornado
@@ -47,17 +49,15 @@ def owns_playlist(method):
 def sends_validation_results(method, async=False):
     """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
     
-    This function is a horrible hack, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
+    This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        original_result_func = self.result
-        def result_with_success(result):
-            if result.__class__ is not dict or "success" not in result:
+        def result_with_validation(result):
+            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
+                and (result.__class__ is not dict or "success" not in result)):
                 result = {"success": True, "result": result}
-            original_result_func(result)
-        self.result = result_with_success
-
-        self.validator = Validator()
+            super(JsonRpcHandler, self).result(result)
+        self.result = result_with_validation
         try:
             result = method(self, *args, **kwargs)
             return result
@@ -95,19 +95,27 @@ class Validator(object):
             self._check_type(value, name, type)
         if email is not None:
             self._check_email(value, name)
+        if min_length is not None:
+            self._check_min_length(value, name, min_length)
+        if max_length is not None:
+            self._check_max_length(value, name, max_length)
 
     def _check_type(self, value, name, type):
         if value.__class__ is not type:
             self.error("Type must be " + str(type), name)
-            return False
-        return True
 
     def _check_email(self, value, name):
         email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
         if None == email_regex.match(value):
             self.error("Must be a valid email.", name)
-            return False
-        return True
+
+    def _check_min_length(self, value, name, min_length):
+        if len(value) < min_length:
+            self.error("Must be at least " + min_length + " characters.", name)
+
+    def _check_max_length(self, value, name, max_length):
+        if len(value) > max_length:
+            self.error("Must be at most " + max_length + " characters.", name)
 
 
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBase,
@@ -158,11 +166,32 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
 
         user = self.db_session.query(model.User).filter_by(email=email).first()
         if not user:
-            validator.error('No user with that email found.', 'email')
+            validator.error('No user with that email found.', 'Email')
 
         if not self._verify_password(password, user.password):
-            validator.error('Incorrect password.', 'password')
+            validator.error('Incorrect password.', 'Password')
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
         return user.user_visible_attrs
+
+    @sends_validation_results
+    def logout(self):
+        print(1 / 0)
+        self._log_user_out()
+        return True
+
+    @sends_validation_results
+    def new_playlist(self, title, description):
+        title = title.strip()
+        description = description.strip()
+        validator = Validator(immediate_exceptions=False)
+        validator.add_rule(title, 'Title', type=unicode, min_length=1, max_length=64)
+        validator.add_rule(title, 'Description', type=unicode, min_length=1, max_length=64)
+        validator.validate()
+
+        playlist = model.Playlist(title)
+        playlist.description = description
+        self.db_session.add(playlist)
+        self.db_session.commit()
+        self.write(playlist.json())

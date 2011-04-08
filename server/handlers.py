@@ -82,11 +82,13 @@ class HandlerBase(tornado.web.RequestHandler):
 
     """ All handlers should extend this """
 
-    db_session = model.DbSession()
+    def __init__(self, application, request, **kwargs):
+        super(HandlerBase, self).__init__(application, request, **kwargs)
+        self.db_session = model.DbSession()
 
-    # Cache the session and user
-    current_session = None
-    current_user = None
+        # Cache the session and user
+        self._current_session = None
+        self._current_user = None
 
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
@@ -96,31 +98,31 @@ class HandlerBase(tornado.web.RequestHandler):
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
 
     def get_current_user(self):
-        if self.current_user is not None:
-            return self.current_user
+        if self._current_user is not None:
+            return self._current_user
 
-        self.current_user = (self.db_session.query(model.Session)
+        self._current_user = (self.db_session.query(model.Session)
                                 .get(self.get_current_session().id)
                                 .user)
 
-        return self.current_user
+        return self._current_user
 
     def get_current_session(self):
-        if self.current_session is not None:
-            return self.current_session
+        if self._current_session is not None:
+            return self._current_session
 
         session_id = self.get_secure_cookie('session_id')
         if session_id is not None:
-            self.current_session = (self.db_session.query(model.Session)
+            self._current_session = (self.db_session.query(model.Session)
                                        .get(int(session_id)))
 
-        if self.current_session is None:
-            self.current_session = model.Session()
-            self.db_session.add(self.current_session)
+        if self._current_session is None:
+            self._current_session = model.Session()
+            self.db_session.add(self._current_session)
             self.db_session.commit()
-            self.set_secure_cookie('session_id', str(self.current_session.id))
+            self.set_secure_cookie('session_id', str(self._current_session.id))
 
-        return self.current_session
+        return self._current_session
 
     def get_profile_url(self):
         user = self.get_current_user()
@@ -566,30 +568,6 @@ class FbSignupHandler(UserHandlerBase,
             errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
             self._send_errors(errors)
 
-
-
-
-class NewPlaylistHandler(PlaylistHandlerBase):
-    def post(self):
-        title = self.get_argument('title', strip=True)
-        description = self.get_argument('description', default=None, strip=True)
-
-        # Error out if name is empty. Our client-side validation should prevent this
-        # from happening, so we don't need an error message.
-        if title == '':
-            self.send_error(500)
-            return
-
-        playlist = model.Playlist(title)
-        playlist.description = description
-        self.db_session.add(playlist)
-        self.db_session.commit()
-        self.write(playlist.json())
-
-
-class LogoutHandler(UserHandlerBase):
-    def post(self):
-        self._log_user_out()
 
 
 class ErrorHandler(HandlerBase):

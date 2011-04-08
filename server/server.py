@@ -22,8 +22,6 @@ class Application(tornado.web.Application):
             (r"/terms/?$", handlers.TermsHandler),
             (r"/search/?$", handlers.SearchHandler),
             (r"/signup/fb", handlers.FbSignupHandler),
-            (r"/new-list", handlers.NewPlaylistHandler),
-            (r"/logout", handlers.LogoutHandler),
             (r"/get-images", handlers.GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
