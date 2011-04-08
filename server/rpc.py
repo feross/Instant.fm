@@ -86,14 +86,14 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     @type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
     def login(self, email, password, remember_me):
         email = email.strip()
-        validation.Validator = validation.Validator(immediate_exceptions=True)
+        validator = validation.Validator(immediate_exceptions=True)
 
         user = self.db_session.query(model.User).filter_by(email=email).first()
         if not user:
-            validation.Validator.error('No user with that email found.', 'Email')
+            validator.error('No user with that email found.', 'Email')
 
         if not self._verify_password(password, user.password):
-            validation.Validator.error('Incorrect password.', 'Password')
+            validator.error('Incorrect password.', 'Password')
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
@@ -108,10 +108,10 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def new_playlist(self, title, description):
         title = title.strip()
         description = description.strip()
-        validation.Validator = validation.Validator(immediate_exceptions=False)
-        validation.Validator.add_rule(title, 'Title', min_length=1, max_length=64)
-        validation.Validator.add_rule(description, 'Description', min_length=1, max_length=64)
-        validation.Validator.validate()
+        validator = validation.Validator(immediate_exceptions=False)
+        validator.add_rule(title, 'Title', min_length=1, max_length=64)
+        validator.add_rule(description, 'Description', min_length=1, max_length=64)
+        validator.validate()
 
         playlist = model.Playlist(title)
         playlist.description = description
@@ -126,19 +126,19 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
         name = name.strip()
-        validation.Validator = validation.Validator(immediate_exceptions=False)
-        validation.Validator.add_rule(email, 'Email', email=True)
-        validation.Validator.add_rule(name, 'Name', min_length=4, max_length=64)
-        validation.Validator.add_rule(password, 'Password', min_length=6, max_length=64)
-        validation.Validator.validate()
+        validator = validation.Validator(immediate_exceptions=False)
+        validator.add_rule(email, 'Email', email=True)
+        validator.add_rule(name, 'Name', min_length=4, max_length=64)
+        validator.add_rule(password, 'Password', min_length=6, max_length=64)
+        validator.validate()
 
         # Make sure that FBID and email aren't already taken
         if self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0:
-            validation.Validator.error('This Facebook user is already registered on Instant.fm. Try logging in instead.')
-            validation.Validator.validate()
+            validator.error('This Facebook user is already registered on Instant.fm. Try logging in instead.')
+            validator.validate()
         if self.db_session.query(model.User).filter_by(email=email).count() > 0:
-            validation.Validator.error('This email is already registered on Instant.fm. Try logging in instead.')
-            validation.Validator.validate()
+            validator.error('This email is already registered on Instant.fm. Try logging in instead.')
+            validator.validate()
 
         # Cache parameters for use in callback
         self._name = name
@@ -158,7 +158,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         validation.Validator = validation.Validator(immediate_exceptions=True)
         # TODO: Re-enable this before launch.
         #if user['id'] != self._fb_id:
-        #    validation.Validator.error('Failed to authenticate to Facebook.')
+        #    validator.error('Failed to authenticate to Facebook.')
 
         # Write the user to DB
         user = model.User()
