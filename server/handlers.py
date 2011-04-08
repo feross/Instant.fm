@@ -207,27 +207,6 @@ class UserHandlerBase(HandlerBase):
     def _hash_password(self, password):
         return bcrypt.hashpw(password, bcrypt.gensalt())
 
-    def _validate_args(self, args, errors):
-        for name, types in args.iteritems():
-            value = self.get_argument(name, '', True)
-            email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
-            if "email" in types and None == email_regex.match(value):
-                errors[name] = 'Please enter a valid email.'
-            if "password" in types and len(value) < 4:
-                errors[name] = 'Passwords must be at least 4 characters.'
-            if "required" in types and value == '':
-                errors[name] = 'The field "' + name + '" is required.'
-
-    def _send_errors(self, errors):
-        """ Send _errors if there are any. """
-        if not errors:
-            return False
-
-        result = {'_errors': errors, 'success': False}
-        self.write(json.dumps(result))
-        self.finish()
-        return True
-
     def _is_registered_fbid(self, fb_id):
         return self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0
 
