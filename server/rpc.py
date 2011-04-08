@@ -87,7 +87,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def login(self, email, password, remember_me):
         email = email.strip()
         validation.Validator = validation.Validator(immediate_exceptions=True)
-        validation.Validator.add_rule(email, 'Email', email=True)
 
         user = self.db_session.query(model.User).filter_by(email=email).first()
         if not user:
@@ -98,7 +97,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
-        return user.client_visible_attrs
+        self.result(user.client_visible_attrs)
 
     def logout(self):
         self._log_user_out()
