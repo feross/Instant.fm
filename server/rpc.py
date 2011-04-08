@@ -51,19 +51,19 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     @type_enforcement.types(playlist_id=int, songs=list)
     def update_songlist(self, playlist_id, songs):
         self.db_session.query(model.Playlist).get(playlist_id).songs = songs
-        self.db_session.commit()
+        self.db_session.flush()
 
     @owns_playlist
     @type_enforcement.types(playlist_id=int, title=unicode)
     def update_title(self, playlist_id, title):
         self.db_session.query(model.Playlist).get(playlist_id).title = title
-        self.db_session.commit()
+        self.db_session.flush()
 
     @owns_playlist
     @type_enforcement.types(playlist_id=int, description=unicode)
     def update_description(self, playlist_id, description):
         self.db_session.query(model.Playlist).get(playlist_id).description = description
-        self.db_session.commit()
+        self.db_session.flush()
 
     @type_enforcement.types(fb_id=int)
     def is_registered_fbid(self, fb_id):
@@ -117,7 +117,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         playlist.description = description
         playlist.session = self.get_current_session()
         self.db_session.add(playlist)
-        self.db_session.commit()
         self.result(playlist.client_visible_attrs)
 
     @validation.async_and_validated
@@ -168,7 +167,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         user.password = self._hash_password(self._password)
         user.profile = self._generate_unique_profile_url(self._name)
         self.db_session.add(user)
-        self.db_session.commit()
 
         self._log_user_in(user)
         self.result(user.client_visible_attrs)
