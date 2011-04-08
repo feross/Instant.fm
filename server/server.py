@@ -21,7 +21,6 @@ class Application(tornado.web.Application):
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
             (r"/search/?$", handlers.SearchHandler),
-            (r"/get-images", handlers.GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
             (r".*", handlers.ErrorHandler),

@@ -12,62 +12,11 @@ import base64
 import tornado.web
 import bcrypt
 import Image
-import urllib2
-import functools
 
 import utils
 import model
 
 class UnsupportedFormatException(Exception): pass
-
-def ownsPlaylist(method):
-    """ Decorator: throws an exception if user doesn't own current playlist
-    
-    NOTE: playlist_id must be the 1st positional arg. If you put some other
-    value as the 1st positional arg it could be a security issue (as this 
-    would check that the user owns the wrong playlist ID.) So make sure 
-    playlist_id is the first positional arg.
-    
-    I need to read more about python to figure out if there's a better way to
-    do this.
-    """
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        playlist_id = (kwargs['playlist_id']
-                       if 'playlist_id' in kwargs
-                       else args[0])
-        playlist = self.db_session.query(model.Playlist).get(playlist_id)
-        if not self.owns_playlist(playlist):
-            raise MustOwnPlaylistException()
-        return method(self, *args, **kwargs)
-    return wrapper
-
-def sends_validation_results(method, async=False):
-    """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with _errors or results.
-    
-    This function is a horrible hack, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        original_result_func = self.result
-        def result_with_success(result):
-            if result.__class__ is not dict or "success" not in result:
-                result = {"success": True, "result": result}
-            original_result_func(result)
-        self.result = result_with_success
-
-        self.validator = Validator()
-        try:
-            result = method(self, *args, **kwargs)
-            return result
-        except InvalidParameterException as e:
-            result = {
-                 "success": False,
-                 "_errors": e._errors
-            }
-            if async:
-                self.result(result)
-            return result
-    return wrapper
 
 
 class HandlerBase(tornado.web.RequestHandler):
@@ -269,17 +218,6 @@ class ImageHandlerBase(HandlerBase):
         image.original = self._save_image(image.id, original_image.format, original_image)
         image.medium = self._save_image(image.id, original_image.format, self._resize(cropped_image, 160))
         self.db_session.commit()
-
-
-class GetImagesHandler(HandlerBase):
-    def get(self):
-        user = self.get_current_user()
-        query = self.db_session.query(model.Image)
-        query.filter_by(session_id=self.get_current_session())
-        if user is not None:
-            query.filter_by(user_id=self.get_current_user().id)
-
-        return [image.json() for image in query.all()]
 
 
 class HomeHandler(HandlerBase):
