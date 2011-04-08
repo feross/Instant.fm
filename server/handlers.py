@@ -43,7 +43,7 @@ def ownsPlaylist(method):
     return wrapper
 
 def sends_validation_results(method, async=False):
-    """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
+    """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with _errors or results.
     
     This function is a horrible hack, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
     @functools.wraps(method)
@@ -62,7 +62,7 @@ def sends_validation_results(method, async=False):
         except InvalidParameterException as e:
             result = {
                  "success": False,
-                 "errors": e.errors
+                 "_errors": e._errors
             }
             if async:
                 self.result(result)
@@ -145,13 +145,6 @@ class HandlerBase(tornado.web.RequestHandler):
         session.user_id = user.id
         self.db_session.commit()
 
-        # Set cookies for user_id and user_name
-        # TODO: Make this use javascript variables instead of cookies.
-        expires_days = 30 if not expire_on_browser_close else None
-        self.set_cookie('user_id', str(user.id), expires_days=expires_days)
-        self.set_cookie('user_name', urllib2.quote(user.name), expires_days=expires_days)
-        self.set_cookie('profile_url', urllib2.quote(self.get_profile_url()), expires_days=expires_days)
-
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
@@ -161,9 +154,6 @@ class HandlerBase(tornado.web.RequestHandler):
 
         self.clear_cookie('session_id')
         self.clear_cookie('session_num')
-        self.clear_cookie('user_id')
-        self.clear_cookie('user_name')
-        self.clear_cookie('profile')
 
 
 class PlaylistHandlerBase(HandlerBase):
@@ -229,11 +219,11 @@ class UserHandlerBase(HandlerBase):
                 errors[name] = 'The field "' + name + '" is required.'
 
     def _send_errors(self, errors):
-        """ Send errors if there are any. """
+        """ Send _errors if there are any. """
         if not errors:
             return False
 
-        result = {'errors': errors, 'success': False}
+        result = {'_errors': errors, 'success': False}
         self.write(json.dumps(result))
         self.finish()
         return True
