@@ -60,7 +60,6 @@ class HandlerBase(tornado.web.RequestHandler):
         if self._current_session is None:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
-            self.db_session.commit()
             self.set_secure_cookie('session_id', str(self._current_session.id))
 
         return self._current_session
@@ -92,7 +91,8 @@ class HandlerBase(tornado.web.RequestHandler):
             .update({"user_id": user.id}))
 
         session.user_id = user.id
-        self.db_session.commit()
+        self.db_session.flush()
+        return user.client_visible_attrs
 
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
@@ -384,7 +384,6 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         playlist.session = self.get_current_session()
         playlist.user = self.get_current_user()
         self.db_session.add(playlist)
-        self.db_session.commit()
         return playlist
 
     def post(self):

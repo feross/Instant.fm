@@ -16,11 +16,11 @@ class User(object):
     @property
     def url(self):
         return '/user/' + self.profile
-    
+
     @property
     def json(self):
         return json.dumps(self.client_visible_attrs())
-    
+
     @property
     def client_visible_attrs(self):
         return {
@@ -28,23 +28,23 @@ class User(object):
             "name": self.name,
             "profile_url": self.url
         }
-        
-        
+
+
 class Playlist(object):
-    
+
     def __init__(self, title):
         self.title = title
         self.songs = []
-     
+
     def _sanitize_songs(self, songs):
         sanitized_songs = []
-        url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)') 
-        
+        url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
+
         for song in songs:
             title = song['t'] if song.has_key('t') else None
             artist = song['a'] if song.has_key('a') else None
             image = song['i'] if song.has_key('i') else None
-            
+
             if title.__class__ == unicode and artist.__class__ == unicode:
                 new_song = {'a': artist, 't': title}
                 if image.__class__ == unicode and url_re.match(image) is not None:
@@ -52,22 +52,22 @@ class Playlist(object):
                 else:
                     new_song['i'] = None
                 sanitized_songs.append(new_song)
-        
+
         return sanitized_songs
-    
+
     @property
     def songs(self):
         return json.loads(self._songs)
-    
+
     @songs.setter
     def songs(self, songs):
         sanitized_songs = self._sanitize_songs(songs)
         self._songs = json.dumps(sanitized_songs)
-       
+
     @property
     def url(self):
         return '/p/' + utils.base10_36(self.id)
-    
+
     @property
     def client_visible_attrs(self):
         return {
@@ -98,41 +98,41 @@ class Session(object):
 
 def _setup():
     metadata = sqlalchemy.MetaData()
-    
+
     # Set up tables
     constraints = (
         sqlalchemy.ForeignKeyConstraint(['bg_image_id'], ['images.id']),
         sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id']),
         sqlalchemy.ForeignKeyConstraint(['session_id'], ['sessions.id'])
     )
-    playlists_table = sqlalchemy.Table('playlists', 
-                                       metadata, 
+    playlists_table = sqlalchemy.Table('playlists',
+                                       metadata,
                                        *constraints,
-                                       autoload=True, 
+                                       autoload=True,
                                        autoload_with=_engine)
-    
-    users_table = sqlalchemy.Table('users', 
-                                   metadata, 
-                                   autoload=True, 
+
+    users_table = sqlalchemy.Table('users',
+                                   metadata,
+                                   autoload=True,
                                    autoload_with=_engine)
-    
+
     constraints = (
-        sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id']), 
+        sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id']),
         sqlalchemy.ForeignKeyConstraint(['session_id'], ['sessions.id'])
     )
-    images_table = sqlalchemy.Table('images', 
-                                    metadata, 
+    images_table = sqlalchemy.Table('images',
+                                    metadata,
                                     *constraints,
-                                    autoload=True, 
+                                    autoload=True,
                                     autoload_with=_engine)
-    
+
     constraint = sqlalchemy.ForeignKeyConstraint(['user_id'], ['users.id'])
-    sessions_table = sqlalchemy.Table('sessions', 
-                                    metadata, 
-                                    constraint, 
-                                    autoload=True, 
+    sessions_table = sqlalchemy.Table('sessions',
+                                    metadata,
+                                    constraint,
+                                    autoload=True,
                                     autoload_with=_engine)
-    
+
     # Set up mappings
     sqlalchemy.orm.mapper(User, users_table)
     sqlalchemy.orm.mapper(Playlist, playlists_table, properties={
@@ -147,7 +147,7 @@ def _setup():
     sqlalchemy.orm.mapper(Session, sessions_table, properties={
         'user': sqlalchemy.orm.relationship(User, backref='sessions')
     })
-    
+
 
 _url = 'mysql+mysqldb://{0}:{1}@instant.fm/{2}'.format(
     options.cli_args.mysql_user,
@@ -156,7 +156,7 @@ _url = 'mysql+mysqldb://{0}:{1}@instant.fm/{2}'.format(
 )
 _engine = sqlalchemy.create_engine(
     _url,
-    pool_recycle=3600, 
+    pool_recycle=3600,
     echo=True)
-DbSession = sqlalchemy.orm.sessionmaker(bind=_engine)
+DbSession = sqlalchemy.orm.sessionmaker(bind=_engine, autocommit=True)
 _setup()
