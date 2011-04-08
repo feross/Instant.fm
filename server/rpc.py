@@ -165,14 +165,14 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         user.name = self._name
         user.email = self._email
         user.password = self._hash_password(self._password)
-        user.profile = self._generate_unique_profile_url(self._name)
+        user.profile = self._generate_unique_profile_name(self._name)
         self.db_session.add(user)
 
         self._log_user_in(user)
         self.result(user.client_visible_attrs)
 
-    def _generate_unique_profile_url(self, name):
-        ''' Find an unused profile url to use '''
+    def _generate_unique_profile_name(self, name):
+        ''' Find an unused profile name to use '''
         profile = prefix = utils.urlify(name)
         collisions = [user.profile for user in
                         (self.db_session.query(model.User)
