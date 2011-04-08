@@ -10,23 +10,15 @@ import json
 import io
 import base64
 import tornado.web
-import tornado.auth
 import bcrypt
 import Image
 import urllib2
 import functools
 
-import base36
+import utils
 import model
 
 class UnsupportedFormatException(Exception): pass
-
-def urlify(string):
-    string = re.sub('[^a-zA-Z0-9]+', ' ', string)
-    ' '.join([word.capitalize() for word in string.split()])
-    string = re.sub(' ', '-', string)
-    return string
-
 
 def ownsPlaylist(method):
     """ Decorator: throws an exception if user doesn't own current playlist
@@ -334,7 +326,7 @@ class TermsHandler(HandlerBase):
 class PlaylistHandler(PlaylistHandlerBase):
     """Landing page for a playlist"""
     def get(self, playlist_alpha_id):
-        playlist_id = base36.base36_10(playlist_alpha_id)
+        playlist_id = utils.base36_10(playlist_alpha_id)
         playlist = self.db_session.query(model.Playlist).get(playlist_id)
 
         if playlist is None:
@@ -499,75 +491,6 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         else:
             self.set_header("Content-Type", "application/json")
             self.write(playlist.json())
-
-
-class FbSignupHandler(UserHandlerBase,
-                      tornado.auth.FacebookGraphMixin):
-    @tornado.web.asynchronous
-    def post(self):
-        # TODO: Find a proper method of validation.
-        errors = {}
-        args = {'name': ['required'],
-                'email': ['required', 'email'],
-                'password': ['required', 'password'],
-                'fb_user_id': ['required'],
-                'auth_token': ['required'],
-        }
-
-        self._validate_args(args, errors)
-
-        # Make sure that FBID and email aren't already taken
-        fb_id = self.get_argument('fb_user_id', True)
-        email = self.get_argument('email', True)
-        if self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0:
-            errors['fb_user_id'] = 'This Facebook user is already registered on Instant.fm. Try logging in instead.'
-        if self.db_session.query(model.User).filter_by(email=email).count() > 0:
-            errors['email'] = 'This email is already registered on Instant.fm. Try logging in instead.'
-
-        if len(errors.keys()) > 0:
-            self._send_errors(errors)
-            return
-
-        # Authenticate to Facebook
-        self.facebook_request(
-            "/me",
-            access_token=self.get_argument("auth_token"),
-            callback=self.async_callback(self._on_auth))
-
-    def _on_auth(self, user):
-        errors = []
-        if user['id'] == self.get_argument('fb_user_id'):
-            hashed_pass = self._hash_password(self.get_argument('password'))
-
-            # Find an unused prefix name to use
-            name = self.get_argument('name')
-            profile = prefix = urlify(name)
-            collisions = [user.profile for user in
-                            (self.db_session.query(model.User)
-                             .filter(model.User.profile.startswith(prefix))
-                             .all())]
-            suffix = 0
-            while profile in collisions:
-                suffix += 1
-                profile = prefix + '-' + str(suffix)
-
-            # Write the user to DB
-            user = model.User()
-            user.fb_id = self.get_argument('fb_user_id')
-            user.name = name
-            user.email = self.get_argument('email')
-            user.password = hashed_pass
-            user.profile = profile
-            self.db_session.add(user)
-            self.db_session.commit()
-
-            self._log_user_in(user)
-            self.write(json.dumps(True))
-            self.finish()
-        else:
-            errors['fb_user_id'] = 'Failed to authenticate to Facebook.'
-            self._send_errors(errors)
-
 
 
 class ErrorHandler(HandlerBase):

@@ -8,11 +8,13 @@ import functools
 import tornadorpc.json
 import tornadorpc.base
 import jsonrpclib.jsonrpc
-import model
 import re
 import tornado
+import tornado.auth
 
 import handlers
+import model
+import utils
 
 
 class MustOwnPlaylistException(Exception): pass
@@ -45,8 +47,7 @@ def owns_playlist(method):
         return method(self, *args, **kwargs)
     return wrapper
 
-
-def sends_validation_results(method, async=False):
+def sends_validation_results(method):
     """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
     
     This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
@@ -60,17 +61,36 @@ def sends_validation_results(method, async=False):
         self.result = result_with_validation
         try:
             result = method(self, *args, **kwargs)
-            return result
         except InvalidParameterException as e:
             result = {
                  "success": False,
                  "errors": e.errors
             }
-            if async:
-                self.result(result)
-            return result
+        return result
     return wrapper
 
+
+def sends_validation_results_async(method):
+    """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
+    
+    This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        def result_with_validation(result):
+            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
+                and (result.__class__ is not dict or "success" not in result)):
+                result = {"success": True, "result": result}
+            super(JsonRpcHandler, self).result(result)
+        self.result = result_with_validation
+        try:
+            result = method(self, *args, **kwargs)
+        except InvalidParameterException as e:
+            result = {
+                 "success": False,
+                 "errors": e.errors
+            }
+        self.result(result)
+    return wrapper
 
 class Validator(object):
     def __init__(self, immediate_exceptions=False):
@@ -111,7 +131,7 @@ class Validator(object):
 
     def _check_min_length(self, value, name, min_length):
         if len(value) < min_length:
-            self.error("Must be at least " + min_length + " characters.", name)
+            self.error("Must be at least {0} characters.".format(min_length), name)
 
     def _check_max_length(self, value, name, max_length):
         if len(value) > max_length:
@@ -119,7 +139,7 @@ class Validator(object):
 
 
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBase,
-                     handlers.UserHandlerBase, handlers.ImageHandlerBase):
+                     handlers.UserHandlerBase, handlers.ImageHandlerBase, tornado.auth.FacebookGraphMixin):
 
     @sends_validation_results
     def validation_test(self, str):
@@ -195,3 +215,67 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         self.db_session.add(playlist)
         self.db_session.commit()
         self.write(playlist.json())
+
+    @sends_validation_results_async
+    @tornadorpc.async
+    def signup_with_fbid(self, name, email, password, fb_id, auth_token):
+        email = email.strip()
+        name = name.strip()
+        validator = Validator(immediate_exceptions=False)
+        validator.add_rule(email, 'Email', unicode, email=True)
+        validator.add_rule(name, 'Name', type=unicode, min_length=4, max_length=64)
+        validator.add_rule(password, 'Password', type=unicode, min_length=6, max_length=64)
+        validator.validate()
+
+        # Make sure that FBID and email aren't already taken
+        if self.db_session.query(model.User).filter_by(fb_id=fb_id).count() > 0:
+            validator.error('This Facebook user is already registered on Instant.fm. Try logging in instead.')
+        if self.db_session.query(model.User).filter_by(email=email).count() > 0:
+            validator.error('This email is already registered on Instant.fm. Try logging in instead.')
+        validator.validate()
+
+        # Cache parameters for use in callback
+        self._name = name
+        self._email = email
+        self._password = password
+        self._fb_id = fb_id
+        self._auth_token = auth_token
+
+        # Authenticate to Facebook
+        self.facebook_request(
+            "/me",
+            access_token=auth_token,
+            callback=self.async_callback(self._on_fb_auth))
+
+    @sends_validation_results_async
+    def _on_fb_auth(self, user):
+        validator = Validator(immediate_exceptions=True)
+        #if user['id'] != self._fb_id:
+        #    validator.error('Failed to authenticate to Facebook.')
+
+        # Write the user to DB
+        user = model.User()
+        user.fb_id = self._fb_id
+        user.name = self._name
+        user.email = self._email
+        user.password = self._hash_password(self._password)
+        user.profile = self._generate_unique_profile_url(self._name)
+        self.db_session.add(user)
+        self.db_session.commit()
+
+        self._log_user_in(user)
+        self.result(True)
+
+    def _generate_unique_profile_url(self, name):
+        ''' Find an unused profile url to use '''
+        profile = prefix = utils.urlify(name)
+        collisions = [user.profile for user in
+                        (self.db_session.query(model.User)
+                         .filter(model.User.profile.startswith(prefix))
+                         .all())]
+        suffix = 0
+        while profile in collisions:
+            suffix += 1
+            profile = prefix + '-' + str(suffix)
+
+        return profile

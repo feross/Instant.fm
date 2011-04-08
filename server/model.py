@@ -6,7 +6,7 @@ Created on Mar 29, 2011
 
 import sqlalchemy.orm
 import json
-import base36
+import utils
 import options
 import re
 
@@ -66,7 +66,7 @@ class Playlist(object):
        
     @property
     def url(self):
-        return '/p/' + base36.base10_36(self.id)
+        return '/p/' + utils.base10_36(self.id)
     
     @property
     def user_visible_attrs(self):

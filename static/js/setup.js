@@ -528,7 +528,7 @@ function setupSignup() {
 
 function setupRpc() {
     var methods = ['update_songlist', 'update_title',
-        'update_description', 'is_registered_fbid', 'set_image_from_url', 'validation_test', 'login', 'logout', 'new_playlist'];
+        'update_description', 'is_registered_fbid', 'set_image_from_url', 'validation_test', 'login', 'logout', 'new_playlist', 'signup_with_fbid'];
         
     instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
                                      "sanitize": true,
