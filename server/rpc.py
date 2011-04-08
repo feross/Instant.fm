@@ -48,7 +48,7 @@ def owns_playlist(method):
         return method(self, *args, **kwargs)
     return wrapper
 
-def validated(method):
+def async_and_validated(method):
     """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
     
     This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
@@ -61,37 +61,16 @@ def validated(method):
             super(JsonRpcHandler, self).result(result)
         self.result = result_with_validation
         try:
-            result = method(self, *args, **kwargs)
+            method(self, *args, **kwargs)
         except InvalidParameterException as e:
             result = {
                  "success": False,
                  "errors": e.errors
             }
-        return result
+            self.result(result)
+    wrapper.async = True
     return wrapper
 
-
-def validated_async(method):
-    """ Wraps a method so that it will return a dictionary with attributes indicating validation success or failure with errors or results.
-    
-    This is the hackiest function I ever wrote, but the results are actually quite nice. It is intended for use as a decorator on RPC methods in a JSON RPC handler. It overrides the handler's result method in order to rap the results, and catches any exceptions thrown by a validator in order to return error messages to the client. Useful for forms. """
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        def result_with_validation(result):
-            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
-                and (result.__class__ is not dict or "success" not in result)):
-                result = {"success": True, "result": result}
-            super(JsonRpcHandler, self).result(result)
-        self.result = result_with_validation
-        try:
-            result = method(self, *args, **kwargs)
-        except InvalidParameterException as e:
-            result = {
-                 "success": False,
-                 "errors": e.errors
-            }
-        self.result(result)
-    return wrapper
 
 class Validator(object):
     def __init__(self, immediate_exceptions=False):
@@ -136,13 +115,6 @@ class Validator(object):
 class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBase,
                      handlers.UserHandlerBase, handlers.ImageHandlerBase, tornado.auth.FacebookGraphMixin):
 
-    @validated
-    def validation_test(self, str):
-        validator = Validator()
-        validator.add_rules(str, 'str', email=True)
-        validator.validate()
-        return str
-
     @owns_playlist
     @type_enforcement.types(playlist_id=int, songs=list)
     def update_songlist(self, playlist_id, songs):
@@ -166,7 +138,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         """ Wraps the inherited function so it can be called via RPC """
         return self._is_registered_fbid(fb_id)
 
-    @tornadorpc.async
+    @async_and_validated
     @owns_playlist
     @type_enforcement.types(playlist_id=int, url=unicode)
     def set_image_from_url(self, playlist_id, url):
@@ -178,7 +150,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
 
-    @validated
+    @async_and_validated
     def login(self, email, password, remember_me):
         email = email.strip()
         validator = Validator(immediate_exceptions=True)
@@ -193,36 +165,36 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
-        return user.user_visible_attrs
+        return user.client_visible_attrs
 
     def logout(self):
         self._log_user_out()
         return True
 
-    @validated
+    @async_and_validated
     def new_playlist(self, title, description):
         title = title.strip()
         description = description.strip()
         validator = Validator(immediate_exceptions=False)
         validator.add_rule(title, 'Title', min_length=1, max_length=64)
-        validator.add_rule(title, 'Description', min_length=1, max_length=64)
+        validator.add_rule(description, 'Description', min_length=1, max_length=64)
         validator.validate()
 
         playlist = model.Playlist(title)
         playlist.description = description
+        playlist.session = self.get_current_session()
         self.db_session.add(playlist)
         self.db_session.commit()
-        self.write(playlist.json())
+        self.result(playlist.client_visible_attrs)
 
-    @validated_async
-    @tornadorpc.async
+    @async_and_validated
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
         name = name.strip()
         validator = Validator(immediate_exceptions=False)
-        validator.add_rule(email, 'Email', unicode, email=True)
-        validator.add_rule(name, 'Name', type=unicode, min_length=4, max_length=64)
-        validator.add_rule(password, 'Password', type=unicode, min_length=6, max_length=64)
+        validator.add_rule(email, 'Email', email=True)
+        validator.add_rule(name, 'Name', min_length=4, max_length=64)
+        validator.add_rule(password, 'Password', min_length=6, max_length=64)
         validator.validate()
 
         # Make sure that FBID and email aren't already taken
@@ -245,7 +217,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
             access_token=auth_token,
             callback=self.async_callback(self._on_fb_auth))
 
-    @validated_async
+    @async_and_validated
     def _on_fb_auth(self, user):
         validator = Validator(immediate_exceptions=True)
         #if user['id'] != self._fb_id:
@@ -262,7 +234,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
         self.db_session.commit()
 
         self._log_user_in(user)
-        self.result(True)
+        self.result(user.client_visible_attrs)
 
     def _generate_unique_profile_url(self, name):
         ''' Find an unused profile url to use '''
