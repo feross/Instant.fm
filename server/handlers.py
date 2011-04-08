@@ -381,6 +381,8 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
 
         playlist = model.Playlist(title)
         playlist.songs = songs
+        playlist.session = self.get_current_session()
+        playlist.user = self.get_current_user()
         self.db_session.add(playlist)
         self.db_session.commit()
         return playlist
@@ -397,7 +399,7 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
             self.redirect(playlist.url)
         else:
             self.set_header("Content-Type", "application/json")
-            self.write(playlist.json())
+            self.write(playlist.json)
 
 
 class ErrorHandler(HandlerBase):
