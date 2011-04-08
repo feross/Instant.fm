@@ -165,4 +165,4 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler, handlers.PlaylistHandlerBas
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
-
+        return user.user_visible_attrs

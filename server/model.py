@@ -19,10 +19,10 @@ class User(object):
     
     @property
     def json(self):
-        return json.dumps(self.user_visible_properties())
+        return json.dumps(self.user_visible_attrs())
     
     @property
-    def user_visible_properties(self):
+    def user_visible_attrs(self):
         return {
             "id": int(self.id),
             "name": self.name,
@@ -69,7 +69,7 @@ class Playlist(object):
         return '/p/' + base36.base10_36(self.id)
     
     @property
-    def user_visible_properties(self):
+    def user_visible_attrs(self):
         return {
             "status": "ok",
             "id": int(self.id),
@@ -77,17 +77,17 @@ class Playlist(object):
             "title": self.title,
             "description": self.description,
             "songs": self.songs,
-            "user": self.user.user_visible_properties if self.user is not None else None,
-            "image": self.image.user_visible_properties if self.image is not None else None,
+            "user": self.user.user_visible_attrs if self.user is not None else None,
+            "image": self.image.user_visible_attrs if self.image is not None else None,
         }
 
     @property
     def json(self):
-        return json.dumps(self.user_visible_properties)
+        return json.dumps(self.user_visible_attrs)
 
 class Image(object):
     @property
-    def user_visible_properties(self):
+    def user_visible_attrs(self):
         return {
             "original": self.original,
             "medium": self.medium,
