@@ -13,7 +13,7 @@ import rpc
 
 class InvalidParameterException(Exception):
     def __init__(self, errors):
-        self._errors = errors
+        self.errors = errors
 
 
 def async_and_validated(method):
@@ -40,7 +40,7 @@ def async_and_validated(method):
         except InvalidParameterException as e:
             result = {
                  "success": False,
-                 "errors": e._errors
+                 "errors": e.errors
             }
             self.result(result)
     wrapper.async = True
