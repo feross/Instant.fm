@@ -112,7 +112,7 @@ SearchView.prototype.search = function(searchString, delay) {
     searchString = $.trim(searchString);
     
     if (delay) {
-        var timeout = 250;
+        var timeout = 150;
     } else {
         var timeout = 0;
     }

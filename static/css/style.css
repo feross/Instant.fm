@@ -1005,9 +1005,9 @@ nav, #backgroundMsg {
 nav a,
 nav a:active,
 nav a:visited { color: #fff; display: inline-block; font-weight: bold; text-decoration: none; }
-nav a:hover { text-decoration: underline; }
+nav a:hover { color: inherit; text-decoration: underline; }
 #header nav a { margin-left: 25px; }
-#footer nav a { padding-right: 25px; }
+#footer nav a, #footer nav span { padding-right: 25px; }
 
 #navNewPlaylist {
     background: transparent url('/images/add-on.png') left center no-repeat;
