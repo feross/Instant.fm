@@ -11,7 +11,7 @@ import jsonrpclib
 import rpc
 
 
-class InvalidParameterException(Exception):
+class ValidationFailedException(Exception):
     def __init__(self, errors):
         self.errors = errors
 
@@ -37,7 +37,7 @@ def async_and_validated(method):
         self.result = result_with_validation
         try:
             method(self, *args, **kwargs)
-        except InvalidParameterException as e:
+        except ValidationFailedException as e:
             result = {
                  "success": False,
                  "errors": e.errors
@@ -57,12 +57,12 @@ class Validator(object):
 
     def validate(self):
         if self.has_errors():
-            raise InvalidParameterException(self._errors)
+            raise ValidationFailedException(self._errors)
 
     def error(self, message, name=''):
         self._errors[name] = message
         if self._immediate_exceptions:
-            raise InvalidParameterException(self._errors)
+            raise ValidationFailedException(self._errors)
 
     def add_rule(self, value, name='', min_length=None, max_length=None, email=None):
         if email is not None:
