@@ -199,7 +199,7 @@ function setupKeyboardShortcuts() {
     });
 }
 
-function setupFBML(playlist) {
+function setupFBML() {
     window.fbAsyncInit = function() {
         FB.init({
           //appId: appSettings.fbAppId, // 'Instant.fm' API Key
@@ -209,7 +209,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
          
-        playlist && nowplaying.tryLoadComments(playlist.url);
+        model.playlist && nowplaying.tryLoadComments(model.playlist.url);
     };
     
     (function() {

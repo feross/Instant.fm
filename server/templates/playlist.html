@@ -400,9 +400,14 @@
 {% block scripts %}
   {% block scripts-partial %}{% end %}
   <script>
-    var initial_playlist = {{ playlist.json if playlist is not None else 'null' }};
-        $(function() {
-            onloadPlaylist();
-        });
+    $(function() {
+        onloadPlaylist();
+        {% if handler.get_current_user() %}
+        logUserIn({{handler.get_current_user().json}});
+        {% end %}
+        {% if playlist is not None %}
+        player.loadPlaylist({{playlist.json}})
+        {% end %}
+    });
   </script>
 {% end %}
