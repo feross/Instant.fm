@@ -382,11 +382,10 @@ function setupLogin() {
 
 function setupLogout() {
 	$('a[href="#logout"]').click(function(event) {
-      event.preventDefault();
-    	$.post('/logout', function() {
-        	loginStatusChanged();
-            log('Logged out.');
-        });
+        event.preventDefault();
+		instantfm.logout();
+		$('html').removeClass('loggedIn')
+		$('html').addClass('loggedOut')
     });
 }
 
@@ -527,8 +526,9 @@ function setupSignup() {
 }
 
 function setupRpc() {
-    var methods = ['update_songlist', 'update_title',
-        'update_description', 'is_registered_fbid', 'set_image_from_url'];
+    var methods = ['update_songlist', 'update_title', 'update_description', 
+    	'is_registered_fbid', 'set_image_from_url', 'login', 'logout', 
+    	'new_playlist', 'signup_with_fbid'];
         
     instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
                                      "sanitize": true,

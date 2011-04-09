@@ -3,34 +3,30 @@
 
 import tornado.httpserver
 import tornado.ioloop
+
 import handlers
 import options
-import os
+import rpc
 
 
 class Application(tornado.web.Application):
-    
+
     """Custom application class for Instant.fm"""
-    
+
     def __init__(self):
         url_handlers = [
             (r"/", handlers.HomeHandler),
-            (r"/json-rpc/?$", handlers.JsonRpcHandler),
+            (r"/json-rpc/?$", rpc.JsonRpcHandler),
             (r"/upload/?$", handlers.UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
             (r"/search/?$", handlers.SearchHandler),
-            (r"/signup/fb", handlers.FbSignupHandler),
-            (r"/login", handlers.LoginHandler),
-            (r"/new-list", handlers.NewPlaylistHandler),
-            (r"/logout", handlers.LogoutHandler),
-            (r"/get-images", handlers.GetImagesHandler),
             (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
             (r".*", handlers.ErrorHandler),
         ]
         tornado.web.Application.__init__(self, url_handlers, **options.tornado_settings)
-        
+
 
 def main():
     if not options.cli_args.debug:
@@ -49,5 +45,5 @@ def main():
     tornado.ioloop.IOLoop.instance().start()
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     main()
