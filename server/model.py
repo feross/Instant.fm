@@ -71,7 +71,6 @@ class Playlist(object):
     @property
     def client_visible_attrs(self):
         return {
-            "status": "ok",
             "id": int(self.id),
             "url": self.url,
             "title": self.title,
