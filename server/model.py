@@ -19,7 +19,7 @@ class User(object):
 
     @property
     def json(self):
-        return json.dumps(self.client_visible_attrs())
+        return json.dumps(self.client_visible_attrs)
 
     @property
     def client_visible_attrs(self):
