@@ -149,9 +149,10 @@ def _setup():
     })
 
 
-_url = 'mysql+mysqldb://{0}:{1}@instant.fm/{2}'.format(
+_url = 'mysql+mysqldb://{0}:{1}@{2}/{3}'.format(
     options.cli_args.mysql_user,
     options.cli_args.mysql_password,
+    options.cli_args.mysql_host,
     options.cli_args.mysql_database
 )
 _engine = sqlalchemy.create_engine(
