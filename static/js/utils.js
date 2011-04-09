@@ -150,10 +150,21 @@ function eraseCookie(name) {
   createCookie(name,"",-1);
 }
 
+function logUserIn(user) {
+    model.currentUser = user;
+    $('html').addClass('loggedIn');
+    $('html').removeClass('loggedOut');
+    log(user.name);
+    $('.username').text(user.name);
+    $('.profileLink').attr('href', user.profile_url);
+    ownershipStatusChanged();
+}
+
 /* Call this right after the user is logged in or out to update
  * display. 
  */
 function loginStatusChanged() {
+    /*
     if (isLoggedIn()) {
         var user_name = readCookie('user_name');
         var profile_url = readCookie('profile_url');
@@ -166,32 +177,19 @@ function loginStatusChanged() {
         $('html').removeClass('loggedIn');
     }
     ownershipStatusChanged();
+    */
 }
 
 function isLoggedIn() {
-    var user_id = readCookie('user_id');
-    var user_name = readCookie('user_name');
-    var session_num = readCookie('session_num');
-    var session_id = readCookie('session_id');
-    var profile_url = readCookie('profile_url');
-    return (user_id && user_name && session_num && session_id);
+    
 }
 
 function ownershipStatusChanged() {
     if (isOwner()) {
         $('html').addClass('isOwner');
         $('html').removeClass('isNotOwner');
-  	    var user_name = readCookie('user_name');
-        $('.username').text(unescape(user_name));
-        
-        // If we own the playlist, make sure user_id is set
-        var user_id = readCookie('user_id');
-        if (user_id) {
-          model.playlist.user_id = user_id;
-        }
         
         $('#playlist').sortable('enable');
-        
     } else {
         $('html').addClass('isNotOwner');
         $('html').removeClass('isOwner');
@@ -201,14 +199,11 @@ function ownershipStatusChanged() {
 }
 
 function isOwner() {
-    var user_id = readCookie('user_id');
     var session_num = readCookie('session_num');
-    if ((user_id && user_id == model.playlist.user.id) ||
+    if ((model.currentUser && model.currentUser.id == model.playlist.user.id) ||
         (session_num && session_num == model.playlist.session_id)) {
-        
         return true;
     }
-    
     return false;
 }
 
@@ -235,4 +230,16 @@ function renderConditionalText(obj, tagType, callback) {
     }, 0);
 
     return result;
+}
+
+function formToDictionary(form) {
+    var params = {};
+    $('input[type!=submit]', form).each(function(idx, input) {
+        if (input.type == "checkbox") {
+            params[input.name] = (input.value == 'on' ? true : false);
+        } else {
+            params[input.name] = input.value;
+        }
+    });
+    return params;
 }
