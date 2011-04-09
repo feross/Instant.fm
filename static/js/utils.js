@@ -151,6 +151,10 @@ function eraseCookie(name) {
 }
 
 function logUserIn(user) {
+    if (user === undefined) {
+        return;
+    }
+    
     model.currentUser = user;
     $('html').addClass('loggedIn');
     $('html').removeClass('loggedOut');
@@ -160,28 +164,8 @@ function logUserIn(user) {
     ownershipStatusChanged();
 }
 
-/* Call this right after the user is logged in or out to update
- * display. 
- */
-function loginStatusChanged() {
-    /*
-    if (isLoggedIn()) {
-        var user_name = readCookie('user_name');
-        var profile_url = readCookie('profile_url');
-        $('html').addClass('loggedIn');
-        $('html').removeClass('loggedOut');
-        $('.username').text(unescape(user_name));
-        $('.profileLink').attr('href', unescape(profile_url));
-    } else {
-        $('html').addClass('loggedOut');
-        $('html').removeClass('loggedIn');
-    }
-    ownershipStatusChanged();
-    */
-}
-
 function isLoggedIn() {
-    
+    return model.currentUser != undefined;
 }
 
 function ownershipStatusChanged() {
@@ -199,6 +183,10 @@ function ownershipStatusChanged() {
 }
 
 function isOwner() {
+    if (model.playlist === undefined) {
+        return false;
+    }
+    
     var session_num = readCookie('session_num');
     if ((model.currentUser && model.currentUser.id == model.playlist.user.id) ||
         (session_num && session_num == model.playlist.session_id)) {
