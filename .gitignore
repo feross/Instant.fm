@@ -1,5 +1,10 @@
+.DS_Store
 *.log
 static/images/uploaded/*
+publish/
+
+# Don't commit build #. That stays server-side.
+buildinfo.properties
 
 # PYTHON START
 
