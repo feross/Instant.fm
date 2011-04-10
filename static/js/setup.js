@@ -337,8 +337,8 @@ function setupLogin() {
             onSuccess: function(response) {
                 // everything is ok. (server returned true)
                 if (response && response.success)  {
-                    var user = response.result;
-                    logUserIn(user);
+                    var session = response.result;
+                    setSession(session);
                     console.log('Login succeeded.');
                     $.colorbox.close();
                 // server-side validation failed.
@@ -360,7 +360,9 @@ function setupLogin() {
 function setupLogout() {
 	$('a[href="#logout"]').click(function(event) {
         event.preventDefault();
-		instantfm.logout();
+		instantfm.logout({
+		    onSuccess: function(newSession) { setSession(newSession); }
+		});
 		$('html').removeClass('loggedIn')
 		$('html').addClass('loggedOut')
     });

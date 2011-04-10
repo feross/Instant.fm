@@ -402,9 +402,7 @@
   <script>
     $(function() {
         onloadPlaylist();
-        {% if handler.get_current_user() %}
-        logUserIn({{handler.get_current_user().json}});
-        {% end %}
+        setSession({{handler.get_current_session().json}});
         {% if playlist is not None %}
         player.loadPlaylist({{playlist.json}})
         {% end %}

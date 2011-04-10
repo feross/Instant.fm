@@ -150,22 +150,25 @@ function eraseCookie(name) {
   createCookie(name,"",-1);
 }
 
-function logUserIn(user) {
-    if (user === undefined) {
+function setSession(session) {
+    if (session === undefined) {
+        log("Attempted to set empty session");
         return;
     }
     
-    model.currentUser = user;
-    $('html').addClass('loggedIn');
-    $('html').removeClass('loggedOut');
-    log(user.name);
-    $('.username').text(user.name);
-    $('.profileLink').attr('href', user.profile_url);
+    model.session = session;
+    if (session.user) {
+        $('html').addClass('loggedIn');
+        $('html').removeClass('loggedOut');
+        log(session.user.name);
+        $('.username').text(session.user.name);
+        $('.profileLink').attr('href', session.user.profile_url);
+    }
     ownershipStatusChanged();
 }
 
 function isLoggedIn() {
-    return model.currentUser != undefined;
+    return model.session.user != undefined;
 }
 
 function ownershipStatusChanged() {
@@ -187,9 +190,15 @@ function isOwner() {
         return false;
     }
     
-    var session_num = readCookie('session_num');
-    if ((model.currentUser && model.currentUser.id == model.playlist.user.id) ||
-        (session_num && session_num == model.playlist.session_id)) {
+    if (model.session === undefined) {
+        log("Error: No session number. This should never happen.");
+        return false;
+    }
+    
+    if (model.session.id && model.session.id == model.playlist.session_id) {
+        return true;
+    }
+    if (model.session.user && model.session.user.id == model.playlist.user.id) {
         return true;
     }
     return false;

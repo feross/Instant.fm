@@ -10,7 +10,6 @@ import utils
 import options
 import re
 
-
 # Create object classes
 class User(object):
     @property
@@ -93,7 +92,17 @@ class Image(object):
         }
 
 class Session(object):
-    pass
+    @property
+    def client_visible_attrs(self):
+        return {
+            "id": self.id,
+            "user": self.user.client_visible_attrs if self.user else None
+        }
+        
+    @property
+    def json(self):
+        return json.dumps(self.client_visible_attrs)
+    
 
 def _setup():
     metadata = sqlalchemy.MetaData()

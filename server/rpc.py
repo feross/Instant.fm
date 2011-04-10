@@ -97,11 +97,13 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))
-        self.result(user.client_visible_attrs)
+        # Return the session which includes the logged in user
+        self.result(self.get_current_session().client_visible_attrs)
 
     def logout(self):
+        """ Deletes current session and returns a new one """
         self._log_user_out()
-        return True
+        return self.get_current_session()
 
     @validation.async_and_validated
     @type_enforcement.types(title=unicode, description=unicode)
