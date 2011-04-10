@@ -103,7 +103,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def logout(self):
         """ Deletes current session and returns a new one """
         self._log_user_out()
-        return self.get_current_session()
+        return self.get_current_session().client_visible_attrs
 
     @validation.async_and_validated
     @type_enforcement.types(title=unicode, description=unicode)
