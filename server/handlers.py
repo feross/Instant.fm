@@ -101,7 +101,6 @@ class HandlerBase(tornado.web.RequestHandler):
                 .delete())
 
         self.clear_cookie('session_id')
-        self.clear_cookie('session_num')
 
 
 class PlaylistHandlerBase(HandlerBase):

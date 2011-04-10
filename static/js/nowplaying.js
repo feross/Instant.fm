@@ -341,8 +341,9 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
         );  
 };
 
-// Optimization: Don't load Facebook comments until video is playing
 NowPlaying.prototype.tryLoadComments = function(url) {    
+    // Optimization: Don't load Facebook comments until video is playing
+    // TODO: Determine if we actually need this check.
     if (player.isPlaying()) {
         nowplaying._loadComments(url);
     } else {

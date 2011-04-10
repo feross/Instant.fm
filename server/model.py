@@ -10,7 +10,6 @@ import utils
 import options
 import re
 
-
 # Create object classes
 class User(object):
     @property
@@ -19,7 +18,7 @@ class User(object):
 
     @property
     def json(self):
-        return json.dumps(self.client_visible_attrs())
+        return json.dumps(self.client_visible_attrs)
 
     @property
     def client_visible_attrs(self):
@@ -71,7 +70,6 @@ class Playlist(object):
     @property
     def client_visible_attrs(self):
         return {
-            "status": "ok",
             "id": int(self.id),
             "url": self.url,
             "title": self.title,
@@ -94,7 +92,17 @@ class Image(object):
         }
 
 class Session(object):
-    pass
+    @property
+    def client_visible_attrs(self):
+        return {
+            "id": self.id,
+            "user": self.user.client_visible_attrs if self.user else None
+        }
+        
+    @property
+    def json(self):
+        return json.dumps(self.client_visible_attrs)
+    
 
 def _setup():
     metadata = sqlalchemy.MetaData()
@@ -149,9 +157,10 @@ def _setup():
     })
 
 
-_url = 'mysql+mysqldb://{0}:{1}@instant.fm/{2}'.format(
+_url = 'mysql+mysqldb://{0}:{1}@{2}/{3}'.format(
     options.cli_args.mysql_user,
     options.cli_args.mysql_password,
+    options.cli_args.mysql_host,
     options.cli_args.mysql_database
 )
 _engine = sqlalchemy.create_engine(

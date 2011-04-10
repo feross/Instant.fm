@@ -63,8 +63,6 @@ function onloadPlaylist() {
     nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
-    player.loadPlaylist(initial_playlist);
-    
     updateDisplay();
     $(window).resize(updateDisplay);
     
@@ -92,7 +90,7 @@ function onloadPlaylist() {
     
     
     setupKeyboardShortcuts();
-    setupFBML(initial_playlist);
+    setupFBML();
     setupSignup();
     setupLogin();
     setupLogout();
