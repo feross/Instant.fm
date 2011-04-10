@@ -340,11 +340,6 @@ Player.prototype.loadPlaylist = function(playlist) {
         return;
     }
     
-    if (!playlist.status || playlist.status != "ok") {
-        log('Error loading playlist: ' + (playlist.status ? playlist.status : 'No status'));
-        return;
-    }
-    
     if(!Modernizr.history) {
         window.location = playlist.url;
     }
@@ -362,8 +357,6 @@ Player.prototype.loadPlaylist = function(playlist) {
             playlist.title,
             playlist.url
         );
-        
-        nowplaying.tryLoadComments(playlist.url, playlist.title); // update the comment widget
     }
         
     model.updatePlaylist(playlist);
@@ -371,6 +364,8 @@ Player.prototype.loadPlaylist = function(playlist) {
 
     player.playSong(0);
     ownershipStatusChanged();
+        
+    nowplaying.tryLoadComments(playlist.url); // update the comment widget
     log('Loaded playlist: ' + playlist.url);
 };
 

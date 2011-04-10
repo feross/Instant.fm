@@ -199,7 +199,7 @@ function setupKeyboardShortcuts() {
     });
 }
 
-function setupFBML(playlist) {
+function setupFBML() {
     window.fbAsyncInit = function() {
         FB.init({
           //appId: appSettings.fbAppId, // 'Instant.fm' API Key
@@ -209,7 +209,7 @@ function setupFBML(playlist) {
           xfbml: true
         });
          
-        playlist && nowplaying.tryLoadComments(playlist.url);
+        model.playlist && nowplaying.tryLoadComments(model.playlist.url);
     };
     
     (function() {
@@ -327,63 +327,42 @@ function setupLogin() {
         $('#navSignup').click();
     });
     
-    $("form#login").validator({
-        effect: 'wall',
-        container: '#loginErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-    
-        var form = $(this);
+    var form = $('form#login');
+    form.submit(function(e) {
+        e.preventDefault();
         $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
         
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/login',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    // everything is ok. (server returned true)
-                    if (json && json === true)  {
-                        log('Login succeeded.');
-                        loginStatusChanged();
-                        $.colorbox.close();
-                    // server-side validation failed. use invalidate() to show errors
-                    } else {
-                        if (json && json.success === false && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            log('Login failt.');
-                        }
-                        $.colorbox.resize();
-                        $('input[name=password]', '#login').focus();
-                    }
-                    $('#submitLogin').removeAttr('disabled');
-                },
-                error: function() {
-                    log('Error posting form ;_;');
-                    $('#submitLogin').removeAttr('disabled');
-                },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $.colorbox.resize();
-            $('input[name=email]', '#login').focus();
-            $('#submitLogin').removeAttr('disabled');
-        }
+        instantfm.login({
+            params: formToDictionary(form),
+            onSuccess: function(response) {
+                // everything is ok. (server returned true)
+                if (response && response.success)  {
+                    var session = response.result;
+                    setSession(session);
+                    console.log('Login succeeded.');
+                    $.colorbox.close();
+                // server-side validation failed.
+                } else if (response && response.errors) {
+                    console.log(response.errors)
+                    $.colorbox.resize();
+                    $('input[name=password]', '#login').focus();
+                }
+                $('#submitLogin').removeAttr('disabled');
+            },
+            onError: function() {
+                log('Error posting login ;_;');
+                $('#submitLogin').removeAttr('disabled');
+            },
+        });
     });
 }
 
 function setupLogout() {
 	$('a[href="#logout"]').click(function(event) {
         event.preventDefault();
-		instantfm.logout();
+		instantfm.logout({
+		    onSuccess: function(newSession) { setSession(newSession); }
+		});
 		$('html').removeClass('loggedIn')
 		$('html').addClass('loggedOut')
     });

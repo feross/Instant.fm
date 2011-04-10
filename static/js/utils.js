@@ -150,48 +150,33 @@ function eraseCookie(name) {
   createCookie(name,"",-1);
 }
 
-/* Call this right after the user is logged in or out to update
- * display. 
- */
-function loginStatusChanged() {
-    if (isLoggedIn()) {
-        var user_name = readCookie('user_name');
-        var profile_url = readCookie('profile_url');
+function setSession(session) {
+    if (session === undefined) {
+        log("Attempted to set empty session");
+        return;
+    }
+    
+    model.session = session;
+    if (session.user) {
         $('html').addClass('loggedIn');
         $('html').removeClass('loggedOut');
-        $('.username').text(unescape(user_name));
-        $('.profileLink').attr('href', unescape(profile_url));
-    } else {
-        $('html').addClass('loggedOut');
-        $('html').removeClass('loggedIn');
+        log(session.user.name);
+        $('.username').text(session.user.name);
+        $('.profileLink').attr('href', session.user.profile_url);
     }
     ownershipStatusChanged();
 }
 
 function isLoggedIn() {
-    var user_id = readCookie('user_id');
-    var user_name = readCookie('user_name');
-    var session_num = readCookie('session_num');
-    var session_id = readCookie('session_id');
-    var profile_url = readCookie('profile_url');
-    return (user_id && user_name && session_num && session_id);
+    return model.session.user != undefined;
 }
 
 function ownershipStatusChanged() {
     if (isOwner()) {
         $('html').addClass('isOwner');
         $('html').removeClass('isNotOwner');
-  	    var user_name = readCookie('user_name');
-        $('.username').text(unescape(user_name));
-        
-        // If we own the playlist, make sure user_id is set
-        var user_id = readCookie('user_id');
-        if (user_id) {
-          model.playlist.user_id = user_id;
-        }
         
         $('#playlist').sortable('enable');
-        
     } else {
         $('html').addClass('isNotOwner');
         $('html').removeClass('isOwner');
@@ -201,14 +186,21 @@ function ownershipStatusChanged() {
 }
 
 function isOwner() {
-    var user_id = readCookie('user_id');
-    var session_num = readCookie('session_num');
-    if ((user_id && user_id == model.playlist.user.id) ||
-        (session_num && session_num == model.playlist.session_id)) {
-        
-        return true;
+    if (model.playlist === undefined) {
+        return false;
     }
     
+    if (model.session === undefined) {
+        log("Error: No session number. This should never happen.");
+        return false;
+    }
+    
+    if (model.session.id && model.session.id == model.playlist.session_id) {
+        return true;
+    }
+    if (model.session.user && model.session.user.id == model.playlist.user.id) {
+        return true;
+    }
     return false;
 }
 
@@ -235,4 +227,16 @@ function renderConditionalText(obj, tagType, callback) {
     }, 0);
 
     return result;
+}
+
+function formToDictionary(form) {
+    var params = {};
+    $('input[type!=submit]', form).each(function(idx, input) {
+        if (input.type == "checkbox") {
+            params[input.name] = (input.value == 'on' ? true : false);
+        } else {
+            params[input.name] = input.value;
+        }
+    });
+    return params;
 }
