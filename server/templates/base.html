@@ -25,12 +25,14 @@
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+	<!-- styles concatenated and minified via ant build script-->
 	<link rel="stylesheet" href="/css/boilerplate-start.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/colorbox.css">
   <link rel="stylesheet" href="/css/awesomebuttons.css">
   <link rel="stylesheet" href="/css/ui-darkness/jquery-ui-1.8.8.custom.css">
 	<link rel="stylesheet" href="/css/boilerplate-end.css">
+	<!-- end styles -->
 
 	<!--[if lt IE 9]>
 	<script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
@@ -49,9 +51,7 @@
 	  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.js"></script>
 	  <script>window.jQuery || document.write("<script src='/js/libs/jquery-1.5.1.min.js'>\x3C/script>")</script>
 	  <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-	
 		{% block scripts %}{% end %}
-	
 		<!-- scripts concatenated and minified via ant build script-->
 	  <script src="/js/mylibs/jquery-ui-1.8.8.custom.min.js"></script>
 	  <script src="/js/mylibs/html5uploader.js"></script>
@@ -71,8 +71,8 @@
 	  <script src="/js/utils.js"></script>
 	  <script src="/js/views.js"></script>
 	      
-      <script src="/js/main.js"></script>
-	  <!-- end scripts-->
+    <script src="/js/main.js"></script>
+	  <!-- end scripts -->
     
 	  <!--[if lt IE 7 ]>
 	    <script src="js/libs/dd_belatedpng.js"></script>
