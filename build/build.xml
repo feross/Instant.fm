@@ -432,7 +432,7 @@
 	<target name="-git-pull" description="Pulls the latest from git">
 		<echo>Pulling the latest from git...</echo>
 		<exec executable="git" osfamily="unix">
-			<arg line="pull origin master"/>
+			<arg line="--work-tree=. pull origin master"/>
 		</exec>
 	</target>
 	    
