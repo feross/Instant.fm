@@ -256,59 +256,41 @@ function setupNewPlaylist() {
     );
     
     // initialize validator and add a custom form submission logic
-    $("form#newPlaylistForm").validator({
-        effect: 'wall', 
-        container: '#newPlaylistErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-        var form = $(this);
-        
+    var form = $("form#newPlaylistForm");
+    form.submit(function(e) {
+        // prevent default form submission logic
+        e.preventDefault();
         $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
       
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/new-list',
-                data: form.serialize(),
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    if (json && json.status && json.status == "ok")  {
-                        $.colorbox.close();
-                        player.loadPlaylist(json);
-                        browser.pushSearchPartial(true);
-                        
-                        // Clear form fields (after colorbox closes)
-                        window.setTimeout(function() {
-                            $('textarea', '#newPlaylistForm').val('');
-                        }, 300);
-                        
-                    } else {
-                        // server-side validation failed. use invalidate() to show errors
-                        if (json && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            $.colorbox.resize();
-                        }
+        log(formToDictionary(form));
+        instantfm.new_playlist({
+            params: formToDictionary(form),
+            onSuccess: function(response) {
+                if (response && response.success)  {
+                    var playlist = response.result;
+                    $.colorbox.close();
+                    player.loadPlaylist(playlist);
+                    browser.pushSearchPartial(true);
+                    
+                    // Clear form fields (after colorbox closes)
+                    window.setTimeout(function() {
+                        $('textarea', '#newPlaylistForm').val('');
+                    }, 300);
+                    
+                } else {
+                    // server-side validation failed.
+                    if (response && response.errors) {
+                        // TODO: Display validation errors
+                        $.colorbox.resize();
                     }
-                    $('#submitNewPlaylist').removeAttr('disabled');
-                },
-                error: function() {
-                    log('Error posting new playlist form ;_;');
-                    $('#submitNewPlaylist').removeAttr('disabled');
-                },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $('#submitNewPlaylist').removeAttr('disabled');
-            $.colorbox.resize();
-        }
-        
+                }
+                $('#submitNewPlaylist').removeAttr('disabled');
+            },
+            onError: function() {
+                log('Error posting new playlist form ;_;');
+                $('#submitNewPlaylist').removeAttr('disabled');
+            },
+        });
     });
 }
 

@@ -76,6 +76,7 @@ class Playlist(object):
             "description": self.description,
             "songs": self.songs,
             "user": self.user.client_visible_attrs if self.user is not None else None,
+            "session_id": self.session_id,
             "image": self.image.client_visible_attrs if self.image is not None else None,
         }
 

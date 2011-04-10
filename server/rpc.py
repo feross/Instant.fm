@@ -119,6 +119,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         playlist.description = description
         playlist.session = self.get_current_session()
         self.db_session.add(playlist)
+        self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
     @validation.async_and_validated

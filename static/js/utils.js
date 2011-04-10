@@ -231,7 +231,7 @@ function renderConditionalText(obj, tagType, callback) {
 
 function formToDictionary(form) {
     var params = {};
-    $('input[type!=submit]', form).each(function(idx, input) {
+    $('input[type!=submit],textarea', $(form)).each(function(idx, input) {
         if (input.type == "checkbox") {
             params[input.name] = (input.value == 'on' ? true : false);
         } else {
