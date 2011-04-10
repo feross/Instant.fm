@@ -277,7 +277,7 @@ function setupNewPlaylist() {
                         $('textarea', '#newPlaylistForm').val('');
                     }, 300);
                     
-                } else {
+                } else if (response && response.errors) {
                     // server-side validation failed.
                     if (response && response.errors) {
                         // TODO: Display validation errors
