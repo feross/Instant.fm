@@ -30,16 +30,15 @@ class Application(tornado.web.Application):
 
 def main():
 	# Code to daemonize tornado.
-	# Not needed anymore, since we're using supervisord now.
-	#
-    # if not options.cli_args.debug:
-    #     try:
-    #         import daemon
-    #         log = open('static/tornado.log', 'a+') # Note: Publicly visible tornado.log file!
-    #         context = daemon.DaemonContext(stdout=log, stderr=log, working_directory='.')
-    #         context.open()
-    #     except ImportError:
-    #         print 'python-daemon not installed; not running as daemon'
+	# Not used in production since supervisord requires non-daemonized processes.
+    if options.cli_args.daemonize:
+        try:
+            import daemon
+            log = open('static/tornado.log', 'a+') # Note: Publicly visible tornado.log file!
+            context = daemon.DaemonContext(stdout=log, stderr=log, working_directory='.')
+            context.open()
+        except ImportError:
+            print 'python-daemon not installed; not running as daemon'
 
     http_server = tornado.httpserver.HTTPServer(Application(), xheaders=True)
     http_server.listen(options.cli_args.port)

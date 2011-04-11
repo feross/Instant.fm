@@ -99,7 +99,6 @@
             <hr class="separator">
 
             <section id="curPlaying">
-              <!-- <header><h3>What song is playing?</h3></header> -->
               <div class="clearfix" id="curAlbumBlock"></div>
               <script id="curAlbumBlockTemplate" type="text/x-jquery-tmpl">
                 <a id="curAlbumImg" class="albumImg reflect" href="#" title="${albumTitle}">
@@ -125,9 +124,9 @@
                     <h4></h4>
                   </div>
                   
-                  <div id="curButtons">
+                  <!-- <div id="curButtons">
                     <a class="small awesome white mp3" href="#mp3">MP3</a>
-                  </div>
+                  </div> -->
                   
                   <div id="curSongLike" style="display:none;">
                     <fb:like href="${songHref}" show_faces="true" width="340"></fb:like>
@@ -285,7 +284,7 @@
     <form id="newPlaylistForm">
       <div class="clearfix formRow">
         <label for="newPlaylistTitle">Title</label>
-        <textarea id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ..."></textarea>
+        <input id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ...">
       </div>
       <div class="clearfix formRow">
         <label for="newPlaylistDescription">Description</label>

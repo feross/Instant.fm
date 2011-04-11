@@ -97,15 +97,14 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
             }
             
             // Add colorbox to MP3 link
-            $('#curButtons .mp3').colorbox({
-                height: 600,
-                href: 'http://www.downloads.nl/results/mp3/1/'+encodeURIComponent(trackName+' '+artistName),
-                iframe: true,
-                returnFocus: false,
-                title: '&nbsp;', // don't show a title
-                width: 600
-            });
-            log('http://www.downloads.nl/results/mp3/1/'+encodeURIComponent(artistName));
+            // $('#curButtons .mp3').colorbox({
+            //     height: 600,
+            //     href: 'http://www.downloads.nl/results/mp3/1/'+encodeURIComponent(trackName+' '+artistName),
+            //     iframe: true,
+            //     returnFocus: false,
+            //     title: '&nbsp;', // don't show a title
+            //     width: 600
+            // });
         }
     });
 

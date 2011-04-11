@@ -156,7 +156,9 @@ function setupKeyboardShortcuts() {
                     browser.pushSearchPartial();
                     break;
                 case 76: // l
-                    player.highlightSong('.playing');
+                	if ($('#playlist .playing').length) {
+                	    player.highlightSong('.playing', '#playlistDiv');
+                	}
                     break;
                 case 66: // b
                     showHideUI();
@@ -202,8 +204,7 @@ function setupKeyboardShortcuts() {
 function setupFBML() {
     window.fbAsyncInit = function() {
         FB.init({
-          //appId: appSettings.fbAppId, // 'Instant.fm' API Key
-          appId: '186788488008637',   // 'Wikileaks: The Musical' API Key
+          appId: appSettings.fbAppId,
           status: true,
           cookie: true,
           xfbml: true
@@ -234,7 +235,7 @@ function setupNewPlaylist() {
         href: "#newPlaylistBox",
         returnFocus: false,
         onComplete: function() {
-            $('textarea[name=title]', '#newPlaylistForm').focus();
+            $('input[name=title]', '#newPlaylistForm').focus();
         },
         scrolling: false
     });

@@ -288,9 +288,9 @@ Player.prototype.moveSong = function(oldId, newId) {
     player.onPlaylistReorder(null, {item: songItem});
 };
 
-Player.prototype.addSongToPlaylist = function(song) {
+Player.prototype.addSongToPlaylist = function(song, event) {
     this.songlist.add(song, '#playlist');
-    this.highlightSong('#playlist li:last');
+    this.highlightSong('#playlist li:last', '#playlistDiv');
     model.addSong(song);
     updateDisplay(); // resizes short playlists
     
@@ -507,10 +507,15 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
 };
 
 // Show currently playing song
-Player.prototype.highlightSong = function(selector) {
-    scrollTo(selector, '#playlistDiv', {
+// @selector - element to scroll to
+// @container - element with the scrollbar
+Player.prototype.highlightSong = function(selector, container, _effect, _effectOptions) {
+    var effect = _effect || 'pulsate',
+	    effectOptions = _effectOptions || {times: 1};
+	
+	scrollTo(selector, container, {
         callback: function() {
-            $(selector).effect('pulsate', {times: 1});
+			$(selector).effect(effect, effectOptions);
         }
     });
 };
