@@ -1,4 +1,4 @@
-/*! 
+/* 
  * Auto Expanding Text Area (1.2.2)
  * by Chrys Bader (www.chrysbader.com)
  * chrysb@gmail.com

@@ -1,4 +1,4 @@
-/*!
+/*
  * Shorten, a jQuery plugin to automatically shorten text to fit in a block or a pre-set width and configure how the text ends.
  * Copyright (C) 2009-2011  Marc Diethelm
  * License: (GPL 3, http://www.gnu.org/licenses/gpl-3.0.txt) see license.txt

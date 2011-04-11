@@ -1,4 +1,4 @@
-/*!
+/*
  * Jeditable - jQuery in place edit plugin
  *
  * Copyright (c) 2006-2009 Mika Tuupola, Dylan Verheul
