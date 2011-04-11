@@ -424,7 +424,7 @@
 	<target name="-stop-server" description="Stop the tornado server">
 		<echo>Stopping the tornado server...</echo>
 		<exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl stop instantfm:*"/>
+			<arg line="supervisorctl -c ${dir.supervisor.config} stop instantfm:*"/>
 		</exec>
 	</target>
 	
@@ -735,7 +735,7 @@
 	<target name="-reload-supervisord-config" description="Reload the supervisord config settings">
         <echo message="Reloading the supervisord config settings..."/>
 	    <exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl update"/>
+			<arg line="supervisorctl -c ${dir.supervisor.config} update"/>
 	    </exec>
     </target>
 
@@ -744,7 +744,7 @@
       	<echo message="All the *essential* optimizations are done."/>
 	  	<echo message="Starting the server..."/>
 	    <exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl start instantfm:*"/>
+			<arg line="supervisorctl -c ${dir.supervisor.config} start instantfm:*"/>
 	    </exec>
     </target>
     
