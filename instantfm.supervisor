@@ -1,7 +1,7 @@
 [program:instantfm]
+user = www-data
 process_name = instantfm-%(process_num)s
 directory=/home/feross/www/instant.fm/publish/server/
 command = python server.py --port=%(process_num)s
-# Increase numprocs to run multiple processes on different ports.
 numprocs = 4
 numprocs_start = 7000
