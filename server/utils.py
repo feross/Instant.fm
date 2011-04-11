@@ -6,12 +6,16 @@ Created on Apr 1, 2011
 
 import re
 
-def urlify(string):
-    string = re.sub('[^a-zA-Z0-9]+', ' ', string)
-    ' '.join([word.capitalize() for word in string.split()])
-    string = re.sub(' ', '-', string)
-    return string
+def urlify(name):
+    name = re.sub('[^a-zA-Z0-9]+', ' ', name)
+    ' '.join([word.capitalize() for word in name.split()])
+    name = re.sub(' ', '-', name)
+    return name
 
+
+def deurlify(name):
+    return name.replace('-', ' ')
+    
 
 def base36_10(alpha_id):
     """Converts a base 36 id (0-9a-z) to an integer"""

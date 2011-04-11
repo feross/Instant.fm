@@ -450,31 +450,10 @@ ArtistView.prototype._handleInfo = function(data) {
 };
 
 ArtistView.prototype._handleTopSongs = function(data) {
-    var songResults = data && data.toptracks && data.toptracks.track;
-    if (!songResults || !songResults.length) {
-        $('.songResults', this.content).hide();
-        return;
-    }
-    
-    var songs = [];
-    for (var i = 0; i < songResults.length; i++) {
-        var songResult = songResults[i];
-        var song = {};
-
-        song.t = songResult.name;
-        song.a = songResult.artist.name;
-        song.i = songResult.image && songResult.image[2]['#text'];
-
-        songs.push(song);
-    };
-    
+    var songs = songsFromTrackList(data.toptracks);
+   
     this.songlist = new SongList({
-        playlist: {
-            title: song.a+"'s Top Tracks",
-            description: 'Auto-generated playlist',
-            songs: songs,
-            url: this.config.path
-        },
+        playlist: playlistFromArtistTracks(data.toptracks),
         onClick: function(song) {
             $('.playing').removeClass('playing');
             $(this).addClass('playing');

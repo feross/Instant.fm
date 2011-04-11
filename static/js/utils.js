@@ -242,3 +242,49 @@ function formToDictionary(form) {
     });
     return params;
 }
+
+function playlistFromArtistTracks(trackList) {
+    playlist = {};
+    playlist.artist = trackList['@attr'].artist;
+    playlist.title = playlist.artist + "'s Top Songs";
+    playlist.url = '/' + canonicalize(playlist.artist);
+    playlist.songs = songsFromTrackList(trackList);   
+    return playlist;
+}
+
+function songsFromTrackList(trackList) {
+    var songResults = trackList && trackList.track;
+    if (!songResults || !songResults.length) {
+        $('.songResults', this.content).hide();
+        return;
+    }
+    
+    var songs = [];
+    for (var i = 0; i < songResults.length; i++) {
+        var songResult = songResults[i];
+        var song = {};
+
+        song.t = songResult.name;
+        song.a = songResult.artist.name;
+        song.i = songResult.image && songResult.image[2]['#text'];
+
+        songs.push(song);
+    };
+    return songs;
+}
+
+function loadArtistPlaylistByName(name) {
+    model.lastfm.artist.getTopTracks({
+        artist: name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+            var playlist = playlistFromArtistTracks(data.toptracks);
+            player.loadPlaylist(playlist);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+} 
