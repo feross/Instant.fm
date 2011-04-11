@@ -288,9 +288,11 @@ Player.prototype.moveSong = function(oldId, newId) {
     player.onPlaylistReorder(null, {item: songItem});
 };
 
-Player.prototype.addSongToPlaylist = function(song) {
+Player.prototype.addSongToPlaylist = function(song, event) {
     this.songlist.add(song, '#playlist');
-    this.highlightSong('#playlist li:last');
+    this.highlightSong('#playlist li:last', 'transfer',
+					   {from: $(event.target).parent().parent(),
+						className: 'ui-effects-transfer'});
     model.addSong(song);
     updateDisplay(); // resizes short playlists
     
@@ -507,10 +509,20 @@ Player.prototype.onPlaylistReorder = function(event, ui) {
 };
 
 // Show currently playing song
-Player.prototype.highlightSong = function(selector) {
-    scrollTo(selector, '#playlistDiv', {
+Player.prototype.highlightSong = function(selector, _effect, _effectOptions) {
+    var effect = _effect || 'pulsate',
+	    effectOptions = _effectOptions || {times: 1};
+	
+	scrollTo(selector, '#playlistDiv', {
         callback: function() {
-            $(selector).effect('pulsate', {times: 1});
+			if (effect == 'transfer') {
+				log('transfer');
+				effectOptions = $.extend(effectOptions, {to: selector});
+				selector = effectOptions.from;
+				log(effectOptions);
+				log(selector);
+			}
+			$(selector).effect(effect, effectOptions);
         }
     });
 };

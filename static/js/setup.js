@@ -156,7 +156,7 @@ function setupKeyboardShortcuts() {
                     browser.pushSearchPartial();
                     break;
                 case 76: // l
-                    player.highlightSong('.playing');
+                	player.highlightSong('.playing', 'pulsate', {times: 1});
                     break;
                 case 66: // b
                     showHideUI();

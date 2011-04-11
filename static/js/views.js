@@ -243,8 +243,8 @@ SearchView.prototype._handleSongSearchResults = function(data) {
         },
         buttons: [{
             action: function(event, song) {
-                player.addSongToPlaylist(song);
-                $(event.currentTarget).addClass('dulled');
+                player.addSongToPlaylist(song, event);
+                $(event.target).addClass('dulled');
             },
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
@@ -482,8 +482,8 @@ ArtistView.prototype._handleTopSongs = function(data) {
         },
         buttons: [{
             action: function(event, song) {
-                player.addSongToPlaylist(song);
-                $(event.currentTarget).addClass('dulled');
+                player.addSongToPlaylist(song, event);
+                $(event.target).addClass('dulled');
             },
             className: 'awesome small white mustOwn',
             text: 'Add to Playlist'
@@ -663,8 +663,8 @@ AlbumView.prototype._handleInfo = function(data) {
             },
             buttons: [{
                 action: function(event, song) {
-                    player.addSongToPlaylist(song);
-                    $(event.currentTarget).addClass('dulled');
+                    player.addSongToPlaylist(song, event);
+                    $(event.target).addClass('dulled');
                 },
                 className: 'awesome small white mustOwn',
                 text: 'Add to Playlist'
