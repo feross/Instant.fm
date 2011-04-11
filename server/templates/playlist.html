@@ -74,18 +74,7 @@
                 <h2 id="curPlaylistTitle">${title}</h2>
               </header>
 
-              <div>
-                {% comment My god this method of escaping is awful. %}
-                {{'{{'}}if owner_name}}
-                  by
-                  {{'{{'}}if owner_url}}
-                    <a href=${owner_url}>
-                  {{'{{'}}/if}}
-                  ${owner_name} 
-                  {{'{{'}}if owner_url}}
-                    </a>
-                  {{'{{'}}/if}}
-                {{'{{'}}/if}}
+              <div id="byline">
               </div>
             
 						  <!-- <a href="#TODO" id="curPlaylistAuthor">
