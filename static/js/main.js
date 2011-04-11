@@ -12,7 +12,7 @@ var appSettings = {
         lineHeight: 16,
         // minHeight: 16
     },
-    fbAppId: '114871205247916',
+    fbAppId: window.location.host != 'localhost' ? '114871205247916' : '186788488008637',
     fbPageURL: 'http://www.facebook.com/pages/Instantfm/198137876872500',
     jeditable: {
         data: function(value, settings) {
