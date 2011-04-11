@@ -96,9 +96,14 @@ function htmlDecode(value){
 function canonicalize(name) {
     // Copied and modified from the canonicalize() function on the server-side.
     var r = new RegExp('[^a-z0-9]+', 'gi');
-    return name
+    words = name
         .replace(r, '-')
-        .toLowerCase();
+        .toLowerCase()
+        .split('-');
+    for (var i = 0; i < words.length; i++) {
+        words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+    }
+    return words.join('-');
 }
 
 
