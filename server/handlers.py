@@ -115,11 +115,6 @@ class PlaylistHandlerBase(HandlerBase):
     def _is_partial(self):
         return self.get_argument('partial', default=False)
 
-    def render_user_name(self):
-        user = self.get_current_user()
-        name = user.name if user else ''
-        return '<span class="username">' + name + '</span>'
-
 
 class UploadHandlerBase(HandlerBase):
     def _get_request_content(self):
@@ -253,7 +248,8 @@ class SearchHandler(PlaylistHandlerBase):
 class ArtistHandler(PlaylistHandlerBase):
     """ Renders an empty artist template """
     def get(self, requested_artist_name):
-        self._render_playlist_view('artist.html', artist=None)
+        artist_name = utils.deurlify(requested_artist_name)
+        self._render_playlist_view('artist.html', artist=None, artist_name=artist_name)
 
 
 class AlbumHandler(PlaylistHandlerBase):

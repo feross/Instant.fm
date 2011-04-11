@@ -4,8 +4,9 @@
 
 {% block bodyId %}p{% end %}
 
-{% block backgroundStyle %}{% if playlist.image is not None %}background-image:url('{{playlist.image.original}}'){% end %}{% end %}
+{% block backgroundStyle %}{% if playlist is not None and playlist.image is not None %}background-image:url('{{playlist.image.original}}'){% end %}{% end %}
 {% block body %}
+{% import utils %}
 <div id="container">
   <header class="clearfix" id="header">
     <a class="ir" href="/" id="headerLogo">
@@ -16,7 +17,9 @@
       <a id="navSearch" href="/search" rel="partial search" title="Search">Search</a>
       <a class="mustLogout" id="navLogin" href="#login">Log In</a>
       <a class="mustLogout" id="navSignup" href="#signUp">Sign Up</a>
-      <a href="{{ handler.get_profile_url() }}" class="mustLogin profileLink" id="navProfile" href="#profile"> {{ handler.render_user_name() }} </a>
+      <a href="{{ handler.get_current_user().url if handler.get_current_user() else '' }}" class="mustLogin profileLink username" id="navProfile" href="#profile"> 
+            {{ handler.get_current_user().name if handler.get_current_user() else ''}} 
+      </a>
       <a class="mustLogin" id="navLogout" href="#logout">Log Out</a>
     </nav>
   </header>
@@ -74,14 +77,8 @@
                 <h2 id="curPlaylistTitle">${title}</h2>
               </header>
 
-              <div id="byline">
-              </div>
+              <div id="byline"> </div>
             
-						  <!-- <a href="#TODO" id="curPlaylistAuthor">
-	              <img alt="Feross Aboukhadijeh" src="/images/profilepic.jpg" />
-	              <div>Feross Aboukhadijeh</div>
-	            </a> -->
-
               <article>
                 <span id="curPlaylistDesc">${description}</span>
               </article>
@@ -388,6 +385,9 @@
         setSession({{handler.get_current_session().json}});
         {% if playlist is not None %}
         player.loadPlaylist({{playlist.json}})
+        {% else %}
+            {% block lastfm_playlist_loader %}
+            {% end %}
         {% end %}
     });
   </script>

@@ -1,2 +1,5 @@
 {% extends "playlist.html" %}
-{% include "partial/artist.html" %}
+
+{% block lastfm_playlist_loader %}
+    loadArtistPlaylistByName('{{ artist_name }}');
+{% end %}
