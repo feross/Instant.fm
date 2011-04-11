@@ -98,8 +98,6 @@ input.file {
 	z-index: 2;
 }
 
-#throbber { margin: 0 auto; }
-
 
 /* Playlist Page */
 
@@ -645,8 +643,6 @@ header:hover .editLink, article:hover .editLink {
 
 #curPlaying { margin-top: 10px; }
 
-/*#curPlaying > header { font-style: italic; }*/
-
 #curAlbumBlock { margin: 5px 0 0 0; }
 
 .curLabel {
@@ -756,7 +752,7 @@ a:hover .zoomIcon {
 .error { color: red; font-weight: bold; }
 
 
-/* Keyboard Shortvuts Colorbox */
+/* Keyboard Shortcuts Colorbox */
 
 #helpBox section { float: left; }
 
