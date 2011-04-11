@@ -8,6 +8,7 @@ import os
 import re
 import json
 import io
+import sys
 import base64
 import tornado.web
 import bcrypt
@@ -34,7 +35,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
         if status_code == 404:
-            return open('static/404.html', 'r').read()
+            return open(os.path.join(sys.path[0], '../static/404.html'), 'r').read()
 
         return super(HandlerBase, self).get_error_html(status_code, **kwargs)
 

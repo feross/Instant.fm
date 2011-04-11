@@ -696,8 +696,11 @@ a:hover .zoomIcon {
 .no-cssreflections a:hover .zoomIcon {
     bottom: 16px;
 }
+
 .artistPartial a:hover .zoomIcon,
-.albumPartial a:hover .zoomIcon { right: 20px; }
+.albumPartial a:hover .zoomIcon {
+	right: 20px;
+}
 
 
 #curAlbumInfo { float: left; margin: 0 0 0 10px; width: 330px; }
@@ -1045,7 +1048,8 @@ nav a:hover { color: inherit; text-decoration: underline; }
 	color: #fff;
 }
 
-.artistResult:hover, .albumResult:hover {
+.artistResult:hover a, .albumResult:hover a {
+	color: #fff;
     text-decoration: none;
 }
 .artistResult:hover div, .albumResult:hover div {

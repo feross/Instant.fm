@@ -293,6 +293,8 @@
     <target name="-build.test"
             depends="-rev,
                      -clean,
+					 -stop-server,
+					 -git-pull,
                      -prodcopy,
                      -usemin,
                      -js.all.minify,
@@ -303,12 +305,16 @@
                      -css,
                      -html,
                      -htmlclean,
+					 -reload-supervisord-config,
+					 -start-server,
                      -imagespng,
                      -imagesjpg"/>
 
     <target name="-build.production"
             depends="-rev,
                      -clean,
+					 -stop-server,
+					 -git-pull,
                      -prodcopy,
                      -usemin,
                      -js.all.minify,
@@ -320,6 +326,8 @@
                      -css,
                      -html,
                      -htmlclean,
+					 -reload-supervisord-config,
+					 -start-server,
                      -imagespng,
                      -imagesjpg"/>
 
@@ -397,7 +405,6 @@
         <echo message=" "/>
         <echo message=" "/>
     
-    
         <echo message="Increasing the build number..."/>
         <propertyfile file="./${dir.build}/config/${build.version.info}" comment="Build Information File - DO NOT CHANGE">
             <entry key="build.number" type="int" default="0000" operation="+" pattern="0000"/>
@@ -406,12 +413,29 @@
         <property file="./${dir.build}/config/${build.version.info}"/>
         <echo>Creating build ${build.number}</echo>
     </target>
-    
+
     
     <target name="current-number" depends="-load-build-info" description="(PUBLIC) Returns the current build number">
         <echo>Current build number: ${build.number}</echo>
     </target>
-    
+
+
+	<!-- STOP SERVER -->
+	<target name="-stop-server" description="Stop the tornado server">
+		<echo>Stopping the tornado server...</echo>
+		<exec executable="sudo" osfamily="unix">
+			<arg line="supervisorctl stop instantfm:*"/>
+		</exec>
+	</target>
+	
+	<!-- PULL LATEST FROM GIT -->
+	<target name="-git-pull" description="Pulls the latest from git">
+		<echo>Pulling the latest from git...</echo>
+		<exec executable="git" osfamily="unix">
+			<arg line="--work-tree=. pull origin master"/>
+		</exec>
+	</target>
+	    
     
     <target name="-copy" depends="-load-build-info">
     <!-- This is a private target -->
@@ -450,7 +474,7 @@
                 <include name="**/${dir.js.main}/*.min.js"/>
                 <exclude name="**/${dir.js.mylibs}/*.js"/>
                 <exclude name="**/${dir.js.libs}/*.js"/>
-            </fileset>      
+            </fileset>
         </concat>
     </target>
     
@@ -596,7 +620,7 @@
     <target name="-html" depends="-load-build-info" description="(PRIVATE) Very basic clean up of the HTML">
         <echo message="Update the HTML to reference our concatenated script file: scripts-${build.number}.min.js"/>
         <!-- style.css replacement handled as a replacetoken above -->
-        <replaceregexp match="&lt;!-- scripts concatenated [\d\w\s\W]*?!-- end ((scripts)|(concatenated and minified scripts))--&gt;" replace="&lt;script src='${dir.js}/scripts-${build.number}.min.js\'&gt;&lt;/script&gt;" flags="m">
+        <replaceregexp match="&lt;!-- scripts concatenated [\d\w\s\W]*?!-- end ((scripts)|(concatenated and minified scripts)) ?--&gt;" replace="&lt;script src='/${dir.js.public}/scripts-${build.number}.min.js\'&gt;&lt;/script&gt;" flags="m">
             <fileset dir="./${dir.publish}" includes="${page-files}"/>
         </replaceregexp>
         <!--[! use comments like this one to avoid having them get minified -->
@@ -696,9 +720,33 @@
         
         <echo message="Updating the HTML with the new css filename"/>
         
-        <replace token="style.css" value="style-${build.number}.min.css" dir="${dir.publish}" includes="${page-files}"/>
+		<!-- Instant.fm modification:
+		     They don't update the HTML with the new css filenames correctly.
+		     It doesn't work with more than one css file. So, I changed it to
+		     use a regex replacement similar to the way scripts get replaced.
+		-->
+		<!-- <replace token="style.css" value="style-${build.number}.min.css" dir="${dir.publish}" includes="${page-files}"/> -->
+		<replaceregexp match="&lt;!-- styles concatenated [\d\w\s\W]*?!-- end ((styles)|(concatenated and minified styles)) ?--&gt;" replace="&lt;link rel='stylesheet' href='/${dir.css.public}/style-${build.number}.min.css\'&gt;" flags="m">
+            <fileset dir="./${dir.publish}" includes="${page-files}"/>
+        </replaceregexp>
     </target>
-    
+
+	<!-- RELOAD SUPERVISORD CONFIG -->
+	<target name="-reload-supervisord-config" description="Reload the supervisord config settings">
+        <echo message="Reloading the supervisord config settings..."/>
+	    <exec executable="sudo" osfamily="unix">
+			<arg line="supervisorctl update"/>
+	    </exec>
+    </target>
+
+	<!-- START SERVER -->
+	<target name="-start-server" description="Start the tornado server using supervisord"> 
+      	<echo message="All the *essential* optimizations are done."/>
+	  	<echo message="Starting the server..."/>
+	    <exec executable="sudo" osfamily="unix">
+			<arg line="supervisorctl start instantfm:*"/>
+	    </exec>
+    </target>
     
     <!-- IMAGES -->
     <target name="-imagespng" description="(PRIVATE) Optimizes .png images using optipng">
