@@ -1,5 +1,3 @@
-# -*- conf -*-
-
 [program:instantfm]
 process_name = instantfm-%(process_num)s
 directory=/home/feross/www/instant.fm/publish/server/
