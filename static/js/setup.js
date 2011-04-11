@@ -286,7 +286,7 @@ function setupNewPlaylist() {
                 }
                 $('#submitNewPlaylist').removeAttr('disabled');
             },
-            onError: function() {
+            onException: function() {
                 log('Error posting new playlist form ;_;');
                 $('#submitNewPlaylist').removeAttr('disabled');
             },
@@ -331,7 +331,7 @@ function setupLogin() {
                 }
                 $('#submitLogin').removeAttr('disabled');
             },
-            onError: function() {
+            onException: function() {
                 log('Error posting login ;_;');
                 $('#submitLogin').removeAttr('disabled');
             },
@@ -351,6 +351,8 @@ function setupLogout() {
 }
 
 function setupSignup() {
+    var form = $('#fbSignupForm');
+                
     $('#navSignup').colorbox({
         inline: true,
         href: '#signupBox',
@@ -386,7 +388,7 @@ function setupSignup() {
         scrolling: false,
         width: 450
     });
-    
+ 
     $('#fbConnectButton').click(function(event) {
 
         // remove old form errors and message
@@ -396,14 +398,13 @@ function setupSignup() {
         FB.login(function(login_response) {
             if (!login_response.session) {
                 log('FB login failed.'); // user cancelled login
+                return;
             }
           
             FB.api('/me', function(response) {
-                var form = $('#fbSignupForm');
-                
                 // Check that they're not already registered
                 instantfm.is_registered_fbid({
-                    "params": [response.id],
+                    params: [response.id],
                     onSuccess: function(is_registered) {
                         if (is_registered) {
                             form.hide();
@@ -414,8 +415,7 @@ function setupSignup() {
                 
                 $('input[name=name]', form).val(response.name);
                 $('input[name=email]', form).val(response.email);
-                $('input[name=fb_user_id]', form).val(response.id);
-                $('input[name=auth_token]', form).val(login_response.session.access_token);
+                setupFbSignupForm(response.id, auth_token = login_response.session.access_token);
                 $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
                 
                 $('#signupStep1').fadeOut(function() {
@@ -426,65 +426,51 @@ function setupSignup() {
                         $('input[name=password]', form).focus();
                     });
                 });
-            });  
+            });
         }, {perms:'email'});
     });
-    
-    // initialize validator and add a custom form submission logic
-    $("#fbSignupForm").validator({
-        effect: 'wall', 
-        container: '#registrationErrors',
-   
-        // do not validate inputs when they are edited
-        errorInputEvent: null
-    }).submit(function(e) {
-        var form = $(this);
-        
+}
+
+function setupFbSignupForm(fb_id, auth_token) {
+    // Setup actual signup form submission
+    var form = $('#fbSignupForm');
+    form.submit(function(e) {
+        e.preventDefault();
         $('#submitFbSignupForm').attr('disabled', 'disabled'); // so the user can only submit the form once
       
-        // client-side validation OK.
-        if (!e.isDefaultPrevented()) {
-      
-            // submit with AJAX
-            $.ajax({
-                url: '/signup/fb',
-                data: form.serialize(), 
-                type: 'POST',
-                dataType: 'json',
-                success: function(json) {
-                    // everything is ok. (server returned true)
-                    if (json === true)  {
-                      log("Registration posted successfully.")
-                      loginStatusChanged();
-                      $.colorbox.close();
-                      $('#signupStep2').fadeOut(function() {
-                          $('#signupStep1').fadeIn();
-                      });
-              
-                    // server-side validation failed. use invalidate() to show errors
-                    } else {
-                        if (json && json.success === false && json.errors) {
-                            form.data("validator").invalidate(json.errors);
-                            log('Registration failt.');
-                            $.colorbox.resize();
-                        }
-                        $('#submitFbSignupForm').removeAttr('disabled');
-                    }
-                },
-                error: function() {
-                    log('Error posting form ;_;');
+        params = formToDictionary(form);
+        params["auth_token"] = auth_token;
+        params["fb_id"] = parseInt(fb_id);
+        instantfm.signup_with_fbid({
+            params: params,
+            onSuccess: function(response) {
+                if (response && response.success) {
+                    session = response.result;
+                    setSession(session);
+                    log("Registration posted successfully.")
+                  
+                    $.colorbox.close();
+                    $('#signupStep2').fadeOut(function() {
+                        $('#signupStep1').fadeIn();
+                    });
+          
                     $('#submitFbSignupForm').removeAttr('disabled');
-                },
-            });
-            
-            // prevent default form submission logic
-            e.preventDefault();
-        } else {
-            $.colorbox.resize();
-            $('#submitFbSignupForm').removeAttr('disabled');
-        }
+                } else if (response && response.errors) {
+                    // server-side validation failed.
+                    // TODO: Display errors
+                    log('Registration failt. Errors:');
+                    log(response.errors);
+                    $.colorbox.resize();
+                    $('#submitFbSignupForm').removeAttr('disabled');
+                }
+            },
+            onException: function() {
+                log('Error posting form ;_;');
+                $('#submitFbSignupForm').removeAttr('disabled');
+            },
+        });
     });
-}
+}      
 
 function setupRpc() {
     var methods = ['update_songlist', 'update_title', 'update_description', 

@@ -248,6 +248,19 @@ NowPlaying.prototype.renderPlaylistInfo = function(playlist) {
         $('#curPlaylistTemplate')
             .tmpl(playlist)
             .appendTo('#curPlaylist');
+            
+        if (model.playlist && model.playlist.user) {
+            // Add byline
+            var byline, bylineContainer = $('#byline').empty();
+            if (model.playlist.user.profile_url) {
+                byline = $('<a/>').attr('href', model.playlist.user.profile_url);
+            } else {
+                byline = $('<span/>');
+            }
+            byline.text(model.playlist.user.name);
+            bylineContainer.text('by ').append(byline);
+            log(byline);
+        }
         
         $('.editLink').remove(); // remove all edit links
 

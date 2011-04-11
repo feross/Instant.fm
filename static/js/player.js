@@ -343,9 +343,9 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
     
     if(!Modernizr.history) {
-        window.location = playlist.url;
+        //window.location = playlist.url;
     }
-    
+   /* 
     // Replace history if initial page load, otherwise push.
     if (model.playlist == null) {
         window.history.replaceState(
@@ -360,7 +360,7 @@ Player.prototype.loadPlaylist = function(playlist) {
             playlist.url
         );
     }
-        
+        */
     model.updatePlaylist(playlist);
     player.renderPlaylist(playlist);
 

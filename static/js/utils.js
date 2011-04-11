@@ -186,19 +186,14 @@ function ownershipStatusChanged() {
 }
 
 function isOwner() {
-    if (model.playlist === undefined) {
+    if (model.playlist === undefined || model.session === undefined) {
         return false;
     }
     
-    if (model.session === undefined) {
-        log("Error: No session number. This should never happen.");
-        return false;
-    }
-    
-    if (model.session.id && model.session.id == model.playlist.session_id) {
+    if (model.playlist.session_id && model.session.id && model.session.id == model.playlist.session_id) {
         return true;
     }
-    if (model.session.user && model.session.user.id == model.playlist.user.id) {
+    if (model.session.user && model.playlist.user && model.session.user.id == model.playlist.user.id) {
         return true;
     }
     return false;
@@ -234,6 +229,8 @@ function formToDictionary(form) {
     $('input[type!=submit],textarea', $(form)).each(function(idx, input) {
         if (input.type == "checkbox") {
             params[input.name] = (input.value == 'on' ? true : false);
+        } else if (input.type == "number") {
+            params[input.name] = parseInt(input.value);
         } else {
             params[input.name] = input.value;
         }
