@@ -1044,7 +1044,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
 	color: #fff;
 }
 
-.artistResult:hover a, .albumResult:hover a {
+a.artistResult:hover, a.albumResult:hover {
 	color: #fff;
     text-decoration: none;
 }

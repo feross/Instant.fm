@@ -328,3 +328,51 @@ function makeAlbumList(albums) {
     }
     return result;
 }
+
+
+/* -------------------------- DESKTOP NOTIFICATION API ------------------------ */
+
+// If this function isn't called from within a user-triggered event handler
+// like a mouse or keuyboard event, it will fail to prompt the user for permission.
+// After we have permission, it's okay to call it anytime without user interaction.
+function showDesktopNotification(image, title, description) {
+    if (window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
+        if (!$('html').hasClass('blurred')) {
+            return;
+        }
+        var notification = window.webkitNotifications.createNotification(
+                               image || 'http://dev.instant.fm/images/unknown.jpg',
+                               title, description);
+        notification.ondisplay = function() {
+            log('ondisplay');
+        };
+        notification.show();
+        
+        window.setTimeout(function() {
+           notification.cancel(); 
+        }, 5000);
+        
+    } else {
+        window.webkitNotifications.requestPermission();
+    }
+}
+
+if (/*@cc_on!@*/false) { // check for Internet Explorer
+	document.onfocusin = onDocumentFocus;
+	document.onfocusout = onDocumentBlur;
+} else {
+	window.onfocus = onDocumentFocus;
+	window.onblur = onDocumentBlur;
+}
+
+function onDocumentBlur() {
+    $('html')
+        .removeClass('focused')
+        .addClass('blurred');
+};
+
+function onDocumentFocus(){
+    $('html')
+        .removeClass('blurred')
+        .addClass('focused');
+};

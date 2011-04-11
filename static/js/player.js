@@ -82,9 +82,11 @@ Player.prototype.playSong = function(i) {
     if (!song) {
         return;
     }
-    
+        
     var title = cleanSongTitle(song.t);
     var artist = song.a;
+    
+    showDesktopNotification(song.i, title, artist);
 
     player.playSongBySearch(title, artist, player.songIndex);
 
