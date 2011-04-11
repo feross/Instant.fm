@@ -36,8 +36,9 @@ function showPop(url, _name, _height, _width) {
 }
 
 // Scroll element into view
-function scrollTo(selectedElem, _container, options) {
-    var container = _container || 'html,body';
+function scrollTo(selectedElem, _container, _options) {
+    var container = _container || 'html,body',
+        options = _options || {};
     
     var relativeScrollDistance = $(selectedElem).position().top - $(container).position().top;
     var absScrollTop = $(container).scrollTop() + relativeScrollDistance;

@@ -1322,11 +1322,6 @@ nav a:hover { color: inherit; text-decoration: underline; }
     display: none !important;
 }
 
-.ui-effects-transfer {
-	border: 2px dashed #444;
-	z-index: 9999;
-}
-
 
 /* Terms */
 
