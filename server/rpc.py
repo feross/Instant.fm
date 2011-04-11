@@ -65,9 +65,10 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.query(model.Playlist).get(playlist_id).description = description
         self.db_session.flush()
 
-    @type_enforcement.types(fb_id=int)
+    #@type_enforcement.types(fb_id=int)
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it can be called via RPC """
+        return False
         return self._is_registered_fbid(fb_id)
 
     @validation.async_and_validated
@@ -82,8 +83,8 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
 
+    #@type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
     @validation.async_and_validated
-    @type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
     def login(self, email, password, remember_me):
         email = email.strip()
         validator = validation.Validator(immediate_exceptions=True)
@@ -122,9 +123,10 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
+#    @type_enforcement.types(name=unicode, email=unicode, password=unicode,
+#                            fb_id=int, auth_token=int)
+    @tornadorpc.async
     @validation.async_and_validated
-    @type_enforcement.types(name=unicode, email=unicode, password=unicode,
-                            fb_id=int, auth_token=int)
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
         name = name.strip()
@@ -157,7 +159,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
     @validation.async_and_validated
     def _on_fb_auth(self, user):
-        validation.Validator = validation.Validator(immediate_exceptions=True)
+        validator = validation.Validator(immediate_exceptions=True)
         # TODO: Re-enable this before launch.
         #if user['id'] != self._fb_id:
         #    validator.error('Failed to authenticate to Facebook.')
@@ -172,7 +174,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.add(user)
 
         self._log_user_in(user)
-        self.result(user.client_visible_attrs)
+        self.result(self.get_current_session().client_visible_attrs)
 
     def _generate_unique_profile_name(self, name):
         ''' Find an unused profile name to use '''
