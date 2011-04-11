@@ -7,23 +7,35 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-  <title>Instant.fm - Share Music Playlists Instantly</title>
-  <meta name="description" content="The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.">
+	<!-- Page Info -->
+  <title>{% if playlist in globals() and playlist.title %}{{ playlist.title + " -" }}{% end %} Instant.fm - Share Music Playlists Instantly</title>
+  <meta name="description" content="{% if playlist in globals() and playlist.description %}{{playlist.description}}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}">
   <meta name="keywords" content="music, playlist, share M3U playlist, share music, social music, social playlists">
+
+	<!-- Open Graph -->
+	{% if playlist %}
+	<meta property="og:title" content="{{ playlist.title }}" />
+	<meta property="og:type" content="song" />
+	<meta property="og:image" content="http://feross.net/test/album.jpg" /> <!-- TODO -->
+	<meta property="og:url" content="http://dev.instant.fm{{ playlist.url}}" />
+	<meta property="og:site_name" content="Instant.fm" />
+	<meta property="og:video" content="http://www.youtube.com/v/V3BsjxDZJM0" /><!-- TODO -->
+	{% end %}
+	
+	<meta property="fb:app_id" content="114871205247916"/>
   
+	<!-- Chrome application shortcut -->
   <meta name="application-name" content="Instant.fm"/>
-  <meta name="description" content="Share music instantly."/>
   <meta name="application-url" content="http://instant.fm"/>
   
-  <meta name="author" content="Feross Aboukhadijeh">
+	<!-- Mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+	<!-- Credit where credit is due -->
+	<meta name="author" content="Feross Aboukhadijeh">
   <meta name="author" content="Jake Becker">
   <meta name="author" content="John Hiesey">
-  
-  <meta property="fb:app_id" content="114871205247916"/>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="/favicon.ico">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
 	<!-- styles concatenated and minified via ant build script-->
 	<link rel="stylesheet" href="/css/libs/boilerplate-start.css">

@@ -233,7 +233,7 @@ class PlaylistHandler(PlaylistHandlerBase):
         if playlist is None:
             self.send_error(404)
             return
-
+            
         if self.get_argument('json', default=False):
             self.write(playlist.json())
         else:

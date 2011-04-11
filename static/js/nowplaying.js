@@ -286,7 +286,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
     
     if (data.artistName) {
         data.artistHref = '/'+canonicalize(data.artistName);
-        data.songHref = 'http://instant.fm/'+canonicalize(data.artistName)+'/'+canonicalize(data.trackName);
+        data.songHref = 'http://dev.instant.fm'+model.playlist.url;
     }
     
     $('#curAlbumBlock').fadeOut('fast', function() {
