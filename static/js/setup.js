@@ -236,7 +236,7 @@ function setupNewPlaylist() {
         href: "#newPlaylistBox",
         returnFocus: false,
         onComplete: function() {
-            $('textarea[name=title]', '#newPlaylistForm').focus();
+            $('input[name=title]', '#newPlaylistForm').focus();
         },
         scrolling: false
     });
