@@ -53,6 +53,7 @@ class HandlerBase(tornado.web.RequestHandler):
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
             self.db_session.flush()
+            print("Setting session cookie: " + str(self._current_session.id))
             self.set_secure_cookie('session_id', str(self._current_session.id))
 
         return self._current_session
