@@ -25,6 +25,8 @@ class HandlerBase(tornado.web.RequestHandler):
         # Cache the session and user
         self._current_session = None
         self._current_user = None
+        self.xsrf_token  # Sets token
+        
 
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
@@ -36,9 +38,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def get_current_user(self):
         if self._current_user is not None:
             return self._current_user
-
         self._current_user = self.get_current_session().user
-
         return self._current_user
 
     def get_current_session(self):
@@ -49,11 +49,11 @@ class HandlerBase(tornado.web.RequestHandler):
         if session_id:
             self._current_session = (self.db_session.query(model.Session)
                                        .get(int(session_id)))
-
-        if self._current_session is None:
+        else:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
             self.db_session.flush()
+            print("Setting session cookie: " + str(self._current_session.id))
             self.set_secure_cookie('session_id', str(self._current_session.id))
 
         return self._current_session
@@ -236,8 +236,6 @@ class PlaylistHandler(PlaylistHandlerBase):
                          'img': self.get_argument('img'),
                          'track': self.get_argument('track'),
                          'artist': self.get_argument('artist')}
-            else:
-                share = False
             self.render('playlist.html', playlist=playlist, share=share)
 
 
