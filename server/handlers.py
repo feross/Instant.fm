@@ -38,9 +38,7 @@ class HandlerBase(tornado.web.RequestHandler):
     def get_current_user(self):
         if self._current_user is not None:
             return self._current_user
-
         self._current_user = self.get_current_session().user
-
         return self._current_user
 
     def get_current_session(self):
@@ -237,8 +235,6 @@ class PlaylistHandler(PlaylistHandlerBase):
                          'img': self.get_argument('img'),
                          'track': self.get_argument('track'),
                          'artist': self.get_argument('artist')}
-            else:
-                share = False
             self.render('playlist.html', playlist=playlist, share=share)
 
 
