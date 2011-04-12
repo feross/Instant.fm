@@ -263,7 +263,6 @@ function setupNewPlaylist() {
         e.preventDefault();
         $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
       
-        log(formToDictionary(form));
         instantfm.new_playlist({
             params: formToDictionary(form),
             onSuccess: function(response) {
