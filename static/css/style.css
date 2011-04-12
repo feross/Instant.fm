@@ -711,6 +711,13 @@ a:hover .zoomIcon {
 #curSong h4 { font-size: 20px; width: 320px; }
 
 #curSongLike { margin-top: 10px; }
+#curSongLike div { float: left }
+#curSongLike .likeButton { width: 60px; }
+#curSongLike .likeText {
+    font-size: 11px;
+    font-family: "lucida grande", sans-serif;
+    margin-top: 3px;
+}
 
 #curDescs { margin: 10px 0 0 0; }
 
