@@ -1,9 +1,3 @@
-'''
-Created on Jan 16, 2011
-
-@author: dinkydogg
-'''
-
 import server
 import lastfm
 import time

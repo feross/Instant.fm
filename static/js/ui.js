@@ -337,11 +337,13 @@ function makeAlbumList(albums) {
 // After we have permission, it's okay to call it anytime without user interaction.
 function showDesktopNotification(image, title, description) {
     if (window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
-        if (!$('html').hasClass('blurred')) {
-            return;
-        }
+        // Only show notification when the tab doesn't have focus
+        // if (!$('html').hasClass('blurred')) {
+        //     return;
+        // }
+        
         var notification = window.webkitNotifications.createNotification(
-                               image || 'http://dev.instant.fm/images/unknown.jpg',
+                               image || '/images/unknown.jpg',
                                title, description);
         notification.ondisplay = function() {
             log('ondisplay');

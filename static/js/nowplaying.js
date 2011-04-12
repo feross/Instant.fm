@@ -33,17 +33,17 @@ NowPlaying.prototype.setupHandlers = function() {
 };
 
 // Update the currently playing song with Last.fm data
-// @t - song title, @a - song artist
+// @t - song title, @a - song artist, @ytId - yt video id (used for Like button song share)
 // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
 //             hasn't changed before we update the DOM.
-NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
+NowPlaying.prototype.updateCurPlaying = function(t, a, ytId, _srcIndex) {
 	model.lastfm.track.search({
 	    artist: a || '',
 	    limit: 1,
 	    track: t || ''
 	}, {
 	    success: function(data) {
-	        nowplaying._handleSongResults(t, a, _srcIndex, data);
+	        nowplaying._handleSongResults(t, a, ytId, _srcIndex, data);
 	    },
 	    error: function(code, message) {
 	        log(code + ' ' + message);
@@ -51,13 +51,14 @@ NowPlaying.prototype.updateCurPlaying = function(t, a, _srcIndex) {
                 albumImg: undefined,
                 trackName: t,
                 artistName: a,
+                ytId: ytId
             });
 		}
 	});
 };
 
 // Private method to handle song search results from Last.fm
-NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
+NowPlaying.prototype._handleSongResults = function(t, a, ytId, srcIndex, data) {
     if (srcIndex && srcIndex != player.songIndex) {
         return; // The request was too slow. We don't need it anymore.
     }
@@ -68,6 +69,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
             albumImg: undefined,
             trackName: t,
             artistName: a,
+            ytId: ytId
         });
         return;
     }
@@ -81,6 +83,7 @@ NowPlaying.prototype._handleSongResults = function(t, a, srcIndex, data) {
         albumImg: albumImg,
         trackName: trackName,
         artistName: artistName,
+        ytId: ytId,
         callback: function() {
             // Add colorbox to album image
             if (albumImg) {
@@ -280,13 +283,19 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
     if (data.albumImg) {
         data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
     } else {
-        data.albumImg = '/images/unknown.jpg';
+        // Need absolute URL for FB share
+        data.albumImg = 'http://dev.instant.fm/images/unknown.jpg';
         data.albumAlt = 'Unknown album';
     }
     
     if (data.artistName) {
         data.artistHref = '/'+canonicalize(data.artistName);
-        data.songHref = 'http://dev.instant.fm'+model.playlist.url;
+    }
+    
+    data.songHref = 'http://dev.instant.fm'+model.playlist.url;
+    if (data.ytId) {
+        data.songHref += '?share=1&yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg)+'&track='+encodeURIComponent(data.trackName)+'&artist='+encodeURIComponent(data.artistName);
+        log(data.songHref);
     }
     
     $('#curAlbumBlock').fadeOut('fast', function() {

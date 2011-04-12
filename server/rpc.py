@@ -1,9 +1,3 @@
-'''
-Created on Apr 7, 2011
-
-@author: dinkydogg
-'''
-
 import functools
 import tornadorpc.json
 import tornado.auth

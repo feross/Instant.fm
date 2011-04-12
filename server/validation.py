@@ -1,9 +1,3 @@
-'''
-Created on Apr 8, 2011
-
-@author: dinkydogg
-'''
-
 import re
 import functools
 import jsonrpclib

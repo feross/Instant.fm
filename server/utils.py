@@ -1,9 +1,3 @@
-'''
-Created on Apr 1, 2011
-
-@author: dinkydogg
-'''
-
 import re
 
 def urlify(name):

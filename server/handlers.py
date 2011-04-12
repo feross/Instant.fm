@@ -1,9 +1,3 @@
-'''
-Created on Apr 1, 2011
-
-@author: dinkydogg
-'''
-
 import os
 import re
 import json
@@ -233,11 +227,18 @@ class PlaylistHandler(PlaylistHandlerBase):
         if playlist is None:
             self.send_error(404)
             return
-            
+                
         if self.get_argument('json', default=False):
             self.write(playlist.json())
         else:
-            self.render('playlist.html', playlist=playlist)
+            if self.get_argument('share', default=False):
+                share = {'yt': self.get_argument('yt'),
+                         'img': self.get_argument('img'),
+                         'track': self.get_argument('track'),
+                         'artist': self.get_argument('artist')}
+            else:
+                share = False
+            self.render('playlist.html', playlist=playlist, share=share)
 
 
 class SearchHandler(PlaylistHandlerBase):

@@ -143,7 +143,8 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
         success: function(responseData, textStatus, XMLHttpRequest) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
-                player.playSongById(videos[0].id)
+                player.playSongById(videos[0].id);
+                nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
                 // Go to next song in a few seconds
@@ -162,7 +163,6 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
         }
     });
     
-    nowplaying.updateCurPlaying(title, artist, _songNum);
 };
 
 // Attempts to play the video with the given ID. If the player is in a loading state,
@@ -342,23 +342,25 @@ Player.prototype.loadPlaylist = function(playlist) {
         return;
     }
     
-    if(!Modernizr.history) {
-        //window.location = playlist.url;
-    }
-    
-    // Replace history if initial page load, otherwise push.
-    if (model.playlist == null) {
-        window.history.replaceState(
-            playlist,
-            playlist.title,
-            playlist.url
-        );
-    } else {
-        window.history.pushState(
-            playlist,
-            playlist.title,
-            playlist.url
-        );
+    if (window.location.href.indexOf('share=1') == -1) {
+        if(!Modernizr.history && window.location != playlist.url) {
+            window.location = playlist.url;
+        }
+
+        // Replace history if initial page load, otherwise push.
+        if (model.playlist == null) {
+            window.history.replaceState(
+                playlist,
+                playlist.title,
+                playlist.url
+            );
+        } else {
+            window.history.pushState(
+                playlist,
+                playlist.title,
+                playlist.url
+            );
+        }
     }
  
     model.updatePlaylist(playlist);

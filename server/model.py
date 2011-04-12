@@ -1,9 +1,3 @@
-'''
-Created on Mar 29, 2011
-
-@author: dinkydogg
-'''
-
 import sqlalchemy.orm
 import json
 import utils
