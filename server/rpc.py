@@ -106,8 +106,8 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         title = title.strip()
         description = description.strip()
         validator = validation.Validator(immediate_exceptions=False)
-        validator.add_rule(title, 'Title', min_length=1, max_length=64)
-        validator.add_rule(description, 'Description', min_length=1, max_length=64)
+        validator.add_rule(title, 'Title', min_length=1, max_length=250)
+        validator.add_rule(description, 'Description', max_length=10000)
         validator.validate()
 
         playlist = model.Playlist(title)
