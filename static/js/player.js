@@ -87,6 +87,7 @@ Player.prototype.playSong = function(i) {
     var artist = song.a;
     
     showDesktopNotification(song.i, title, artist);
+    this.tts(title+', by '+artist);
 
     player.playSongBySearch(title, artist, player.songIndex);
 
@@ -520,6 +521,24 @@ Player.prototype.highlightSong = function(selector, container, _effect, _effectO
 	scrollTo(selector, container, {
         callback: function() {
 			$(selector).effect(effect, effectOptions);
+        }
+    });
+};
+
+Player.prototype.tts = function(text) {
+    if (!soundManagerLoaded) {
+        return;
+    }
+    
+    var hash = hex_sha1(text);
+    var soundObj = soundManager.createSound({
+        id: hash,
+        url: '/tts/'+hash+'.mp3?q='+encodeURIComponent(text)
+    });
+    soundObj.play({
+        onfinish:function() {
+            // once sound has loaded and played, unload and destroy it.
+            this.destruct(); // will also try to unload before destroying.
         }
     });
 };

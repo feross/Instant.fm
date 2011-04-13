@@ -1,6 +1,11 @@
 .DS_Store
 *.log
 static/images/uploaded/*
+
+# Don't commit the tts mp3s
+static/tts/*.mp3
+
+# Don't commit the built site
 publish/
 
 # Don't commit build #. That stays server-side.

@@ -712,7 +712,7 @@ a:hover .zoomIcon {
 
 #curSongLike { margin-top: 10px; }
 #curSongLike div { float: left }
-#curSongLike .likeButton { width: 60px; }
+#curSongLike .likeButton { width: 58px; }
 #curSongLike .likeText {
     font-size: 11px;
     font-family: "lucida grande", sans-serif;

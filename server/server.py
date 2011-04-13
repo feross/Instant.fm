@@ -7,6 +7,8 @@ import tornado.ioloop
 import handlers
 import options
 import rpc
+import os
+import sys
 
 
 class Application(tornado.web.Application):
@@ -23,6 +25,7 @@ class Application(tornado.web.Application):
             (r"/search/?$", handlers.SearchHandler),
             (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
+            (r"/tts/[0-9a-f]+.mp3$", handlers.TTSHandler),
             (r".*", handlers.ErrorHandler),
         ]
         tornado.web.Application.__init__(self, url_handlers, **options.tornado_settings)
@@ -34,8 +37,9 @@ def main():
     if options.cli_args.daemonize:
         try:
             import daemon
-            log = open('static/tornado.log', 'a+') # Note: Publicly visible tornado.log file!
-            context = daemon.DaemonContext(stdout=log, stderr=log, working_directory='.')
+            # Note: Publicly visible tornado.log file!
+            log = open(os.path.join(sys.path[0], '../static/tornado.log'), 'a+') 
+            context = daemon.DaemonContext(stdout=log, stderr=log, working_directory=os.path.join(sys.path[0], '../static/'))
             context.open()
         except ImportError:
             print 'python-daemon not installed; not running as daemon'

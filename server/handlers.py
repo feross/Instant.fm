@@ -7,6 +7,8 @@ import base64
 import tornado.web
 import bcrypt
 import Image
+import urllib2
+import hashlib
 
 import utils
 import model
@@ -398,6 +400,28 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
             self.set_header("Content-Type", "application/json")
             self.write(playlist.json)
 
+class TTSHandler(PlaylistHandlerBase):
+    q = None
+    
+    @tornado.web.asynchronous
+    def get(self):
+        self.q = self.get_argument("q")
+        self.set_header("Content-Type", "audio/mpeg")
+        
+        q_encoded = urllib2.quote(self.q.encode("utf-8"))
+        url = "http://translate.google.com/translate_tts?q="+q_encoded+"&tl=en"
+        http = tornado.httpclient.AsyncHTTPClient()
+        http.fetch(url, callback=self.on_response)
+
+    def on_response(self, response):
+        if response.error: raise tornado.web.HTTPError(500)
+        filename = hashlib.sha1(self.q.encode('utf-8')).hexdigest()
+
+        fileObj = open(os.path.join(os.path.dirname(__file__), "../static/tts/"+filename+".mp3"), "w")
+        fileObj.write(response.body)
+        fileObj.close()
+        self.write(response.body)
+        self.finish()
 
 class ErrorHandler(HandlerBase):
     def prepare(self):
