@@ -188,10 +188,15 @@
   
   <footer id="footer">
     <nav>
-      <span><strong>Instant.fm</strong></span>
-      <a href="#">Meet The Team</a>
-      <span class="byline">Created by Feross, Jake, and John from Stanford.</span>
-      <a href="#helpBox" id="helpLink">Keyboard shortcuts</a>
+      <div class="left">
+        <span class="byline">Created by Feross, Jake, and John from Stanford.</span>
+        <a href="#" id="navMeetTheTeam">Meet The Team</a>
+      </div>
+      <div class="right">
+        <a href="#" id="navReportBug">Report a Bug</a>
+        <a href="#helpBox" id="navShortcuts">Keyboard shortcuts</a>
+        <a href="#" id="navSettings">Settings</a>
+      </div>
     </nav>
   </footer>
 </div> <!-- end of #container -->
@@ -294,7 +299,7 @@
         <textarea id="newPlaylistDescription" name="description" type="text" placeholder="Optional"></textarea>
       </div>
       <div class="clearfix">
-				<div class="formBottomNote" id="loginSignup">Upload a playlist from iTunes? <strong><a href="#">Upload</a></strong></div>
+        <div class="formBottomNote" id="loginSignup">Got a playlist from iTunes? <strong><a href="#">Upload it!</a></strong></div>
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
       </div>
     </form>

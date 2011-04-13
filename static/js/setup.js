@@ -90,7 +90,7 @@ $.editable.addInputType('autogrow', {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    $('#helpLink').colorbox({inline: true, href: '#helpBox', returnFocus: false});
+    $('#navShortcuts').colorbox({inline: true, href: '#helpBox', returnFocus: false});
     
     $('input, textarea').live('focus', function(event) {
         keyEvents = false; 
@@ -164,7 +164,7 @@ function setupKeyboardShortcuts() {
                     showHideUI();
                     break;
                 case 191: // ?
-                    $('#helpLink').trigger('click');
+                    $('#navShortcuts').trigger('click');
                     break;
                     
                 default:

@@ -937,6 +937,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
 #header nav a { margin-left: 25px; }
 #footer nav a, #footer nav span { padding-right: 25px; }
 
+/* Header Nav */
 #navNewPlaylist {
     background: transparent url('/images/add-on.png') left center no-repeat;
     padding-left: 18px;
@@ -962,6 +963,27 @@ nav a:hover { color: inherit; text-decoration: underline; }
     padding-left: 19px;
 }
 
+/* Footer Nav */
+#navMeetTheTeam {
+    background: transparent url('/images/smiley.png') left center no-repeat;
+    padding-left: 20px;
+}
+#navShortcuts {
+    background: transparent url("/images/keyboard.png") center left no-repeat;
+    padding-left: 27px;
+}
+#navSettings {
+    background: transparent url('/images/settings.png') left center no-repeat;
+    padding-left: 20px;
+}
+#navReportBug {
+    background: transparent url('/images/bug.png') left bottom no-repeat;
+    padding-left: 22px;
+}
+
+
+
+
 #footer {
     font-size: 12px;
     height: 30px;
@@ -971,13 +993,8 @@ nav a:hover { color: inherit; text-decoration: underline; }
     width: 980px;
 }
 
-#footer #helpLink {
-    background: transparent url("/images/keyboard.png") center left no-repeat;
-    float: right;
-    padding: 0 0 0 25px;
-    margin-right: 10px;
-}
-
+#footer .left { float: left; }
+#footer .right { float: right; }
 
 /* Search partial */
 
