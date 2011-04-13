@@ -8,7 +8,7 @@ var colorboxOpen = false; // Is a colorbox open?
 var soundManagerLoaded = false; // Is SoundManager2 loaded?
 
 soundManager.url = '/swf/';
-soundManager.flashVersion = 9; // optional: shiny features (default = 8)
+soundManager.flashVersion = 8; // optional: shiny features (default = 8)
 //soundManager.useHTML5Audio = true;
 soundManager.onload = function() {
     soundManagerLoaded = true;
