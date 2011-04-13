@@ -307,6 +307,7 @@
                      -htmlclean,
 					 -reload-supervisord-config,
 					 -start-server,
+					 -set-permissions,
                      -imagespng,
                      -imagesjpg"/>
 
@@ -328,6 +329,7 @@
                      -htmlclean,
 					 -reload-supervisord-config,
 					 -start-server,
+					 -set-permissions,
                      -imagespng,
                      -imagesjpg"/>
 
@@ -736,6 +738,15 @@
         <echo message="Reloading the supervisord config settings..."/>
 	    <exec executable="sudo" osfamily="unix">
 			<arg line="supervisorctl -c ${dir.supervisor.config} update"/>
+	    </exec>
+    </target>
+
+    <!-- SET PERMISSIONS -->
+	<target name="-set-permissions" description="Set correct file permissions"> 
+      	<echo message="Setting file permissions..."/>
+	  	<echo message="Starting the server..."/>
+	    <exec executable="chmod" osfamily="unix">
+			<arg line="777 ./${dir.publish}/${dir.static}/tts/"/>
 	    </exec>
     </target>
 
