@@ -74,7 +74,9 @@ Player.prototype.decreaseVolume = function() {
 };
 
 // Play a song at the given playlist index
-Player.prototype.playSong = function(i) {
+// @i - song index
+// @isUserInitiated - was the song selection initiated by the user (click, keyboard)?
+Player.prototype.playSong = function(i, isUserInitiated) {
     player.songIndex = i;
     var song = model.playlist.songs[i];
     
@@ -86,8 +88,10 @@ Player.prototype.playSong = function(i) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
     
-    showDesktopNotification(song.i, title, artist);
-    this.tts(title+', by '+artist);
+    if (!isUserInitiated) {
+        showDesktopNotification(song.i, title, artist);
+        this.tts(title+', by '+artist);
+    }
 
     player.playSongBySearch(title, artist, player.songIndex);
 
@@ -98,21 +102,21 @@ Player.prototype.playSong = function(i) {
 };
 
 // Play next song in the playlist
-Player.prototype.playNextSong = function() {
+Player.prototype.playNextSong = function(isUserInitiated) {
     if (player.shuffle) {
         var randomSong = Math.floor(Math.random()*model.playlist.songs.length);
-        player.playSong(randomSong);
+        player.playSong(randomSong, isUserInitiated);
     } else if (player.songIndex < model.playlist.songs.length - 1) {
-        player.playSong(++player.songIndex);
+        player.playSong(++player.songIndex, isUserInitiated);
     }
 };
 
 // Play prev song in the playlist
-Player.prototype.playPrevSong = function() {
+Player.prototype.playPrevSong = function(isUserInitiated) {
     if (player.songIndex == 0) {
         return;
     }
-    player.playSong(--player.songIndex);
+    player.playSong(--player.songIndex, isUserInitiated);
 };
 
 Player.prototype.moveSongIntoView = function() {
@@ -148,6 +152,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
+                this.tts('Not found')
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
@@ -156,7 +161,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                         .addClass('missing')
                         .removeClass('playing');
                     if (player.songIndex == srcIndex) {
-                        player.playNextSong();
+                        player.playNextSong(false);
                     }
                 }, 2000);
                 log('No songs found for: ' + q);
@@ -297,11 +302,16 @@ Player.prototype.addSongToPlaylist = function(song, event) {
     model.addSong(song);
     updateDisplay(); // resizes short playlists
     
-    if (model.playlist.songs.length == 1) {
-        player.playSong(0);
+    // If playlist was empty and nothing was playing, then play the song that was
+    // just added.
+    if (model.playlist.songs.length == 1 &&
+        (!player.ytplayer ||
+            (player.ytplayer && player.ytplayer.getPlayerState() != 1))) {
+        
+        player.playSong(0, true);
     } 
     if (player.ytplayer && player.ytplayer.getPlayerState() == 0) { // player is stopped
-        player.playSong(model.playlist.songs.length - 1);
+        player.playSong(model.playlist.songs.length - 1, true);
     }
 };
 
@@ -367,7 +377,7 @@ Player.prototype.loadPlaylist = function(playlist) {
     model.updatePlaylist(playlist);
     player.renderPlaylist(playlist);
 
-    player.playSong(0);
+    player.playSong(0, true);
     ownershipStatusChanged();
         
     nowplaying.tryLoadComments(playlist.url); // update the comment widget
@@ -460,7 +470,7 @@ Player.prototype.renderPlaylist = function(playlist) {
 
 Player.prototype._onClickSong = function() {
     var songId = parseInt($(this).attr('id').substring(4));
-    player.reorderedSong || player.playSong(songId);
+    player.reorderedSong || player.playSong(songId, true);
 };
 
 // Called by JQuery UI "Sortable" when a song has been reordered
@@ -557,9 +567,9 @@ function onYouTubePlayerStateChange(newState) {
     switch(newState) {
         case 0: // just finished a video
             if (player.repeat) {
-                player.playSong(songIndex);
+                player.playSong(songIndex, false);
             } else {
-                player.playNextSong();
+                player.playNextSong(false);
             }
             break;
         case 1: // playing

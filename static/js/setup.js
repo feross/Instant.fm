@@ -116,10 +116,10 @@ function setupKeyboardShortcuts() {
             switch(k) {                
                 // Playback control
                 case 39: case 40: // down, right
-                    player.playNextSong();
+                    player.playNextSong(true);
                     break;
                 case 37: case 38: // up, left
-                    player.playPrevSong();
+                    player.playPrevSong(true);
                     break;
                 case 32: // space
                     player.playPause();
