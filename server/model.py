@@ -57,14 +57,13 @@ class Playlist(object):
         
         self._cover_images = []
         for song in self.songs:
-            if 'i' in song and song['i'] not in self._cover_images:
+            if 'i' in song and song['i'] is not None and song['i'] not in self._cover_images:
                 self._cover_images.append(song['i'])
                 if len(self._cover_images) == 4:
                     break
-                    
-#        self._cover_images = [re.sub('/34s/', '/174s/', cover_image) 
-#                                 for cover_image 
-#                                 in self._cover_images]
+
+        self._cover_images = [cover_image.replace('/34/', '/174s/') 
+                              for cover_image in self._cover_images]
         return self._cover_images
 
     @property
