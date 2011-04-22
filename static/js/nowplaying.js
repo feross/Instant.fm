@@ -147,7 +147,7 @@ NowPlaying.prototype._handleSongInfo = function(trackName, artistName, albumImg,
     var trackLongDesc = track.wiki && track.wiki.content;
     
     if (albumName) {
-        var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
+        var albumHref = '/'+canonicalize(artistName)+'/'+canonicalize(albumName);
         $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="partial album">'+albumName+'</a>');
         $('#curAlbum').fadeIn('fast');
     }
