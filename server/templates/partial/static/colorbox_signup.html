@@ -1,0 +1,50 @@
+<div class="colorbox" id="signupBox">
+  <header>Sign Up <span class="subtitle">(1 of 2)</span></header>
+  
+  <div id="signupStep1">
+    <div id="fbSignupPitch">
+      Share and discover <strong>amazing music playlists</strong>.
+    </div>
+
+    <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
+
+    <div id="fbFacepile">
+      <!-- automatically populated when colorbox is opened -->
+    </div>
+  </div>
+
+  <div id="signupStep2" style="display: none;">
+  
+    <div class="error" id="registrationMsg"></div>
+    <div class="error" id="registrationErrors"></div>
+                    
+    <form id="fbSignupForm" method="post">
+        
+      <div class="clearfix formRow">
+        <div id="fbProfileImage"></div>
+        <label for="fbName">Full Name</label>
+        <input id="fbName" type="text" name="name" value="" maxlength="32" required="required" spellcheck="false" />
+        <small>Use your real name.</small>
+      </div>
+
+      <div class="clearfix formRow">
+        <label for="fbEmail">E-mail</label>
+        <input id="fbEmail" type="email" name="email" required="required" spellcheck="false" />
+      </div>   
+     
+      <div class="clearfix formRow">
+        <label for="fbPassword">Password</label>
+        <input id="fbPassword" type="password" name="password" title="Passwords must be at least 6 characters" required="required"/>
+      </div>
+  
+      <div class="clearfix">
+        <div class="formBottomNote" id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
+        <div class="clearfix colorboxSubmitButtons">
+          <input type="submit" class="darkblue awesome large" name="submit" id="submitFbSignupForm" value="Create Account">
+        </div>
+      </div>
+
+    </form>
+      
+  </div>
+</div> <!-- end of #signupBox -->

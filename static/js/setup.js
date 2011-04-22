@@ -206,7 +206,6 @@ function setupFBML() {
 function setupUploader(formElem) {
     $(formElem).fileUpload({
         url: '/upload',
-        formData: [{_xsrf: getCookie('_xsrf')}],
         onProgress: function (event, files, index, xhr, handler) { }, // TODO: Show upload progress
         onLoad: function (event, files, index, xhr, handler) {
             log('onload');
@@ -225,8 +224,8 @@ function setupUploader(formElem) {
             // We call callBack() once the user submits the form.
             $(formElem).data('callBack', callBack);
             
+            // Update UI to show that file is ready to be uploaded
             $('#dragDrop').text(files[index].name);
-            
             $('.file_upload')
                 .addClass('dropped')
                 .removeClass('drag')
@@ -290,7 +289,7 @@ function setupNewPlaylist() {
             $('#submitNewPlaylist').removeAttr('disabled');
         } else {
             // No file selected, do normal xhr.
-            $.post('/upload', {dataType: 'json'})
+            $.post('/upload', formToDictionary(form), 'json')
                 .success(function(data, textStatus, jqXHR) {
                     $.colorbox.close();
                     player.loadPlaylist(playlist);
@@ -362,12 +361,18 @@ function setupLogout() {
     });
 }
 
-function setupSignup() {
+function openSignup() {
+    $.get('/static/colorbox_signup.html')
+        .success(function(markup) {
+           
+        });
+
+    
     var form = $('#fbSignupForm');
                 
     $('#navSignup').colorbox({
         inline: true,
-        href: '#signupBox',
+        html: '#signupBox',
         returnFocus: false,
         onComplete: function() {
             // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
@@ -469,7 +474,8 @@ function setupFbSignupForm(fb_id, auth_token) {
                     $('#submitFbSignupForm').removeAttr('disabled');
                 } else if (response && response.errors) {
                     // server-side validation failed.
-                    // TODO: Display errors
+                    
+                    showErrors(form, response.errors);
                     log('Registration failt. Errors:');
                     log(response.errors);
                     $.colorbox.resize();
@@ -482,7 +488,7 @@ function setupFbSignupForm(fb_id, auth_token) {
             },
         });
     });
-}      
+} 
 
 function setupRpc() {
     var methods = ['update_songlist', 'update_title', 'update_description', 
