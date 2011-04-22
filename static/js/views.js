@@ -450,26 +450,7 @@ ArtistView.prototype._handleInfo = function(data) {
 };
 
 ArtistView.prototype._handleTopSongs = function(data) {
-    var songs = songsFromTrackList(data.toptracks);
-   
-    this.songlist = new SongList({
-        playlist: playlistFromArtistTracks(data.toptracks),
-        onClick: function(song) {
-            $('.playing').removeClass('playing');
-            $(this).addClass('playing');
-            player.playSongBySearch(song.t, song.a);
-        },
-        buttons: [{
-            action: function(event, song) {
-                player.addSongToPlaylist(song, event);
-                $(event.target).addClass('dulled');
-            },
-            className: 'awesome small white mustOwn',
-            text: 'Add to Playlist'
-        }],
-        isNumbered: true,
-        startingLen: 10
-    });
+    this.songlist = new SongList(Player._playlistFromArtistTracks(data.toptracks));
     
     var $songResults = $('.songResults', this.content)
     this.songlist.render($songResults);
@@ -617,45 +598,13 @@ AlbumView.prototype._handleInfo = function(data) {
  	
  	$('.albumDesc', this.content).fadeIn();
  	
- 	// Update song list
- 	var songs = [];
- 	if (album.tracks && album.tracks.track) {
- 	    $.each(album.tracks.track, function(index, track) {
-     	    songs.push({
-     	        t: track.name,
-     	        a: track.artist.name,
-     	        i: image
-     	    });
-     	});
+    this.playlist = Player._playlistFromAlbum(data.album);
+    this.songlist = SongList(playlist);
+    
+    var $songResults = $('.songResults', this.content)
+    this.songlist.render($songResults);
 
-     	this.songlist = new SongList({
-     	    playlist: {
-                title: this.albumName+' by '+this.artistName,
-                description: 'Auto-generated playlist',
-                songs: songs,
-                url: this.config.path
-            },
-            onClick: function(song) {
-                $('.playing').removeClass('playing');
-                $(this).addClass('playing');
-                player.playSongBySearch(song.t, song.a);
-            },
-            buttons: [{
-                action: function(event, song) {
-                    player.addSongToPlaylist(song, event);
-                    $(event.target).addClass('dulled');
-                },
-                className: 'awesome small white mustOwn',
-                text: 'Add to Playlist'
-            }],
-            isNumbered: true
-        });
-        var $songResults = $('.songResults', this.content)
-        this.songlist.render($songResults);
-
-        $songResults.show();
- 	}
-
+    $songResults.show();
 };
 
 AlbumView.prototype._updateAlbumImg = function(src, alt) {
