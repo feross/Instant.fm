@@ -612,12 +612,16 @@ ProfileView.prototype._handlePlaylists = function(playlists) {
         if (playlist.songs.length > 0) {
             container.append($('<h1>').text(playlist.title));
             container.append($('<span>').text(playlist.songs.length + ' songs'));
+            var helper = function(songList) {
+               return function(event) {
+                   event.preventDefault();
+                   songList.playAll();
+               };
+            };
             container.append($('<a>').text('Play')
                                      .addClass('playAll')
                                      .attr('href', '#playAll')
-                                     .click(function() {
-                                        player.loadPlaylist(playlist);
-                                     }));
+                                     .click(helper(songList)));
             
             songList.render(container);
             $(this.content).append(container);
