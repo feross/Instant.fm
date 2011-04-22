@@ -9,6 +9,7 @@ import bcrypt
 import Image
 import urllib2
 import hashlib
+import sqlalchemy
 
 import validation
 import utils
@@ -54,7 +55,8 @@ class HandlerBase(tornado.web.RequestHandler):
         if session_id:
             self._current_session = (self.db_session.query(model.Session)
                                        .get(session_id))
-        else:
+            
+        if self._current_session == None:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
             self.db_session.flush()
@@ -211,6 +213,7 @@ class ImageHandlerBase(HandlerBase):
 class HomeHandler(HandlerBase):
     def get(self):
         playlists = (self.db_session.query(model.Playlist)
+                       .filter(sqlalchemy.or_(model.Playlist.featured==True, model.Playlist.user_id==1))
                        .order_by(model.Playlist.views.desc())
                        .limit(12)
                        .all())
