@@ -815,11 +815,11 @@ a:hover .zoomIcon {
 
 #normalUpload #file {
     cursor: pointer;
-    height: 20px;
+    height: 15px;
     left: 0;
     position: absolute;
     top: 0;
-    width: 250px;
+    width: 240px;
     z-index: 2;
 }
 
@@ -828,6 +828,12 @@ a:hover .zoomIcon {
     position: relative;
     text-align: center;
 }
+
+/* Fallback for browsers with no draganddrop */
+.no-draganddrop #dragDrop { border: none; padding: 5px; width: 260px;}
+
+.no-draganddrop #dragDrop strong { display: none; }
+
 
 #newPlaylistForm .colorboxSubmitButtons em {
     color: #999;
