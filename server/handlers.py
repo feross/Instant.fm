@@ -127,33 +127,6 @@ class PlaylistHandlerBase(HandlerBase):
         return self.get_argument('partial', default=False)
 
 
-class UploadHandlerBase(HandlerBase):
-    def _get_request_content(self):
-        # If the file is directly uploaded in the POST body
-        # Make a dict of the headers with all lowercase keys
-        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
-        if 'up-filename' in lower_headers:
-            filename = lower_headers['up-filename']
-
-            if self.get_argument('base64', 'false') == 'true':
-                try:
-                    contents = base64.b64decode(self.request.body)
-                except:
-                    return {'status': 'Invalid request'}
-            else:
-                contents = self.request.body
-        # If the file is in form/multipart data
-        else:
-            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
-                return {'status': 'No file specified'}
-
-            uploaded_file = self.request.files['file'][0]
-            filename = uploaded_file['filename']
-            contents = uploaded_file['body']
-
-        return (filename, contents)
-
-
 class UserHandlerBase(HandlerBase):
     def _verify_password(self, password, hashed):
         return bcrypt.hashpw(password, hashed) == hashed
@@ -274,9 +247,19 @@ class AlbumHandler(PlaylistHandlerBase):
                                    album_name=album_name)
 
 
-class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
+class UploadHandler(PlaylistHandlerBase):
 
     """ Handles playlist upload requests """
+
+    def _get_request_content(self):
+        files = self.request.files['file']
+        if files is None or len(files) == 0:
+            raise ValueError('No uploaded file for key "playlist"')
+        file = files[0]
+        filename = file['filename']
+        contents = file['body']
+        return (filename, contents)
+
 
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -375,7 +358,7 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         return res_arr
 
     def _handle_request(self, filename, contents):
-        title, ext = os.path.splitext(filename)
+        ext = os.path.splitext(filename)[1]
 
         # Parse the file based on the format
         if ext == ".m3u" or ext == ".m3u8":
@@ -390,26 +373,26 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         else:
             raise(UnsupportedFormatException())
 
+        return songs
+
+    def post(self):
+        title = self.get_argument('title', strip=True)
+        description = self.get_argument('description', default=None, strip=True)
+        (filename, contents) = self._get_request_content()
+        try:
+            songs = self._handle_request(filename, contents)
+        except UnsupportedFormatException:
+            self.write(json.dumps({"result": "Unsupported format"}))
         playlist = model.Playlist(title)
+        playlist.description = description
         playlist.songs = songs
         playlist.session = self.get_current_session()
         playlist.user = self.get_current_user()
         self.db_session.add(playlist)
-        return playlist
+        
+        self.set_header("Content-Type", "application/json")
+        self.write(playlist.json)
 
-    def post(self):
-        self.get_current_session()
-        (filename, contents) = self._get_request_content()
-        try:
-            playlist = self._handle_request(filename, contents)
-        except UnsupportedFormatException:
-            self.write(json.dumps({"result": "Unsupported format"}))
-
-        if self.get_argument('redirect', 'false') == 'true':
-            self.redirect(playlist.url)
-        else:
-            self.set_header("Content-Type", "application/json")
-            self.write(playlist.json)
 
 class TTSHandler(PlaylistHandlerBase):
     q = None
