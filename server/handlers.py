@@ -74,8 +74,8 @@ class HandlerBase(tornado.web.RequestHandler):
         session = self.get_current_session()
         user = self.get_current_user()
 
-        return ((session.id is not None and str(session.id) == playlist.session_id)
-                or (user is not None and user.id == playlist.user_id))
+        return ((session.id is not None and str(session.id) == str(playlist.session_id))
+                or (user is not None and str(user.id) == str(playlist.user_id)))
 
     def _log_user_in(self, user, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
@@ -404,6 +404,7 @@ class UploadHandler(PlaylistHandlerBase):
         playlist.session = self.get_current_session()
         playlist.user = self.get_current_user()
         self.db_session.add(playlist)
+        self.db_session.flush()
         
         self.set_header("Content-Type", "application/json")
         return playlist.client_visible_attrs;
