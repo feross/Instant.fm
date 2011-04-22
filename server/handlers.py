@@ -82,11 +82,11 @@ class HandlerBase(tornado.web.RequestHandler):
         session = self.get_current_session()
 
         (self.db_session.query(model.Playlist)
-            .filter_by(session_id=session.id)
+            .filter_by(session_id=session.id, user_id=None)
             .update({"user_id": user.id}))
 
         (self.db_session.query(model.Image)
-            .filter_by(session_id=session.id)
+            .filter_by(session_id=session.id, user_id=None)
             .update({"user_id": user.id}))
 
         session.user_id = user.id
@@ -365,6 +365,7 @@ class UploadHandler(PlaylistHandlerBase):
         ext = os.path.splitext(filename)[1]
 
         # Parse the file based on the format
+        songs = None
         if ext == ".m3u" or ext == ".m3u8":
             songs = self._parseM3U(contents)
 
@@ -374,7 +375,7 @@ class UploadHandler(PlaylistHandlerBase):
         elif ext == ".pls":
             songs = self._parse_pls(contents)
 
-        else:
+        if songs is None:
             raise(UnsupportedFormatException())
 
         return songs

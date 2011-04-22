@@ -142,7 +142,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
-#                            fb_id=int, auth_token=int)
     @tornadorpc.async
     @validated_async_rpc
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
