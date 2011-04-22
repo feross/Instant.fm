@@ -340,8 +340,7 @@
     <target name="-build.production"
             depends="-rev,
                      -clean,
-                     -stop-server,
-					 -git-pull,
+					 -stop-server,
                      -prodcopy,
                      -usemin,
                      -js.all.minify,
@@ -356,8 +355,8 @@
 					 -reload-supervisord-config,
 					 -start-server,
 					 -set-permissions,
-					 -imagesjpg,
-					 -imagespng"/>
+                     -imagesjpg,
+                     -imagespng"/>
                      
                      
      <!-- Target: noimg -->  
@@ -545,7 +544,7 @@
         <echo message="Copying over new files..."/>
         <!-- combine the 2 exclude properties -->
         <var name="prod-excluded-files" value="${file.default.exclude}, ${file.jpg.exclude}, ${file.exclude}"/>
-        
+
         <copy todir="./${dir.publish}">
             <fileset dir="${dir.source}/" excludes="${prod-excluded-files}"/>
         </copy> 
