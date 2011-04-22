@@ -217,6 +217,11 @@ function isOwner() {
         return false;
     }
     
+    // The Feross Exception
+    if (model.session.user.id == 1) {
+        return true;
+    }
+    
     if (model.playlist.session_id && model.session.id && model.session.id == model.playlist.session_id) {
         return true;
     }

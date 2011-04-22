@@ -70,9 +70,12 @@ class HandlerBase(tornado.web.RequestHandler):
     def owns_playlist(self, playlist):
         if playlist is None:
             return False
-
         session = self.get_current_session()
         user = self.get_current_user()
+        
+        # The Feross Exception
+        if user.id == 1:
+            return True
 
         return ((session.id is not None and str(session.id) == str(playlist.session_id))
                 or (user is not None and str(user.id) == str(playlist.user_id)))
