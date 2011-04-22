@@ -796,7 +796,6 @@ a:hover .zoomIcon {
 	color: #aaa;
 	float: right;
 	font-size: 18px;
-	font-weight: bold;
 	padding: 20px;
 	margin: 5px 0;
 	text-align: center;
@@ -814,9 +813,20 @@ a:hover .zoomIcon {
     width: 190px;
 }
 
+#normalUpload #file {
+    cursor: pointer;
+    height: 20px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 250px;
+    z-index: 2;
+}
+
 #normalUpload {
-    float: right;
-    width: 270px;
+    font-size: 11px;
+    position: relative;
+    text-align: center;
 }
 
 #newPlaylistForm .colorboxSubmitButtons em {
