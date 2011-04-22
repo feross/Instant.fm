@@ -116,8 +116,8 @@ function canonicalize(name) {
     // Copied and modified from the canonicalize() function on the server-side.
     var r = new RegExp('[^a-z0-9]+', 'gi');
     words = name
-        .replace(r, '-')
         .toLowerCase()
+        .replace(r, '-')
         .split('-');
     if (words[words.length - 1] === '') {
         words.splice(words.length - 1, 1);
