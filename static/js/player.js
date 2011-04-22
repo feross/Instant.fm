@@ -93,7 +93,7 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     if (!isUserInitiated) {
         showDesktopNotification(song.i, title, artist);
     } else {
-        window.webkitNotifications.requestPermission();
+        window.webkitNotifications && window.webkitNotifications.requestPermission();
     }
 
     player.playSongBySearch(title, artist, player.songIndex);
