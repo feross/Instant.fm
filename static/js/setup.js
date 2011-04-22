@@ -372,134 +372,119 @@ function setupLogout() {
     });
 }
 
-function openSignup() {
-    $.get('/static/colorbox_signup.html')
-        .success(function(markup) {
-           
-        });
+function setupSignup() {
+    $('a[href="#signUp"]').click(function(e) {
+        e.preventDefault();
+        $.get('/static/colorbox_signup.html').success(function(markup) {    
+            $('#navSignup').colorbox({
+                html: markup,
+                open: true,
+                returnFocus: false,
+                scrolling: false,
+                width: 450,
+                onComplete: function() {
+                    var form = $('#fbSignupForm');
 
-    
-    var form = $('#fbSignupForm');
-                
-    $('#navSignup').colorbox({
-        inline: true,
-        html: '#signupBox',
-        returnFocus: false,
-        onComplete: function() {
-            // If step 2 form is hidden, that means there was a bad error during last sign up attempt, so do reset.
-            if (!$('#fbSignupForm').is(':visible')) {
-                $('#fbSignupForm').show();
-                $('#signupStep1').show();
-                $('#signupStep2').hide();
-                $('#signupBox > header > .subtitle').text('(1 of 2)');
-            }
-
-            $('#fbFacepile')
-                .removeClass('like')
-                .empty()
-                .append('<fb:facepile width="390" max_rows="1"></fb:facepile>');
-            FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
-                // If none of the user's friends have connected to Instant.fm, then lets fallback to showing the users
-                // who have liked our page (including non-friends). We show the like box, but use CSS trickery to just show the faces. 
-                window.setTimeout(function() {
-                    if ($('#fbFacepile').height() < 20) {
-                        $('#fbFacepile')
-                            .empty()
-                            .addClass('like')
-                            .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
-                        FB.XFBML.parse($('#fbFacepile').get(0));
-                    }
-                    $.colorbox.resize();
-                }, 1000);
-            });
-        },
-        scrolling: false,
-        width: 450
-    });
- 
-    $('#fbConnectButton').click(function(event) {
-
-        // remove old form errors and message
-        $('#registrationErrors').empty();
-        $('#registrationMsg').empty();
-
-        FB.login(function(login_response) {
-            if (!login_response.session) {
-                log('FB login failed.'); // user cancelled login
-                return;
-            }
-          
-            FB.api('/me', function(response) {
-                // Check that they're not already registered
-                instantfm.is_registered_fbid({
-                    params: [response.id],
-                    onSuccess: function(is_registered) {
-                        if (is_registered) {
-                            form.hide();
-                            $('#registrationMsg').text('This Facebook user is already registered on Instant.fm. Try logging in instead.');
-                        }
-                    }
-                });
-                
-                $('input[name=name]', form).val(response.name);
-                $('input[name=email]', form).val(response.email);
-                setupFbSignupForm(response.id, auth_token = login_response.session.access_token);
-                $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
-                
-                $('#signupStep1').fadeOut(function() {
-                    $('#signupBox > header > .subtitle').text('(2 of 2)');
-                    
-                    $('#signupStep2').fadeIn(function() {
-                        $.colorbox.resize();
-                        $('input[name=password]', form).focus();
+                    // Facepile
+                    FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
+                        // If none of the user's friends have connected to Instant.fm,
+                        // then lets fallback to showing the users who have liked our
+                        // page (including non-friends). We show the like box, but
+                        // use CSS trickery to just show the faces. 
+                        window.setTimeout(function() {
+                            if ($('#fbFacepile').height() < 20) {
+                                $('#fbFacepile')
+                                    .empty()
+                                    .addClass('like')
+                                    .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
+                                FB.XFBML.parse($('#fbFacepile').get(0));
+                            }
+                            $.colorbox.resize();
+                        }, 1000);
                     });
-                });
+
+                    // Connect button
+                    $('#fbConnectButton').click(onFBConnect);
+                }
             });
-        }, {perms:'email'});
+
+        });
     });
 }
 
-function setupFbSignupForm(fb_id, auth_token) {
-    // Setup actual signup form submission
+function onFBConnect(event) {
     var form = $('#fbSignupForm');
-    form.submit(function(e) {
-        e.preventDefault();
-        $('#submitFbSignupForm').attr('disabled', 'disabled'); // so the user can only submit the form once
-      
-        params = formToDictionary(form);
-        params["auth_token"] = auth_token;
-        params["fb_id"] = parseInt(fb_id);
-        instantfm.signup_with_fbid({
-            params: params,
-            onSuccess: function(response) {
-                if (response && response.success) {
-                    session = response.result;
-                    setSession(session);
-                    log("Registration posted successfully.")
-                  
-                    $.colorbox.close();
-                    $('#signupStep2').fadeOut(function() {
-                        $('#signupStep1').fadeIn();
-                    });
-          
-                    $('#submitFbSignupForm').removeAttr('disabled');
-                } else if (response && response.errors) {
-                    // server-side validation failed.
-                    
-                    showErrors(form, response.errors);
-                    log('Registration failt. Errors:');
-                    log(response.errors);
-                    $.colorbox.resize();
-                    $('#submitFbSignupForm').removeAttr('disabled');
+    
+    FB.login(function(login_response) {
+        if (!login_response.session) {
+            log('FB login failed.'); // user cancelled login
+            return;
+        }
+
+        // Check that they're not already registered
+        FB.api('/me', function (response) {
+            var fb_id = response.id,
+                auth_token = login_response.session.access_token;
+
+            instantfm.is_registered_fbid({
+                params: [fb_id],
+                onSuccess: function(is_registered) {
+                    if (is_registered) {
+                        form.hide();
+                        showErrors(form, {'TODO': 'This Facebook user is already registered on Instant.fm. Try logging in instead.'});
+                        return;
+                    }
                 }
-            },
-            onException: function() {
-                log('Error posting form ;_;');
-                $('#submitFbSignupForm').removeAttr('disabled');
-            },
+            });
+
+            // Populate Signup Step 2 form
+            $('input[name=name]', form).val(response.name);
+            $('input[name=email]', form).val(response.email);
+            $('#fbProfileImage').css('background-image', 'url("http://graph.facebook.com/' + response.id + '/picture?type=square")');
+
+            $('#signupStep1').fadeOut(function() {
+                $('#signupBox > header > .subtitle').text('(2 of 2)');
+
+                $('#signupStep2').fadeIn(function() {
+                    $.colorbox.resize();
+                    $('input[name=password]', form).focus();
+                });
+            });
+
+            // Setup event handlers for Signup Step 2 form
+            form.submit(function(e) {
+                e.preventDefault();
+                $('#submitFbSignupForm').attr('disabled', 'disabled');
+
+                params = formToDictionary(form);
+                params["auth_token"] = auth_token;
+                params["fb_id"] = parseInt(fb_id);
+                instantfm.signup_with_fbid({
+                    params: params,
+                    onSuccess: function(response) {
+                        if (response && response.success) {
+                            session = response.result;
+                            setSession(session);
+                            $.colorbox.close();
+                            log("Registration posted successfully.");
+
+                        } else if (response && response.errors) {
+                            // server-side validation failed.
+                            showErrors(form, response.errors);
+                            $.colorbox.resize();
+                        }
+                        $('#submitFbSignupForm').removeAttr('disabled');
+                    },
+                    onException: function() {
+                        log('Error posting form ;_;');
+                        $('#submitFbSignupForm').removeAttr('disabled');
+                    },
+                });
+            });
+
         });
-    });
-} 
+    }, {perms:'email'});
+}
 
 function setupRpc() {
     var methods = ['update_songlist', 'update_title', 'update_description', 
@@ -512,3 +497,20 @@ function setupRpc() {
                                      "methods": methods,
     }); 
 }
+
+function showErrors(form, errors) {
+    $.each(errors, function(i, v) {
+        log(i + " " + v);
+    });
+    
+    //$(form).find('.errors');
+}
+
+
+
+
+
+
+
+
+

@@ -1,40 +1,39 @@
 <div class="colorbox" id="signupBox">
-  <header>Sign Up <span class="subtitle">(1 of 2)</span></header>
+    <header>Sign Up <span class="subtitle">(1 of 2)</span></header>
   
-  <div id="signupStep1">
-    <div id="fbSignupPitch">
-      Share and discover <strong>amazing music playlists</strong>.
+    <div id="signupStep1">
+        <div id="fbSignupPitch">
+          Share and discover <strong>amazing music playlists</strong>.
+        </div>
+
+        <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
+
+        <div id="fbFacepile">
+          <fb:facepile width="390" max_rows="1"></fb:facepile>
+        </div>
     </div>
 
-    <a id="fbConnectButton" class="large darkblue awesome">Connect with Facebook</a>
-
-    <div id="fbFacepile">
-      <!-- automatically populated when colorbox is opened -->
-    </div>
-  </div>
-
-  <div id="signupStep2" style="display: none;">
+    <div id="signupStep2" style="display: none;">
   
-    <div class="error" id="registrationMsg"></div>
-    <div class="error" id="registrationErrors"></div>
+    <div class="errors"></div>
                     
     <form id="fbSignupForm" method="post">
         
       <div class="clearfix formRow">
         <div id="fbProfileImage"></div>
         <label for="fbName">Full Name</label>
-        <input id="fbName" type="text" name="name" value="" maxlength="32" required="required" spellcheck="false" />
+        <input id="fbName" type="text" name="name" value="" maxlength="32" required="required" spellcheck="false">
         <small>Use your real name.</small>
       </div>
 
       <div class="clearfix formRow">
         <label for="fbEmail">E-mail</label>
-        <input id="fbEmail" type="email" name="email" required="required" spellcheck="false" />
+        <input id="fbEmail" type="email" name="email" required="required" spellcheck="false">
       </div>   
      
       <div class="clearfix formRow">
         <label for="fbPassword">Password</label>
-        <input id="fbPassword" type="password" name="password" title="Passwords must be at least 6 characters" required="required"/>
+        <input id="fbPassword" type="password" name="password" required="required">
       </div>
   
       <div class="clearfix">
