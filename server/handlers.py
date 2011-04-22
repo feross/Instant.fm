@@ -108,15 +108,20 @@ class PlaylistHandlerBase(HandlerBase):
 
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
         share = None
+        title = None
         if self.get_argument('share', default=False):
             share = {'yt': self.get_argument('yt'),
                      'img': self.get_argument('img'),
                      'track': self.get_argument('track'),
                      'artist': self.get_argument('artist')}
+            title = share['track'] + ' by ' + share['artist'];
+        elif playlist is not None:
+            title = playlist.title
+            
         if self._is_partial():
             template_name = 'partial/' + template_name
             
-        self.render(template_name, is_partial=self._is_partial(), playlist=playlist, share=share, **kwargs)
+        self.render(template_name, playlist=playlist, share=share, title=title, **kwargs)
 
     def _is_partial(self):
         return self.get_argument('partial', default=False)

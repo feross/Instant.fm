@@ -8,7 +8,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
 	<!-- Page Info -->
-  <title>{% if share %}{{ share['track'] + ' by ' + share['artist'] }}{% elif playlist and playlist.title %}{{ playlist.title }}{% else %}Instant.fm - Share Music Playlists Instantly{% end %}</title>
+  <title>{{ title if title is not None else 'Instant.fm' }}</title>
   <meta name="description" content="{% if share %}Listen to {{ escape(share['track']) }} by {{share['artist']}} and the rest of the {{ playlist.title }} playlist at http://instant.fm{{ playlist.url }}{% elif playlist and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}">
   <meta name="keywords" content="music, playlist, share M3U playlist, share music, social music, social playlists">
 
