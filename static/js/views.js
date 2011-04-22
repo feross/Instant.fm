@@ -450,7 +450,7 @@ ArtistView.prototype._handleInfo = function(data) {
 };
 
 ArtistView.prototype._handleTopSongs = function(data) {
-    this.songlist = new SongList(Player._playlistFromArtistTracks(data.toptracks));
+    this.songlist = new SongList(Player.playlistFromArtistTracks(data.toptracks));
     
     var $songResults = $('.songResults', this.content)
     this.songlist.render($songResults);
@@ -597,10 +597,10 @@ AlbumView.prototype._handleInfo = function(data) {
  	this._updateAlbumImg(image, name);
  	
  	$('.albumDesc', this.content).fadeIn();
- 	
-    this.playlist = Player._playlistFromAlbum(data.album);
-    this.songlist = SongList(playlist);
-    
+	
+    this.playlist = Player.playlistFromAlbum(data.album);
+    this.songlist = new SongList(this.playlist);
+ 
     var $songResults = $('.songResults', this.content)
     this.songlist.render($songResults);
 
