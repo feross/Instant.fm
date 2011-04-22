@@ -21,32 +21,6 @@ $.ajaxSetup({
 });
 
 
-/* ------------------ JQUERY TOOLS VALIDATOR  ------------------ */
-
-// adds an effect called "wall" to the validator
-// TODO: Feross, I just copied and pasted this from JQuery Tools's page.
-//       I'm not sure what effect we want here, but this is how the error
-//       effects are implemented.
-$.tools.validator.addEffect('wall', function(errors, event) {
-    // get the message wall
-    var wall = $(this.getConf().container).fadeIn();
-    
-    // remove all existing messages
-    wall.find("p").remove();
-    
-    // add new ones
-    $.each(errors, function(index, error) {
-        wall.append(
-            //"<p><strong>" +error.input.attr("name")+ "</strong> " +error.messages[0]+ "</p>"
-            '<p>' +error.messages[0]+ ' <strong>' +error.input.attr('name')+ '</strong></p>'
-        );    
-    });
-
-// the effect does nothing when all inputs are valid  
-}, function(inputs)  {
-});
-
-
 /* ---------------- JEDITABLE - CUSTOM TEXTAREA WITH AUTOGROW ----------------- */
 
 $.editable.addInputType('autogrow', {
@@ -155,6 +129,11 @@ function setupKeyboardShortcuts() {
                 case 70: // f
                     browser.pushSearchPartial();
                     break;
+                case 191: // ?
+                    $('#navShortcuts').trigger('click');
+                    break;
+                    
+                // Fun
                 case 76: // l
                 	if ($('#playlist .playing').length) {
                 	    player.highlightSong('.playing', '#playlistDiv');
@@ -163,8 +142,9 @@ function setupKeyboardShortcuts() {
                 case 66: // b
                     showHideUI();
                     break;
-                case 191: // ?
-                    $('#navShortcuts').trigger('click');
+                case 65: // a
+                    var song = model.playlist.songs[player.songIndex];
+                    this.tts(cleanSongTitle(song.t)+', by '+song.a);
                     break;
                     
                 default:
@@ -240,6 +220,14 @@ function setupNewPlaylist() {
         scrolling: false
     });
     
+    $('#showPlaylistUpload').click(function() {
+        $('#playlistUpload').show();
+        $('#showPlaylistUpload').hide();
+        $('#newPlaylistForm .colorboxSubmitButtons em').hide();
+        
+        $.colorbox.resize();
+    });
+    
     $('textarea', '#newPlaylistForm')
         .autogrow($.extend({}, appSettings.autogrow,
             {onResize: function(elem) {
@@ -256,7 +244,6 @@ function setupNewPlaylist() {
         })
     );
     
-    // initialize validator and add a custom form submission logic
     var form = $("form#newPlaylistForm");
     form.submit(function(e) {
         // prevent default form submission logic

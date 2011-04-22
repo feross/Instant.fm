@@ -373,9 +373,7 @@ input.file {
 	display: block;
 	float: left;
 	width: 480px;
-	margin-top: 0; /* IE6, 7 bugfix */
-	margin-left: 20px;
-	margin-right: 69px;
+	margin: 0 69px 15px 20px; /* margin-top 0 is an IE6/7 bugfix */
 }
 
 .iPhoneHeader {
@@ -436,7 +434,7 @@ input.file {
 .iPhoneHeader a {
     color: #fff;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: bold;
     height: 31px;
     line-height: 31px;
     -moz-opacity: 0.9;
@@ -449,7 +447,7 @@ input.file {
 }
 
 .iPhoneHeader a.left { left: 20px; }
-.iPhoneHeader a.right { right: 20px; }
+.iPhoneHeader a.right { right: 9px; }
 
 .iPhoneHeader a.blue {
     background: url('/images/navbutton-center.png');
@@ -790,6 +788,33 @@ a:hover .zoomIcon {
 
 #newPlaylistForm { text-align: left; }
 
+#dragDrop {
+    border: 4px dashed #DDD;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius: 5px;
+	color: #ccc;
+	float: right;
+	font-size: 18px;
+	padding: 20px;
+	margin: 5px 0;
+	text-align: center;
+	width: 230px;
+}
+
+#dragDrop.hover { border: 4px dashed #999; color: #999; }
+
+#normalUpload {
+    float: right;
+    width: 270px;
+}
+
+#newPlaylistForm .colorboxSubmitButtons em {
+    color: #999;
+    font-size: 14px;
+    margin-top: 10px;
+    vertical-align: middle;
+}
 
 /* Signup Colorbox - Step 1 */
 
@@ -867,7 +892,7 @@ a:hover .zoomIcon {
 
 #fbName { width: 210px; }
 
-.formRow span {
+.formRow small {
     color: #888;
     display: block;
     font-size: 11px;
@@ -885,11 +910,11 @@ a:hover .zoomIcon {
     font-size: 11px;
 }
 
-#submitFbSignupForm,
-#submitNewPlaylist,
-#submitLogin {
-    float: right;
-    margin-top: 8px;
+.colorboxSubmitButtons { float: right; }
+
+/* Space between the buttons */
+.colorboxSubmitButtons > * {
+    margin: 8px 0 0 10px;
 }
 
 #fbFacepile.like { height: 85px; overflow: hidden; }
@@ -903,9 +928,9 @@ a:hover .zoomIcon {
 
 #rememberMe {
     color: #666;
-    float: right;
+    display: inline-block;
     font-size: 12px;
-    margin: 17px 20px 0 0;
+    margin: 0 10px 0 0;
 }
 
 #rememberMe label {
@@ -1358,4 +1383,42 @@ a.artistResult:hover, a.albumResult:hover {
 #terms p {
     margin: 15px 0;
 }
+
+
+/* Meet the Team Partial */
+
+.meetTheTeamPartial > div { margin: 25px auto 0 auto; }
+
+.meetTheTeamPartial .topTeamMembers { width: 460px; }
+
+.meetTheTeamPartial .teamMember {
+    float: left;
+    width: 215px;
+}
+
+.meetTheTeamPartial .teamMember.feross { margin-right: 30px; }
+
+.meetTheTeamPartial img {
+    height: 250px;
+    width: 215px;
+}
+
+.meetTheTeamPartial h2 {
+    font-size: 18px;
+    margin: 5px 0 0 0;
+}
+
+.meetTheTeamPartial h3 { font-size: 13px; margin: 2px 0 10px 0; }
+
+.meetTheTeamPartial h1:first-child { margin: 15px 0 10px 0; text-align: center; }
+
+.meetTheTeamPartial p { font-size: 13px; }
+
+.meetTheTeamPartial .contact span { font-weight: bold; margin-right: 15px; }
+
+.meetTheTeamPartial li { margin: 10px 0 10px 0; }
+
+
+
+
 

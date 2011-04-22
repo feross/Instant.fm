@@ -95,7 +95,6 @@ function onloadPlaylist() {
         }, 0);
     });
     
-    
     setupKeyboardShortcuts();
     setupFBML();
     setupSignup();
@@ -104,7 +103,7 @@ function onloadPlaylist() {
     setupNewPlaylist();
     setupRpc();
    
-    setupDragDropUploader('p', function(response) {
+    setupDragDropUploader('dragDrop', function(response) {
         playlist = $.parseJSON(response);
         player.loadPlaylist(playlist);
     });

@@ -90,7 +90,6 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     
     if (!isUserInitiated) {
         showDesktopNotification(song.i, title, artist);
-        this.tts(title+', by '+artist);
     }
 
     player.playSongBySearch(title, artist, player.songIndex);
@@ -152,7 +151,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
-                this.tts('Not found')
+                tts('Not found')
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
@@ -531,24 +530,6 @@ Player.prototype.highlightSong = function(selector, container, _effect, _effectO
 	scrollTo(selector, container, {
         callback: function() {
 			$(selector).effect(effect, effectOptions);
-        }
-    });
-};
-
-Player.prototype.tts = function(text) {
-    if (!soundManagerLoaded) {
-        return;
-    }
-    
-    var hash = hex_sha1(text);
-    var soundObj = soundManager.createSound({
-        id: hash,
-        url: '/tts/'+hash+'.mp3?q='+encodeURIComponent(text)
-    });
-    soundObj.play({
-        onfinish:function() {
-            // once sound has loaded and played, unload and destroy it.
-            this.destruct(); // will also try to unload before destroying.
         }
     });
 };

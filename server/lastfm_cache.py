@@ -41,9 +41,9 @@ class LastfmCache(object):
         hashed_key = md5hash(key)
         result = self.db.get('SELECT cachedTime FROM lastfm_cache WHERE hash = %s', hashed_key)
         if result:
-            print result
-            seconds = time.mktime(result.cachedTime.timetuple())
-            print seconds
+            # print result
+            # seconds = time.mktime(result.cachedTime.timetuple())
+            # print seconds
             return seconds
         else:
             self.db.execute('INSERT INTO lastfm_request_queue (request_url) VALUES (%s)', key)

@@ -189,11 +189,11 @@
   <footer id="footer">
     <nav>
       <div class="left">
-        <span class="byline">Created by Feross, Jake, and John from Stanford.</span>
-        <a href="#" id="navMeetTheTeam">Meet the Team</a>
+        <span class="byline">Created by Feross and Jake from Stanford.</span>
+        <a href="/static/meetTheTeam.html" id="navMeetTheTeam" rel="partial static" title="Meet the Team">Meet the Team</a>
       </div>
       <div class="right">
-        <a href="#" id="navReportBug">Report a Bug</a>
+        <a href="/static/reportBug.html" id="navReportBug" rel="partial static" title="Report a Bug">Report a Bug</a>
         <a href="#helpBox" id="navShortcuts">Keyboard Shortcuts</a>
         <a href="#" id="navSettings">Settings</a>
       </div>
@@ -274,6 +274,10 @@
     <section>
       <header>For Fun</header>
       <dl class="clearfix">
+        <dt>A</dt>
+        <dd>Announce the current song</dd>
+      </dl>
+      <dl class="clearfix">
         <dt>B</dt>
         <dd>Show background image</dd>
       </dl>
@@ -298,9 +302,16 @@
         <label for="newPlaylistDescription">Description</label>
         <textarea id="newPlaylistDescription" name="description" type="text" placeholder="Optional"></textarea>
       </div>
-      <div class="clearfix">
-        <div class="formBottomNote" id="loginSignup">Got a playlist from iTunes? <strong><a href="#">Upload it!</a></strong></div>
-        <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Create">
+      <div class="clearfix formRow" id="playlistUpload" style="display: none;">
+        <label>Upload</label>
+        <div id="dragDrop">Drag and drop file here.</div>
+        <small>We support .m3u, .txt, and .pls playlist formats.</small>
+        <!-- <div id="normalUpload">Select file to upload.</div> -->
+      </div>
+      <div class="clearfix colorboxSubmitButtons" style="float: right;">
+        <input type="button" class="blue large awesome" name="showPlaylistUpload" id="showPlaylistUpload" value="Upload a Playlist from iTunes">
+        <em> or </em> 
+        <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Finish">
       </div>
     </form>
   </div>
@@ -322,10 +333,12 @@
             
       <div class="clearfix">
         <div class="formBottomNote" id="loginSignup">No account? <strong><a href="#">Sign up!</a></strong></div>
-        <input type="submit" class="red large awesome" name="submit" id="submitLogin" value="Login">
-        <div id="rememberMe">
-          <input type="checkbox" name="remember_me" checked="checked" />
-          <label for="remember_me">Remember me</label>
+        <div class="clearfix colorboxSubmitButtons">
+          <div id="rememberMe">
+            <input type="checkbox" name="remember_me" id="remember_me" checked="checked" />
+            <label for="remember_me">Remember me</label>
+          </div>
+          <input type="submit" class="red large awesome" name="submit" id="submitLogin" value="Login">
         </div>
       </div>
     </form>
@@ -357,7 +370,7 @@
           <div id="fbProfileImage"></div>
           <label for="fbName">Full Name</label>
           <input id="fbName" type="text" name="name" value="" maxlength="32" required="required" spellcheck="false" />
-          <span>Use your real name.</span>
+          <small>Use your real name.</small>
         </div>
   
         <div class="clearfix formRow">
@@ -367,12 +380,14 @@
          
         <div class="clearfix formRow">
           <label for="fbPassword">Password</label>
-          <input id="fbPassword" type="password" name="password" title="Passwords must be at least 4 characters" required="required"/>
+          <input id="fbPassword" type="password" name="password" title="Passwords must be at least 6 characters" required="required"/>
         </div>
       
         <div class="clearfix">
           <div class="formBottomNote" id="agreeToTerms">I agree to the <a href="/terms" target="_blank">Terms of Service</a>.</div>
-          <input type="submit" class="darkblue awesome large" name="submit" id="submitFbSignupForm" value="Create Account">
+          <div class="clearfix colorboxSubmitButtons">
+            <input type="submit" class="darkblue awesome large" name="submit" id="submitFbSignupForm" value="Create Account">
+          </div>
         </div>
 
       </form>
