@@ -53,7 +53,7 @@ class HandlerBase(tornado.web.RequestHandler):
         session_id = self.get_secure_cookie('session_id')
         if session_id:
             self._current_session = (self.db_session.query(model.Session)
-                                       .get(int(session_id)))
+                                       .get(session_id))
         else:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
@@ -95,12 +95,18 @@ class HandlerBase(tornado.web.RequestHandler):
 
     def _log_user_out(self):
         session_id = self.get_secure_cookie('session_id')
-        if session_id:
-            (self.db_session.query(model.Session)
-                .filter_by(id=session_id)
-                .delete())
-
         self.clear_cookie('session_id')
+        self._current_session = None
+#        if session_id:
+#            (self.db_session.query(model.Session)
+#                .filter_by(id=session_id)
+#                .delete())
+        
+        # New session
+        new_session = model.Session();
+        self.db_session.add(new_session)
+        self.db_session.flush()
+        return new_session
 
 
 class PlaylistHandlerBase(HandlerBase):
