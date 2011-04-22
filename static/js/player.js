@@ -157,7 +157,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
-                tts('Not found')
+                tts('Not found');
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
@@ -420,7 +420,7 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
             log(code + ' ' + message);
         }
     });
-} 
+}; 
 
 
 Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
@@ -439,7 +439,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
             log(code + ' ' + message);
         }
     });
-}
+};
 
 // Updates the playlist table
 Player.prototype.renderPlaylistInfo = function(playlist) {
@@ -587,7 +587,7 @@ Player.playlistFromArtistTracks = function(trackList) {
     playlist.url = '/' + canonicalize(playlist.artist);
     playlist.songs = Player._songsFromTrackList(trackList);   
     return playlist;
-}
+};
 
 
 Player.playlistFromAlbum = function(album) {
