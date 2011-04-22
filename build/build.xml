@@ -351,13 +351,13 @@
                      -css,
                      -html,
                      -htmlclean,
-                     -imagespng,
                      -imagesjpg,
 					 -reload-supervisord-config,
 					 -stop-server,
 					 -clean,
 					 -start-server,
-					 -set-permissions"/>
+					 -set-permissions,
+					 -imagespng"/>
                      
                      
      <!-- Target: noimg -->  
