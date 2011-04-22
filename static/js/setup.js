@@ -73,10 +73,7 @@ function setupKeyboardShortcuts() {
                 html: markup,
                 open: true,
                 returnFocus: false,
-                scrolling: false,
-                onComplete: function() {
-                    
-                }
+                scrolling: false
             });
         });
     });
