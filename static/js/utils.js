@@ -218,7 +218,7 @@ function isOwner() {
     }
     
     // The Feross Exception
-    if (model.session.user.id == 1) {
+    if (model && model.session && model.session.user && model.session.user.id == 1) {
         return true;
     }
     
