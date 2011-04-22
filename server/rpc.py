@@ -72,7 +72,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
                      handlers.UserHandlerBase,
                      handlers.ImageHandlerBase,
                      tornado.auth.FacebookGraphMixin):
-    
+
     def get_playlists_for_user(self, user_profile):
         user = (self.db_session.query(model.User)
                    .filter_by(profile=user_profile)
@@ -184,7 +184,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def _on_fb_auth(self, user):
         validator = validation.Validator(immediate_exceptions=True)
 
-        if user['id'] != self._fb_id:
+        if str(user['id']) != str(self._fb_id):
            validator.error('Failed to authenticate to Facebook.')
 
         # Write the user to DB
