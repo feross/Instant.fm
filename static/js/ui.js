@@ -81,18 +81,26 @@ function showHideUI() {
 /* -------------------------- REUSABLE LIST COMPONENTS ------------------------ */
 
 // Takes an array of objects with properties 't', 'a', 'i' 
-function SongList(options) {
+function SongList(playlist, options) {
     this.renderChunkSize = 500; // Render playlist in chunks so we don't lock up
     this.renderTimeout = 100; // Time between rendering each chunk
     
-    // TODO: Just save options, so we don't save each individual thing
-    this.playlist = options.playlist;
-    this.onClick = options.onClick;
-    this.buttons = options.buttons;
-    this.id = options.id;
-    this.listItemIdPrefix = options.listItemIdPrefix;
-    this.isNumbered = !!options.isNumbered;
-    this.startingLen = options.startingLen;
+    this.playlist = playlist;
+    this.onClick = function(song) {
+        $('.playing').removeClass('playing');
+        $(this).addClass('playing');
+        player.playSongBySearch(song.t, song.a);
+    },
+    this.buttons = [{
+        action: function(event, song) {
+            player.addSongToPlaylist(song, event);
+            $(event.target).addClass('dulled');
+        },
+        className: 'awesome small white mustOwn',
+        text: 'Add to Playlist'
+    }], 
+    this.isNumbered = false;
+    $.extend(this, options);
     
     var that = this;
     this.buttonHelper = function(i, song, _songNum) {

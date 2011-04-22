@@ -406,7 +406,7 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
     },
     {
         success: function(data) {
-            var playlist = Player._playlistFromArtistTracks(data.toptracks);
+            var playlist = Player.playlistFromArtistTracks(data.toptracks);
             _this_player.loadPlaylist(playlist);
         },
         error: function(code, message) {
@@ -425,7 +425,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
     },
     {
         success: function(data) {
-            var playlist = Player._playlistFromAlbum(data.album);
+            var playlist = Player.playlistFromAlbum(data.album);
             _this_player.loadPlaylist(playlist);
         },
         error: function(code, message) {
@@ -440,8 +440,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     // Render Playlist
     $('#playlist').remove(); // clear the playlist
     
-    this.songlist = new SongList({
-        playlist: playlist,
+    this.songlist = new SongList(playlist, {
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
@@ -573,7 +572,7 @@ Player.prototype.highlightSong = function(selector, container, _effect, _effectO
 };
 
 
-Player._playlistFromArtistTracks = function(trackList) {
+Player.playlistFromArtistTracks = function(trackList) {
     var playlist = {};
     playlist.artist = trackList['@attr'].artist;
     playlist.title = playlist.artist + "'s Top Songs";
@@ -583,12 +582,15 @@ Player._playlistFromArtistTracks = function(trackList) {
 }
 
 
-Player._playlistFromAlbum = function(album) {
+Player.playlistFromAlbum = function(album) {
     var playlist = {};
     playlist.artist = album.artist;
     playlist.title = '"' + album.name + '" by ' + album.artist;
     playlist.url = '/' + canonicalize(album.artist) + '/' + canonicalize(album.name);
     playlist.songs = Player._songsFromTrackList(album.tracks);
+    if (album.wiki && album.wiki.summary) {
+        playlist.description = album.wiki.summary;
+    }
     if (album.image && album.image[0]) {
         for (var i = 0; i < playlist.songs.length; i++) {
             playlist.songs[i].i = album.image[0]['#text'];
@@ -597,11 +599,10 @@ Player._playlistFromAlbum = function(album) {
     return playlist;
 }
 
+
 Player._songsFromTrackList = function(trackList) {
-    if (!trackList && trackList.track) {
-        // TODO: View code should not be here! I don't know what this does!
-        $('.songResults', this.content).hide();
-        return;
+    if (trackList === undefined || trackList.track === undefined) {
+        return [];
     }
     
     // It's possible for "track" to be a single track instead of array.
@@ -616,7 +617,7 @@ Player._songsFromTrackList = function(trackList) {
         var song = {};
 
         song.t = songResult.name;
-        song.a = songResult.artist.name;
+        song.a = (songResult.artist.name ? songResult.artist.name : songResult.artist);
         song.i = songResult.image && songResult.image[2]['#text'];
 
         songs.push(song);
