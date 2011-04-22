@@ -64,8 +64,24 @@ $.editable.addInputType('autogrow', {
 // Tested in Firefox, Chrome, Safari.
 // Keyboard events are a mess: http://www.quirksmode.org/js/keys.html
 function setupKeyboardShortcuts() {
-    $('#navShortcuts').colorbox({inline: true, href: '#helpBox', returnFocus: false});
     
+    // Handle the display of Keyboard shortcuts colorbox
+    $('a[href="#helpBox"]').click(function(e) {
+        e.preventDefault();
+        $.get('/static/colorbox_help.html').success(function(markup) {    
+            $.colorbox({
+                html: markup,
+                open: true,
+                returnFocus: false,
+                scrolling: false,
+                onComplete: function() {
+                    
+                }
+            });
+        });
+    });
+    
+    // Handle the actual keyboard shortcuts
     $('input, textarea').live('focus', function(event) {
         keyEvents = false; 
     });
@@ -208,7 +224,6 @@ function setupUploader(formElem) {
         url: '/upload',
         onProgress: function (event, files, index, xhr, handler) { }, // TODO: Show upload progress
         onLoad: function (event, files, index, xhr, handler) {
-            log('onload');
             var json;
             if (typeof xhr.responseText !== undefined) {
                 json = $.parseJSON(xhr.responseText);
@@ -230,7 +245,10 @@ function setupUploader(formElem) {
                 .removeClass('drag')
                 .removeClass('documentDrag');
         },
-        onError: function() {}, // TODO: Add error handling
+        onError: function() {
+            showErrors({'': 'Something went wrong. Try refreshing the page.'});
+            $(formElem).find('input[type="submit"], button').removeAttr('disabled');
+        },
         onDragOver: function() {
             $('.file_upload').addClass('drag');
         },
@@ -252,127 +270,153 @@ function setupUploader(formElem) {
 }
 
 function setupNewPlaylist() {
-    $('a[href="#new"]').colorbox({
-        inline: true,
-        href: "#newPlaylistBox",
-        returnFocus: false,
-        onComplete: function() {
-            $('input[name=title]', '#newPlaylistForm').focus();
-        },
-        scrolling: false
-    });
-    
-    $('#showPlaylistUpload').click(function() {
-        $('#playlistUpload').show();
-        $('#showPlaylistUpload').hide();
-        $('#newPlaylistForm .colorboxSubmitButtons em').hide();
-        
-        $.colorbox.resize();
-    });
-
-    $('textarea', '#newPlaylistForm')
-        .autogrow($.extend({}, appSettings.autogrow,
-            {onResize: function(elem) {
-                // Ensure that elem had focus before re-setting the focus
-                var elemHadFocus = $(elem).is(':focus');
-                
-                if (elemHadFocus) {
-                    $.colorbox.resize();
-                    $(elem).focus();
-                }
-            },
-            lineHeight: 18
-        })
-    );
-    
-    log(setupUploader('#newPlaylistForm'));
-    
-    var form = $("#newPlaylistForm");
-    form.submit(function(e) {
+    $('a[href="#new"]').click(function(e) {
         e.preventDefault();
-        $('#submitNewPlaylist').attr('disabled', 'disabled'); // only submit form once
-      
-        // Use the jQuery File Upload plugin to submit the new playlist.
-        // We tack on the form parameters to the request that the plugin sends.
-        if (form.data('callBack')) {
-            form.data('callBack')();
-            $('#submitNewPlaylist').removeAttr('disabled');
-        } else {
-            // No file selected, do normal xhr.
-            $.post('/upload', formToDictionary(form), 'json')
-                .success(function(data, textStatus, jqXHR) {
-                    onNewPlaylistResponse(data);
-                })
-                .error(function(data, textStatus, jqXHR) {
-                    alert('Form submission failed. Try reloading the page.');
-                })
-                .complete(function() {
-                    $('#submitNewPlaylist').removeAttr('disabled');
-                });
-        }
+        $.get('/static/colorbox_newPlaylist.html').success(function(markup) {    
+            $.colorbox({
+                html: markup,
+                open: true,
+                returnFocus: false,
+                scrolling: false,
+                onComplete: function() {
+                    var form = $('#newPlaylistForm');
+                    
+                    // Add _xsrf token to form
+                    $('body > input[name="_xsrf"]').clone().appendTo(form);
+                    
+                    $('input[name=title]', form).focus();
+                    
+                    // Show playlist upload controls
+                    $('#showPlaylistUpload').click(function() {
+                        $('#playlistUpload').show();
+                        $('#showPlaylistUpload').hide();
+                        form.filter('.colorboxSubmitButtons em').hide();
+                        $.colorbox.resize();
+                    });
+                    
+                    // Auto-resizing textarea
+                    $('textarea', form)
+                        .autogrow($.extend({}, appSettings.autogrow,
+                            {onResize: function(elem) {
+                                // Ensure that elem had focus before re-setting the focus
+                                var elemHadFocus = $(elem).is(':focus');
+
+                                if (elemHadFocus) {
+                                    $.colorbox.resize();
+                                    $(elem).focus();
+                                }
+                            },
+                            lineHeight: 18
+                        })
+                    );
+                    
+                    // Setup uploader
+                    setupUploader('#newPlaylistForm');
+                    
+                    // Form submit event handler
+                    form.submit(function(e) {
+                        e.preventDefault();
+                        $('#submitNewPlaylist').attr('disabled', 'disabled');
+
+                        // Use the jQuery File Upload plugin to submit the new playlist.
+                        // We tack on the form parameters to the request that the plugin sends.
+                        if (form.data('callBack')) {
+                            form.data('callBack')();
+                        } else {
+                            // No file selected, do normal xhr.
+                            $.ajax('/upload', {
+                                type: 'POST',
+                                data: formToDictionary(form),
+                                dataType: 'json'
+                            })
+                            .success(function(data, textStatus, jqXHR) {
+                                onNewPlaylistResponse(data);
+                            })
+                            .failure(function(data, textStatus, jqXHR) {
+                                onNewPlaylistResponse(null);
+                            });
+                        }
+                    });
+                }
+            });
+        });
     });
 }
 
 function onNewPlaylistResponse(data) {
+    log(data);
     if (data && data.success) {
+        log('hi');
         var playlist = data.result;
-        console.log(playlist);
         player.loadPlaylist(playlist);
         $.colorbox.close();
         if (playlist.songs.length == 0) {
             browser.pushSearchPartial(true);
         }
     } else {
-        errors = data && data.errors;
+        var errors = data && data.errors;
         if (errors) {
-            // TODO: Display validation errors.
+            showErrors(errors);
+        } else {
+            showErrors({'': 'Something went wrong. Try refreshing the page.'});
         }
-    }    
+        $('#submitNewPlaylist').removeAttr('disabled', 'disabled');
+    }
 }
 
 function setupLogin() {
-    $('a[href="#login"]').colorbox({
-        inline: true,
-        href: "#loginBox",
-        returnFocus: false,
-        onComplete: function() {
-            $('input[name=email]', '#login').focus();
-        },
-        scrolling: false
-    });
-    
-    $('#loginSignup a').click(function() {
-        $('#navSignup').click();
-    });
-    
-    var form = $('form#login');
-    form.submit(function(e) {
+    $('a[href="#login"]').click(function(e) {
         e.preventDefault();
-        $('#submitLogin').attr('disabled', 'disabled'); // so the user can only submit the form once
-        
-        instantfm.login({
-            params: formToDictionary(form),
-            onSuccess: function(response) {
-                // everything is ok. (server returned true)
-                if (response && response.success)  {
-                    var session = response.result;
-                    setSession(session);
-                    console.log('Login succeeded.');
-                    $.colorbox.close();
-                // server-side validation failed.
-                } else if (response && response.errors) {
-                    console.log(response.errors)
-                    $.colorbox.resize();
-                    $('input[name=password]', '#login').focus();
+        $.get('/static/colorbox_login.html').success(function(markup) {    
+            $.colorbox({
+                html: markup,
+                open: true,
+                returnFocus: false,
+                scrolling: false,
+                onComplete: function() {
+                    var form = $('#login');
+                    $('input[name=email]', form).focus();
+                    
+                    // Sign up link event handler
+                    $('#loginSignup a').click(function() {
+                        $('#navSignup').click();
+                    });
+
+                    form.submit(function(e) {
+                        e.preventDefault();
+                        $('#submitLogin').attr('disabled', 'disabled');
+
+                        instantfm.login({
+                            params: formToDictionary(form),
+                            onSuccess: function(response) {
+                                // everything is ok. (server returned true)
+                                if (response && response.success)  {
+                                    var session = response.result;
+                                    setSession(session);
+                                    tts('Hello '+session.user.name);
+                                    $.colorbox.close();
+                                    log('Login succeeded.');
+                                    
+                                // server-side validation failed.
+                                } else if (response && response.errors) {
+                                    showErrors(response.errors)
+                                    $.colorbox.resize();
+                                    $('input[name=password]', form).focus();
+                                }
+                                $('#submitLogin').removeAttr('disabled');
+                            },
+                            onException: function() {
+                                showErrors({'': 'Something went wrong. Try refreshing the page.'})
+                                $('#submitLogin').removeAttr('disabled');
+                            },
+                        });
+                    });
                 }
-                $('#submitLogin').removeAttr('disabled');
-            },
-            onException: function() {
-                log('Error posting login ;_;');
-                $('#submitLogin').removeAttr('disabled');
-            },
+            });
         });
     });
+    
+
 }
 
 function setupLogout() {
@@ -390,7 +434,7 @@ function setupSignup() {
     $('a[href="#signUp"]').click(function(e) {
         e.preventDefault();
         $.get('/static/colorbox_signup.html').success(function(markup) {    
-            $('#navSignup').colorbox({
+            $.colorbox({
                 html: markup,
                 open: true,
                 returnFocus: false,
@@ -445,7 +489,7 @@ function onFBConnect(event) {
                 onSuccess: function(is_registered) {
                     if (is_registered) {
                         form.hide();
-                        showErrors(form, {'': 'This Facebook user is already registered on Instant.fm. Try logging in instead.'});
+                        showErrors({'': 'This Facebook user is already registered on Instant.fm. Try logging in instead.'});
                         return;
                     }
                 }
@@ -484,7 +528,7 @@ function onFBConnect(event) {
 
                         } else if (response && response.errors) {
                             // server-side validation failed.
-                            showErrors(form, response.errors);
+                            showErrors(response.errors);
                             $.colorbox.resize();
                         }
                         $('#submitFbSignupForm').removeAttr('disabled');
@@ -512,12 +556,16 @@ function setupRpc() {
     }); 
 }
 
-function showErrors(form, errors) {
-    var $errors = $(form).find('.errors');
-    $.each(errors, function(i, v) {
-        var $p = $('<p></p>').text(v);
+function showErrors(errors) {
+    if (!errors) {
+        return;
+    }
+    var $errors = $('.colorbox .errors').empty();
+    $.each(errors, function(field, msg) {
+        var $p = $('<p></p>').text(field+' '+msg);
         $errors.append($p);
     });
+    $.colorbox.resize();
 }
 
 

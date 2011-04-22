@@ -754,7 +754,7 @@ a:hover .zoomIcon {
 
 .colorbox .subtitle { color: #999; padding-left: 5px; }
 
-.error { color: red; font-weight: bold; }
+.errors { color: red; font-weight: bold; margin: 5px 0; }
 
 
 /* Keyboard Shortcuts Colorbox */
