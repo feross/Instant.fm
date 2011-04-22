@@ -1,6 +1,7 @@
 import functools
 import tornadorpc.json
 import tornado.auth
+import jsonrpclib
 
 import handlers
 import model
@@ -29,7 +30,7 @@ def validated_async_rpc(method):
             if (result.__class__ is not jsonrpclib.jsonrpc.Fault
                 and (result.__class__ is not dict or "success" not in result)):
                 result = {"success": True, "result": result}
-            super(rpc.JsonRpcHandler, self).result(result)
+            super(JsonRpcHandler, self).result(result)
         self.result = result_with_validation
         try:
             method(self, *args, **kwargs)
