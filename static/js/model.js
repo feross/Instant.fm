@@ -19,7 +19,7 @@ Model.prototype.updatePlaylist = function(playlist) {
 
 Model.prototype.isEditable = function() {
 	return isOwner();
-}
+};
 
 // Move song in the playlist
 // @oldIndex - old playlist position

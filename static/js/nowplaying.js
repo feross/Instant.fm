@@ -342,7 +342,7 @@ NowPlaying.prototype.setBackground = function(image_url) {
         bg_style_str = "background-image:url('" + image_url + "');";
     }
     $('#background').attr('style', bg_style_str);
-}
+};
 
 NowPlaying.prototype.updateOpenButtonText = function(text) {
     $('#nowPlayingHeader .right')

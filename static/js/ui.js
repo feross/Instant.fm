@@ -90,7 +90,7 @@ function SongList(playlist, options) {
         $('.playing').removeClass('playing');
         $(this).addClass('playing');
         player.playSongBySearch(song.t, song.a);
-    },
+    };
     this.buttons = [{
         action: function(event, song) {
             player.addSongToPlaylist(song, event);
