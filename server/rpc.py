@@ -73,24 +73,20 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
                      tornado.auth.FacebookGraphMixin):
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, songs=list)
     def update_songlist(self, playlist_id, songs):
         self.db_session.query(model.Playlist).get(playlist_id).songs = songs
         self.db_session.flush()
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, title=unicode)
     def update_title(self, playlist_id, title):
         self.db_session.query(model.Playlist).get(playlist_id).title = title
         self.db_session.flush()
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, description=unicode)
     def update_description(self, playlist_id, description):
         self.db_session.query(model.Playlist).get(playlist_id).description = description
         self.db_session.flush()
 
-    #@type_enforcement.types(fb_id=int)
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it can be called via RPC """
         return False
@@ -98,7 +94,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
     @validated_async_rpc
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, url=unicode)
     def set_image_from_url(self, playlist_id, url):
         self.playlist_id = playlist_id
         http = tornado.httpclient.AsyncHTTPClient()
@@ -108,7 +103,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
 
-    #@type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
     @validated_async_rpc
     def login(self, email, password, remember_me):
         email = email.strip()
@@ -132,7 +126,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         return self.get_current_session().client_visible_attrs
 
     @validated_async_rpc
-    @type_enforcement.types(title=unicode, description=unicode)
     def new_playlist(self, title, description):
         title = title.strip()
         description = description.strip()
@@ -148,7 +141,6 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
-#    @type_enforcement.types(name=unicode, email=unicode, password=unicode,
 #                            fb_id=int, auth_token=int)
     @tornadorpc.async
     @validated_async_rpc
