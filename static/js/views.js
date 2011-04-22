@@ -587,3 +587,32 @@ AlbumView.prototype._updateAlbumImg = function(src, alt) {
         $('.albumImg', this.content).replaceWith($('<span class="albumImg reflect"></span>'));
     }
 };
+
+
+function ProfileView(config) {
+}
+copyPrototype(ProfileView, BaseView);
+
+ProfileView.prototype.willSlide = function() {
+    this.BaseView.prototype.willSlide(this.config);
+};
+
+ProfileView.prototype.didSlide = function() {
+    this.BaseView.prototype.didSlide(this.config);
+};
+
+ProfileView.prototype.willSleep = function() {
+    this.BaseView.prototype.willSleep(this.config);
+};
+
+ProfileView.prototype.willAwake = function() {
+    this.BaseView.prototype.willAwake(this.config);
+};
+
+ProfileView.prototype.didAwake = function() {
+    this.BaseView.prototype.didAwake(this.config);
+};
+
+ProfileView.prototype.willPop = function() {
+    this.BaseView.prototype.willPop(this.config);
+};

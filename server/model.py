@@ -32,6 +32,7 @@ class Playlist(object):
     def _sanitize_songs(self, songs):
         sanitized_songs = []
         url_re = re.compile('^(http://userserve-ak\.last\.fm/|http://images.amazon.com/images/)')
+        cover_images = [];
 
         for song in songs:
             title = song['t'] if song.has_key('t') else None
@@ -48,6 +49,18 @@ class Playlist(object):
                 sanitized_songs.append(new_song)
 
         return sanitized_songs
+    
+    @property
+    def cover_images(self):
+        cover_images = []
+        for song in self.songs:
+            if 'i' in song and song['i'] not in cover_images:
+                cover_images.append(song['i'])
+                if len(cover_images) == 4:
+                    return [re.sub('/34s/', '/174s/', cover_image) 
+                            for cover_image in cover_images]
+        
+        return None
 
     @property
     def songs(self):
