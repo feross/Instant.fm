@@ -546,6 +546,8 @@
         <echo message="Copying over new files..."/>
         <!-- combine the 2 exclude properties -->
         <var name="prod-excluded-files" value="${file.default.exclude}, ${file.jpg.exclude}, ${file.exclude}"/>
+        
+        <delete dir="./${dir.publish}-temp/"/>
 
         <copy todir="./${dir.publish}-temp">
             <fileset dir="${dir.source}/" excludes="${prod-excluded-files}"/>
