@@ -239,6 +239,17 @@ function setupUploader(formElem) {
             $('.file_upload').removeClass('drag');
         }
     });
+    
+    // Improve UI for clients without draganddrop support.
+    if(!Modernizr.draganddrop) {
+        $('#normalUpload span').contents().first().remove(); // Remove the "Or, " text
+        $('#normalUpload span').contents().last().remove(); // Remove the ending "."
+        
+        // Turn upload link into button
+        $('#normalUpload span').contents().first()
+            .addClass('blue large awesome')
+            .css({'text-transform': 'capitalize'});
+    }
 }
 
 function setupNewPlaylist() {
