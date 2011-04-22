@@ -12,6 +12,37 @@ import validation
 class MustOwnPlaylistException(Exception): pass
 
 
+def validated_async_rpc(method):
+    """ Wraps RPC. Method will return dictionary with validation results.
+    
+    This is the hackiest function I ever wrote, but the results are actually 
+    quite nice. It is intended for use as a decorator on RPC methods in a JSON
+    RPC handler. It overrides the handler's result method so that calling 
+    result will actually send a dictionary with a flag indicating whether
+    validation was succesful as well as the result. Also catches any exceptions
+    thrown by a validator in order to return error messages to the client. This
+    is for methods that can return errors that should be displayed to the user.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        def result_with_validation(result):
+            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
+                and (result.__class__ is not dict or "success" not in result)):
+                result = {"success": True, "result": result}
+            super(rpc.JsonRpcHandler, self).result(result)
+        self.result = result_with_validation
+        try:
+            method(self, *args, **kwargs)
+        except ValidationFailedException as e:
+            result = {
+                 "success": False,
+                 "errors": e.errors
+            }
+            self.result(result)
+    wrapper.async = True
+    return wrapper
+
+
 def owns_playlist(method):
     """ Decorator: throws an exception if user doesn't own current playlist
     
@@ -65,7 +96,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         return False
         return self._is_registered_fbid(fb_id)
 
-    @validation.async_and_validated
+    @validated_async_rpc
     @owns_playlist
     @type_enforcement.types(playlist_id=int, url=unicode)
     def set_image_from_url(self, playlist_id, url):
@@ -78,7 +109,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.result(result)
 
     #@type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
-    @validation.async_and_validated
+    @validated_async_rpc
     def login(self, email, password, remember_me):
         email = email.strip()
         validator = validation.Validator(immediate_exceptions=True)
@@ -100,7 +131,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self._log_user_out()
         return self.get_current_session().client_visible_attrs
 
-    @validation.async_and_validated
+    @validated_async_rpc
     @type_enforcement.types(title=unicode, description=unicode)
     def new_playlist(self, title, description):
         title = title.strip()
@@ -120,7 +151,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 #    @type_enforcement.types(name=unicode, email=unicode, password=unicode,
 #                            fb_id=int, auth_token=int)
     @tornadorpc.async
-    @validation.async_and_validated
+    @validated_async_rpc
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
         name = name.strip()
@@ -151,7 +182,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
             access_token=auth_token,
             callback=self.async_callback(self._on_fb_auth))
 
-    @validation.async_and_validated
+    @validated_async_rpc
     def _on_fb_auth(self, user):
         validator = validation.Validator(immediate_exceptions=True)
         # TODO: Re-enable this before launch.

@@ -10,6 +10,7 @@ import Image
 import urllib2
 import hashlib
 
+import validation
 import utils
 import model
 
@@ -250,16 +251,18 @@ class AlbumHandler(PlaylistHandlerBase):
 class UploadHandler(PlaylistHandlerBase):
 
     """ Handles playlist upload requests """
+    
+    def _has_uploaded_files(self):
+        files = self.request.files
+        if 'file' not in files or len(files['file']) == 0:
+            return False
+        return True
 
     def _get_request_content(self):
-        files = self.request.files['file']
-        if files is None or len(files) == 0:
-            raise ValueError('No uploaded file for key "playlist"')
-        file = files[0]
+        file = self.request.files['file'][0]
         filename = file['filename']
         contents = file['body']
         return (filename, contents)
-
 
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -357,7 +360,8 @@ class UploadHandler(PlaylistHandlerBase):
 
         return res_arr
 
-    def _handle_request(self, filename, contents):
+    def _parse_songs_from_uploaded_file(self):
+        (filename, contents) = self._get_request_content()
         ext = os.path.splitext(filename)[1]
 
         # Parse the file based on the format
@@ -375,14 +379,25 @@ class UploadHandler(PlaylistHandlerBase):
 
         return songs
 
+
+    @validation.validated
     def post(self):
-        title = self.get_argument('title', strip=True)
+        """ Handles the "New Playlist" form post.
+        
+        This can't be JSON RPC because of the file uploading.
+        """
+        validator = validation.Validator(immediate_exceptions=True)
+        title = self.get_argument('title', default='', strip=True)
+        validator.add_rule(title, 'Title', min_length=1)
         description = self.get_argument('description', default=None, strip=True)
-        (filename, contents) = self._get_request_content()
-        try:
-            songs = self._handle_request(filename, contents)
-        except UnsupportedFormatException:
-            self.write(json.dumps({"result": "Unsupported format"}))
+        songs = []
+        
+        if self._has_uploaded_files():
+            try:
+                songs = self._parse_songs_from_uploaded_file()
+            except UnsupportedFormatException:
+                validator.error('Unsupported format.')
+        
         playlist = model.Playlist(title)
         playlist.description = description
         playlist.songs = songs
@@ -391,7 +406,7 @@ class UploadHandler(PlaylistHandlerBase):
         self.db_session.add(playlist)
         
         self.set_header("Content-Type", "application/json")
-        self.write(playlist.json)
+        return playlist.client_visible_attrs;
 
 
 class TTSHandler(PlaylistHandlerBase):
