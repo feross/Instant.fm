@@ -276,7 +276,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
     } else {
         // Need absolute URL for FB share
-        data.albumImg = 'http://dev.instant.fm/images/unknown.jpg';
+        data.albumImg = 'http://instant.fm/images/unknown.jpg';
         data.albumAlt = 'Unknown album';
     }
     
@@ -284,7 +284,7 @@ NowPlaying.prototype.renderAlbumBlock = function(data) {
         data.artistHref = '/'+canonicalize(data.artistName);
     }
     
-    data.songHref = 'http://dev.instant.fm'+model.playlist.url;
+    data.songHref = 'http://instant.fm'+model.playlist.url;
     if (data.ytId) {
         data.songHref += '?share=1&yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg)+'&track='+encodeURIComponent(data.trackName)+'&artist='+encodeURIComponent(data.artistName);
         log(data.songHref);
