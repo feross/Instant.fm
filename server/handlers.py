@@ -365,6 +365,7 @@ class UploadHandler(PlaylistHandlerBase):
         ext = os.path.splitext(filename)[1]
 
         # Parse the file based on the format
+        songs = None
         if ext == ".m3u" or ext == ".m3u8":
             songs = self._parseM3U(contents)
 
@@ -374,7 +375,7 @@ class UploadHandler(PlaylistHandlerBase):
         elif ext == ".pls":
             songs = self._parse_pls(contents)
 
-        else:
+        if songs is None:
             raise(UnsupportedFormatException())
 
         return songs
