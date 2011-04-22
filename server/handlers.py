@@ -408,7 +408,17 @@ class UploadHandler(PlaylistHandlerBase):
         
         self.set_header("Content-Type", "application/json")
         return playlist.client_visible_attrs;
-
+    
+    
+class ProfileHandler(HandlerBase):
+    def get(self, requested_user_name):
+        user = (self.db_session.query(model.User)
+                   .filter_by(profile=requested_user_name)
+                   .one())
+        playlists = [playlist.client_visible_attrs 
+                     for playlist in user.playlists];
+        self.write(json.dumps(playlists))
+ 
 
 class TTSHandler(PlaylistHandlerBase):
     q = None
