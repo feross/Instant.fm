@@ -9,20 +9,11 @@
 
   <!-- Page Info -->
   <title>{{ title if title is not None else 'Instant.fm' }}</title>
-  <meta name="description" content="{% if share %}Listen to {{ escape(share['track']) }} by {{share['artist']}} and the rest of the {{ playlist.title }} playlist at http://instant.fm{{ playlist.url }}{% elif playlist and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}">
+  <meta name="description" content="{% block meta-description %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}">
   <meta name="keywords" content="music, playlist, share M3U playlist, share music, social music, social playlists">
 
   <!-- Open Graph -->
-  {% if share %}
-  <meta property="og:title" content="{{ share['track'] + ' by ' + share['artist'] }}" />
-  <meta property="og:type" content="song" />
-  <meta property="og:image" content="{{ escape(share['img']) }}" />
-  <meta property="og:url" content="http://dev.instant.fm{{ playlist.url }}?share=1&amp;yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}&amp;track={{ url_escape(share['track']) }}&amp;artist={{ url_escape(share['artist']) }}" />
-  <meta property="og:site_name" content="Instant.fm" />
-  <meta property="og:video" content="http://www.youtube.com/v/{{ escape(share['yt']) }}?autoplay=1&amp;fs=1&amp;rel=0" />
-  <meta property="og:video:height" content="259" />
-  <meta property="og:video:width" content="398" />
-  {% end %}
+  {% block open-graph %}{% end %}
   
   <meta property="fb:app_id" content="114871205247916"/>
   
