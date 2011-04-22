@@ -6,7 +6,9 @@ h1,h2,h3,h4,h5,h6 { font-weight: bold; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
 a:hover { color: #499bd1; text-decoration: underline; }
 
-html { overflow: hidden; }
+html#home { overflow-y: auto; }
+html#p { overflow: hidden; overflow-y: hidden; overflow-x: hidden; }
+
 textarea { resize: none; overflow: auto; } 
 .pointer { cursor: pointer; }
 input[type=button], input[type=submit], button { border: 0; }
@@ -32,11 +34,48 @@ h6 { font-size: 10px; }
 
 /* Home Page */
 
+#home #logo img { width: 680px; height: 190px; }
+
 #home #main { margin: 20px auto 0 auto; width: 1000px; text-align: center; }
 
 #home #actions { margin-top: 20px; }
 
-#home #footer { margin: 440px 0 10px 0; }
+#home #footer { margin: 50px 0 10px 0; }
+
+
+/* Home Page Showcase */
+
+#showcase { margin-top: 10px; }
+
+#showcase .playlist {
+    background: #fff;
+    float: left;
+    height: 219px;
+    margin: 40px 14px;
+    width: 219px;
+    
+    -moz-box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 5px 5px rgba(0,0,0,0.6);
+    box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+}
+
+#showcase .playlist img {
+    float: left;
+    height: 105px;
+    margin: 3px;
+    width: 105px;
+}
+
+#showcase .playlist img.two { margin-left: 0; }
+#showcase .playlist img.three { margin-top: 0; }
+#showcase .playlist img.four { margin-left: 0; margin-top: 0; }
+
+#showcase .playlist h1 {
+    color: #fff;
+    font-size: 16px;
+    margin: 13px 0 0 0;
+    text-align: center;
+}
 
 /* Playlist Page */
 
@@ -752,7 +791,7 @@ a:hover .zoomIcon {
     width: 190px;
 }
 
-#normalUpload #file {
+#file {
     cursor: pointer;
     height: 15px;
     left: 0;
@@ -760,6 +799,11 @@ a:hover .zoomIcon {
     top: 0;
     width: 240px;
     z-index: 2;
+    direction: rtl;
+    font-size: 50px;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
+    opacity: 0;
 }
 
 #normalUpload {

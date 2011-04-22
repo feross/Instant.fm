@@ -290,7 +290,7 @@ function setupNewPlaylist() {
                     $('#showPlaylistUpload').click(function() {
                         $('#playlistUpload').show();
                         $('#showPlaylistUpload').hide();
-                        form.filter('.colorboxSubmitButtons em').hide();
+                        form.find('.colorboxSubmitButtons em').hide();
                         $.colorbox.resize();
                     });
                     

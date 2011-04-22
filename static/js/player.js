@@ -357,7 +357,7 @@ Player.prototype.loadPlaylist = function(playlist) {
     
     if (window.location.href.indexOf('share=1') == -1) {
         if((!Modernizr.history && window.location != playlist.url) ||
-           ($('body').attr('id') == 'home')) {
+           ($('html').attr('id') == 'home')) {
             window.location = playlist.url;
         }
 
@@ -378,7 +378,7 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
  
     model.updatePlaylist(playlist);
-    player.renderPlaylist(playlist);
+    player.renderPlaylistInfo(playlist);
 
     player.playSong(0, true);
     ownershipStatusChanged();
@@ -439,7 +439,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
 }
 
 // Updates the playlist table
-Player.prototype.renderPlaylist = function(playlist) {
+Player.prototype.renderPlaylistInfo = function(playlist) {
     
     // Render Playlist
     $('#playlist').remove(); // clear the playlist
