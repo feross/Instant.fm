@@ -440,8 +440,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     // Render Playlist
     $('#playlist').remove(); // clear the playlist
     
-    this.songlist = new SongList({
-        playlist: playlist,
+    this.songlist = new SongList(playlist, {
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
@@ -597,11 +596,10 @@ Player._playlistFromAlbum = function(album) {
     return playlist;
 }
 
+
 Player._songsFromTrackList = function(trackList) {
-    if (!trackList && trackList.track) {
-        // TODO: View code should not be here! I don't know what this does!
-        $('.songResults', this.content).hide();
-        return;
+    if (!trackList || !trackList.track) {
+        return [];
     }
     
     // It's possible for "track" to be a single track instead of array.
