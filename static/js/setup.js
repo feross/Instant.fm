@@ -203,10 +203,43 @@ function setupFBML() {
     }());
 }
 
-function setupDragDropUploader(dropId, callback) {
-    if (Modernizr.draganddrop) {
-        new uploader(dropId, null, '/upload', null, callback);
-    }
+function setupUploader(formElem) {
+    $(formElem).fileUpload({
+        url: '/upload',
+        formData: [{_xsrf: getCookie('_xsrf')}],
+        onProgress: function (event, files, index, xhr, handler) { }, // TODO: Show upload progress
+        onLoad: function (event, files, index, xhr, handler) {
+            log('onload');
+            var json;
+            if (typeof xhr.responseText !== undefined) {
+                json = $.parseJSON(xhr.responseText);
+            } else {
+                // Instead of an XHR object, an iframe is used for legacy browsers:
+                json = $.parseJSON(xhr.contents().text());
+            }
+            $.colorbox.close();
+            player.loadPlaylist(json);
+        },
+        initUpload: function (event, files, index, xhr, handler, callBack) {
+            // Don't perform an upload immediately.
+            // We call callBack() once the user submits the form.
+            $(formElem).data('callBack', callBack);
+            
+            $('#dragDrop').text(files[index].name);
+            
+            $('.file_upload')
+                .addClass('dropped')
+                .removeClass('drag')
+                .removeClass('documentDrag');
+        },
+        onError: function() {}, // TODO: Add error handling
+        onDragOver: function() {
+            $('.file_upload').addClass('drag');
+        },
+        onDragLeave: function() {
+            $('.file_upload').removeClass('drag');
+        }
+    });
 }
 
 function setupNewPlaylist() {
@@ -227,13 +260,12 @@ function setupNewPlaylist() {
         
         $.colorbox.resize();
     });
-    
+
     $('textarea', '#newPlaylistForm')
         .autogrow($.extend({}, appSettings.autogrow,
             {onResize: function(elem) {
                 // Ensure that elem had focus before re-setting the focus
                 var elemHadFocus = $(elem).is(':focus');
-                log(elemHadFocus);
                 
                 if (elemHadFocus) {
                     $.colorbox.resize();
@@ -244,40 +276,33 @@ function setupNewPlaylist() {
         })
     );
     
-    var form = $("form#newPlaylistForm");
+    log(setupUploader('#newPlaylistForm'));
+    
+    var form = $("#newPlaylistForm");
     form.submit(function(e) {
-        // prevent default form submission logic
         e.preventDefault();
-        $('#submitNewPlaylist').attr('disabled', 'disabled'); // so the user can only submit the form once
+        $('#submitNewPlaylist').attr('disabled', 'disabled'); // only submit form once
       
-        instantfm.new_playlist({
-            params: formToDictionary(form),
-            onSuccess: function(response) {
-                if (response && response.success)  {
-                    var playlist = response.result;
+        // Use the jQuery File Upload plugin to submit the new playlist.
+        // We tack on the form parameters to the request that the plugin sends.
+        if (form.data('callBack')) {
+            form.data('callBack')();
+            $('#submitNewPlaylist').removeAttr('disabled');
+        } else {
+            // No file selected, do normal xhr.
+            $.post('/upload', {dataType: 'json'})
+                .success(function(data, textStatus, jqXHR) {
                     $.colorbox.close();
                     player.loadPlaylist(playlist);
                     browser.pushSearchPartial(true);
-                    
-                    // Clear form fields (after colorbox closes)
-                    window.setTimeout(function() {
-                        $('textarea', '#newPlaylistForm').val('');
-                    }, 300);
-                    
-                } else if (response && response.errors) {
-                    // server-side validation failed.
-                    if (response && response.errors) {
-                        // TODO: Display validation errors
-                        $.colorbox.resize();
-                    }
-                }
-                $('#submitNewPlaylist').removeAttr('disabled');
-            },
-            onException: function() {
-                log('Error posting new playlist form ;_;');
-                $('#submitNewPlaylist').removeAttr('disabled');
-            },
-        });
+                })
+                .error(function(data, textStatus, jqXHR) {
+                    alert('Playlist creation failed.');
+                })
+                .complete(function() {
+                    $('#submitNewPlaylist').removeAttr('disabled');
+                });
+        }
     });
 }
 
