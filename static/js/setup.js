@@ -7,7 +7,7 @@
 // }
 jQuery.extend(jQuery.expr[':'], {
     focus: function(element) { 
-        return element == document.activeElement; 
+        return element === document.activeElement; 
     }
 });
 
@@ -148,7 +148,7 @@ function setupKeyboardShortcuts() {
                     
                 // Fun
                 case 76: // l
-                	if ($('#playlist .playing').length) {
+                    if ($('#playlist .playing').length) {
                 	    player.highlightSong('.playing', '#playlistDiv');
                 	}
                     break;
@@ -402,14 +402,14 @@ function setupLogin() {
                                     
                                 // server-side validation failed.
                                 } else if (response && response.errors) {
-                                    showErrors(response.errors)
+                                    showErrors(response.errors);
                                     $.colorbox.resize();
                                     $('input[name=password]', form).focus();
                                 }
                                 $('#submitLogin').removeAttr('disabled');
                             },
                             onException: function() {
-                                showErrors({'': 'Something went wrong. Try refreshing the page.'})
+                                showErrors({'': 'Something went wrong. Try refreshing the page.'});
                                 $('#submitLogin').removeAttr('disabled');
                             },
                         });
