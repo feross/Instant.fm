@@ -445,7 +445,7 @@ function onFBConnect(event) {
                 onSuccess: function(is_registered) {
                     if (is_registered) {
                         form.hide();
-                        showErrors(form, {'TODO': 'This Facebook user is already registered on Instant.fm. Try logging in instead.'});
+                        showErrors(form, {'': 'This Facebook user is already registered on Instant.fm. Try logging in instead.'});
                         return;
                     }
                 }
@@ -513,11 +513,11 @@ function setupRpc() {
 }
 
 function showErrors(form, errors) {
+    var $errors = $(form).find('.errors');
     $.each(errors, function(i, v) {
-        log(i + " " + v);
+        var $p = $('<p></p>').text(v);
+        $errors.append($p);
     });
-    
-    //$(form).find('.errors');
 }
 
 
