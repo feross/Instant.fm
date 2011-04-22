@@ -6,5 +6,5 @@ command=python server.py --port=%(process_num)s
 environment=PYTHON_EGG_CACHE='/tmp/python-eggs'
 redirect_stderr=true
 stdout_logfile=/home/feross/www/log/instant.fm/access-%(process_num)s.log
-numprocs=4
+numprocs=1
 numprocs_start=7000
