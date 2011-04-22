@@ -119,6 +119,9 @@ function canonicalize(name) {
         .replace(r, '-')
         .toLowerCase()
         .split('-');
+    if (words[words.length - 1] === '') {
+        words.splice(words.length - 1, 1);
+    }
     for (var i = 0; i < words.length; i++) {
         words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
     }
