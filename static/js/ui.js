@@ -100,6 +100,7 @@ function SongList(playlist, options) {
         text: 'Add to Playlist'
     }], 
     this.isNumbered = false;
+    this.startingLen = 10; // Number of songs to show before user hits "more"
     $.extend(this, options);
     
     var that = this;
