@@ -216,8 +216,7 @@ function setupUploader(formElem) {
                 // Instead of an XHR object, an iframe is used for legacy browsers:
                 json = $.parseJSON(xhr.contents().text());
             }
-            $.colorbox.close();
-            player.loadPlaylist(json);
+            onNewPlaylistResponse(json);
         },
         initUpload: function (event, files, index, xhr, handler, callBack) {
             // Don't perform an upload immediately.
@@ -302,16 +301,7 @@ function setupNewPlaylist() {
             // No file selected, do normal xhr.
             $.post('/upload', formToDictionary(form), 'json')
                 .success(function(data, textStatus, jqXHR) {
-                    if (data && data.success) {
-                        var playlist = data.result;
-                        player.loadPlaylist(playlist);
-                        $.colorbox.close();
-                        if (playlist.songs.length == 0) {
-                            browser.pushSearchPartial(true);
-                        }
-                    } else {
-                        // TODO: Display validation errors.
-                    }
+                    onNewPlaylistResponse(data);
                 })
                 .error(function(data, textStatus, jqXHR) {
                     alert('Form submission failed. Try reloading the page.');
@@ -321,6 +311,23 @@ function setupNewPlaylist() {
                 });
         }
     });
+}
+
+function onNewPlaylistResponse(data) {
+    if (data && data.success) {
+        var playlist = data.result;
+        console.log(playlist);
+        player.loadPlaylist(playlist);
+        $.colorbox.close();
+        if (playlist.songs.length == 0) {
+            browser.pushSearchPartial(true);
+        }
+    } else {
+        errors = data && data.errors;
+        if (errors) {
+            // TODO: Display validation errors.
+        }
+    }    
 }
 
 function setupLogin() {
