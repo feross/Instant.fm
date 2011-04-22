@@ -88,8 +88,11 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
     
+    log(isUserInitiated);
     if (!isUserInitiated) {
         showDesktopNotification(song.i, title, artist);
+    } else {
+        window.webkitNotifications.requestPermission();
     }
 
     player.playSongBySearch(title, artist, player.songIndex);
@@ -353,7 +356,8 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
     
     if (window.location.href.indexOf('share=1') == -1) {
-        if(!Modernizr.history && window.location != playlist.url) {
+        if((!Modernizr.history && window.location != playlist.url) ||
+           ($('html').attr('id') == 'home')) {
             window.location = playlist.url;
         }
 
@@ -374,7 +378,7 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
  
     model.updatePlaylist(playlist);
-    player.renderPlaylist(playlist);
+    player.renderPlaylistInfo(playlist);
 
     player.playSong(0, true);
     ownershipStatusChanged();
@@ -435,7 +439,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
 }
 
 // Updates the playlist table
-Player.prototype.renderPlaylist = function(playlist) {
+Player.prototype.renderPlaylistInfo = function(playlist) {
     
     // Render Playlist
     $('#playlist').remove(); // clear the playlist

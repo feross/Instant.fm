@@ -6,7 +6,9 @@ h1,h2,h3,h4,h5,h6 { font-weight: bold; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
 a:hover { color: #499bd1; text-decoration: underline; }
 
-html { overflow: hidden; }
+html#home { overflow-y: auto; }
+html#p { overflow: hidden; overflow-y: hidden; overflow-x: hidden; }
+
 textarea { resize: none; overflow: auto; } 
 .pointer { cursor: pointer; }
 input[type=button], input[type=submit], button { border: 0; }
@@ -14,15 +16,11 @@ input[type=button], input[type=submit], button { border: 0; }
 ::selection { background:#499bd1; color:#fff; text-shadow: none; }
 
 body {
-    background: #080808 url('/images/bob-marley.jpg') no-repeat fixed center top;
-    text-align: center;
+    background: #080808 url('/images/bg2.jpg') top center no-repeat;
+/*    background: #080808 url('/images/bg.jpg') top left repeat;*/
 }
 
-body#p {
-    background: #000 url('/images/bg.jpg') top left repeat;
-}
-
-body, .ui-widget { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important; }
+body, .ui-widget { font-family: sans-serif !important; }
 
 #container { margin: 0 auto; position: relative; text-align: left; width: 1000px; }
 
@@ -36,68 +34,48 @@ h6 { font-size: 10px; }
 
 /* Home Page */
 
-#home #container { margin: 100px auto; width: 550px; }
+#home #logo img { width: 680px; height: 190px; }
 
-#home #header { height: 115px; width: 550px; }
+#home #main { margin: 20px auto 0 auto; width: 1000px; text-align: center; }
 
-#uploadDiv {
-    background-color: #333;
-    -webkit-border-radius: 15px;
-    -moz-border-radius: 15px;
-    border-radius: 15px;
-    height: 72px;
-    margin: 30px 5px;
-}
+#home #actions { margin-top: 20px; }
 
-#home small { color: #666; display: block; font-size: 13px; margin: 40px auto; text-align: center; }
-#home #footer { margin: 40px 0 10px 0; }
+#home #footer { margin: 50px 0 10px 0; }
 
-#upload { cursor: pointer; overflow: hidden; position: relative; }
 
-#fakefile {
-    cursor: pointer;
-    left: 20px;
-	position: absolute;
-	top: 20px;
-	z-index: 1;
-}
+/* Home Page Showcase */
 
-#fakeinput {
-    background-color: #fff;
-	-moz-border-radius: 3px; 
-	-webkit-border-radius: 3px;
-	border-radius: 3px;
-	-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-	-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-	box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-	border-bottom: 1px solid rgba(0,0,0,0.25);
-	color: #aaa;
-	cursor: pointer;
+#showcase { margin-top: 10px; }
+
+#showcase .playlist {
+    background: #fff;
     float: left;
-    font-size: 15px;
-    height: 18px;
-    padding: 7px 0 5px 8px;
-    margin: 0 10px 0 0;
-    width: 325px;
+    height: 219px;
+    margin: 40px 14px;
+    width: 219px;
+    
+    -moz-box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 2px 5px 5px rgba(0,0,0,0.6);
+    box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
 }
 
-#fakefile .awesome { float: left; width: 128px; }
-#fakefile .awesome:hover { background-color: #e33100; } /* No hover for file upload button */
-
-input.file {
-    cursor: pointer;
-    direction: rtl;
-    font-size: 150px;
-    height: 60px;
-    right: 0;
-    -moz-opacity: 0;
-    filter: alpha(opacity: 0);
-    opacity: 0;
-	position: relative;
-	top: 10px;
-	z-index: 2;
+#showcase .playlist img {
+    float: left;
+    height: 105px;
+    margin: 3px;
+    width: 105px;
 }
 
+#showcase .playlist img.two { margin-left: 0; }
+#showcase .playlist img.three { margin-top: 0; }
+#showcase .playlist img.four { margin-left: 0; margin-top: 0; }
+
+#showcase .playlist h1 {
+    color: #fff;
+    font-size: 16px;
+    margin: 13px 0 0 0;
+    text-align: center;
+}
 
 /* Playlist Page */
 
@@ -754,7 +732,7 @@ a:hover .zoomIcon {
 
 .colorbox .subtitle { color: #999; padding-left: 5px; }
 
-.error { color: red; font-weight: bold; }
+.errors { color: red; font-weight: bold; margin: 5px 0; }
 
 
 /* Keyboard Shortcuts Colorbox */
@@ -813,7 +791,7 @@ a:hover .zoomIcon {
     width: 190px;
 }
 
-#normalUpload #file {
+#file {
     cursor: pointer;
     height: 15px;
     left: 0;
@@ -821,6 +799,11 @@ a:hover .zoomIcon {
     top: 0;
     width: 240px;
     z-index: 2;
+    direction: rtl;
+    font-size: 50px;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
+    opacity: 0;
 }
 
 #normalUpload {
@@ -843,6 +826,8 @@ a:hover .zoomIcon {
 }
 
 /* Signup Colorbox - Step 1 */
+
+#signupStep1 { text-align: center; }
 
 #fbSignupPitch { font-size: 15px; margin: 12px 3px 0 3px; }
 
@@ -1391,7 +1376,8 @@ a.artistResult:hover, a.albumResult:hover {
 .loggedIn .mustLogout, 
 .loggedOut .mustLogin,
 .isNotOwner .mustOwn,
-.isOwner .mustNotOwn {
+.isOwner .mustNotOwn,
+#home .hideOnHome {
     display: none !important;
 }
 

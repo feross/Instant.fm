@@ -59,12 +59,12 @@ class Validator(object):
     def _check_email(self, value, name):
         email_regex = re.compile('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$')
         if None == email_regex.match(value):
-            self.error("Must be a valid email.", name)
+            self.error("must be a valid email address.", name)
 
     def _check_min_length(self, value, name, min_length):
         if len(value) < min_length:
-            self.error("Must be at least {0} characters.".format(min_length), name)
+            self.error("must be at least {0} characters.".format(min_length), name)
 
     def _check_max_length(self, value, name, max_length):
         if len(value) > max_length:
-            self.error("Must be at most {0} characters.".format(max_length), name)
+            self.error("must be at most {0} characters.".format(max_length), name)

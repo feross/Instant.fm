@@ -117,10 +117,10 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
         user = self.db_session.query(model.User).filter_by(email=email).first()
         if not user:
-            validator.error('No user with that email found.', 'Email')
+            validator.error('No user with that email found.')
 
         if not self._verify_password(password, user.password):
-            validator.error('Incorrect password.', 'Password')
+            validator.error('Password is incorrect.')
 
         # If we haven't failed out yet, the login is valid.
         self._log_user_in(user, expire_on_browser_close=(not remember_me))

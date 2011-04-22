@@ -1,7 +1,7 @@
 <div class="colorbox" id="newPlaylistBox">
   <header>New Playlist</header>
   
-  <div class="error" id="newPlaylistErrors"></div>
+  <div class="errors"></div>
   
   <form id="newPlaylistForm" method="POST">
     
@@ -35,6 +35,5 @@
       <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Finish">
     </div>
     
-    {{ xsrf_form_html() }}
   </form>
 </div>
