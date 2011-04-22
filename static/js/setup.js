@@ -399,7 +399,7 @@ function setupLogin() {
                                     
                                     // If we session-own the current playlist, promote it
                                     // client-side so we user-own it too.
-                                    if (model.playlist.user.id == model.session.user.id) {
+                                    if (model.playlist.session_id == model.session.id) {
                                         model.playlist.user = model.session.user;
                                     }
                                     
