@@ -82,7 +82,9 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     
     // Empty playlist?
     if (!song) {
-        $('#navSearch').click(); // show search for empty playlists
+        if (isOwner()){
+            $('#navSearch').click(); // show search for empty playlists
+        }
         return;
     }
         
