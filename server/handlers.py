@@ -10,6 +10,7 @@ import Image
 import urllib2
 import hashlib
 
+import validation
 import utils
 import model
 
@@ -73,8 +74,8 @@ class HandlerBase(tornado.web.RequestHandler):
         session = self.get_current_session()
         user = self.get_current_user()
 
-        return ((session.id is not None and str(session.id) == playlist.session_id)
-                or (user is not None and user.id == playlist.user_id))
+        return ((session.id is not None and str(session.id) == str(playlist.session_id))
+                or (user is not None and str(user.id) == str(playlist.user_id)))
 
     def _log_user_in(self, user, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
@@ -125,33 +126,6 @@ class PlaylistHandlerBase(HandlerBase):
 
     def _is_partial(self):
         return self.get_argument('partial', default=False)
-
-
-class UploadHandlerBase(HandlerBase):
-    def _get_request_content(self):
-        # If the file is directly uploaded in the POST body
-        # Make a dict of the headers with all lowercase keys
-        lower_headers = dict([(key.lower(), value) for (key, value) in self.request.headers.items()])
-        if 'up-filename' in lower_headers:
-            filename = lower_headers['up-filename']
-
-            if self.get_argument('base64', 'false') == 'true':
-                try:
-                    contents = base64.b64decode(self.request.body)
-                except:
-                    return {'status': 'Invalid request'}
-            else:
-                contents = self.request.body
-        # If the file is in form/multipart data
-        else:
-            if 'file' not in self.request.files or len(self.request.files['file']) == 0:
-                return {'status': 'No file specified'}
-
-            uploaded_file = self.request.files['file'][0]
-            filename = uploaded_file['filename']
-            contents = uploaded_file['body']
-
-        return (filename, contents)
 
 
 class UserHandlerBase(HandlerBase):
@@ -274,9 +248,21 @@ class AlbumHandler(PlaylistHandlerBase):
                                    album_name=album_name)
 
 
-class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
+class UploadHandler(PlaylistHandlerBase):
 
     """ Handles playlist upload requests """
+    
+    def _has_uploaded_files(self):
+        files = self.request.files
+        if 'file' not in files or len(files['file']) == 0:
+            return False
+        return True
+
+    def _get_request_content(self):
+        file = self.request.files['file'][0]
+        filename = file['filename']
+        contents = file['body']
+        return (filename, contents)
 
     def _parseM3U(self, contents):
         f = io.StringIO(contents.decode('utf-8'), newline=None)
@@ -374,8 +360,9 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
 
         return res_arr
 
-    def _handle_request(self, filename, contents):
-        title, ext = os.path.splitext(filename)
+    def _parse_songs_from_uploaded_file(self):
+        (filename, contents) = self._get_request_content()
+        ext = os.path.splitext(filename)[1]
 
         # Parse the file based on the format
         if ext == ".m3u" or ext == ".m3u8":
@@ -390,26 +377,38 @@ class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
         else:
             raise(UnsupportedFormatException())
 
+        return songs
+
+
+    @validation.validated
+    def post(self):
+        """ Handles the "New Playlist" form post.
+        
+        This can't be JSON RPC because of the file uploading.
+        """
+        validator = validation.Validator(immediate_exceptions=True)
+        title = self.get_argument('title', default='', strip=True)
+        validator.add_rule(title, 'Title', min_length=1)
+        description = self.get_argument('description', default=None, strip=True)
+        songs = []
+        
+        if self._has_uploaded_files():
+            try:
+                songs = self._parse_songs_from_uploaded_file()
+            except UnsupportedFormatException:
+                validator.error('Unsupported format.')
+        
         playlist = model.Playlist(title)
+        playlist.description = description
         playlist.songs = songs
         playlist.session = self.get_current_session()
         playlist.user = self.get_current_user()
         self.db_session.add(playlist)
-        return playlist
+        self.db_session.flush()
+        
+        self.set_header("Content-Type", "application/json")
+        return playlist.client_visible_attrs;
 
-    def post(self):
-        self.get_current_session()
-        (filename, contents) = self._get_request_content()
-        try:
-            playlist = self._handle_request(filename, contents)
-        except UnsupportedFormatException:
-            self.write(json.dumps({"result": "Unsupported format"}))
-
-        if self.get_argument('redirect', 'false') == 'true':
-            self.redirect(playlist.url)
-        else:
-            self.set_header("Content-Type", "application/json")
-            self.write(playlist.json)
 
 class TTSHandler(PlaylistHandlerBase):
     q = None

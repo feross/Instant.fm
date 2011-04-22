@@ -441,6 +441,7 @@ Player.prototype.renderPlaylist = function(playlist) {
     $('#playlist').remove(); // clear the playlist
     
     this.songlist = new SongList(playlist, {
+        startingLen: null,
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,

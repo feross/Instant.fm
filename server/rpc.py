@@ -12,6 +12,37 @@ import validation
 class MustOwnPlaylistException(Exception): pass
 
 
+def validated_async_rpc(method):
+    """ Wraps RPC. Method will return dictionary with validation results.
+    
+    This is the hackiest function I ever wrote, but the results are actually 
+    quite nice. It is intended for use as a decorator on RPC methods in a JSON
+    RPC handler. It overrides the handler's result method so that calling 
+    result will actually send a dictionary with a flag indicating whether
+    validation was succesful as well as the result. Also catches any exceptions
+    thrown by a validator in order to return error messages to the client. This
+    is for methods that can return errors that should be displayed to the user.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        def result_with_validation(result):
+            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
+                and (result.__class__ is not dict or "success" not in result)):
+                result = {"success": True, "result": result}
+            super(rpc.JsonRpcHandler, self).result(result)
+        self.result = result_with_validation
+        try:
+            method(self, *args, **kwargs)
+        except ValidationFailedException as e:
+            result = {
+                 "success": False,
+                 "errors": e.errors
+            }
+            self.result(result)
+    wrapper.async = True
+    return wrapper
+
+
 def owns_playlist(method):
     """ Decorator: throws an exception if user doesn't own current playlist
     
@@ -42,32 +73,27 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
                      tornado.auth.FacebookGraphMixin):
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, songs=list)
     def update_songlist(self, playlist_id, songs):
         self.db_session.query(model.Playlist).get(playlist_id).songs = songs
         self.db_session.flush()
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, title=unicode)
     def update_title(self, playlist_id, title):
         self.db_session.query(model.Playlist).get(playlist_id).title = title
         self.db_session.flush()
 
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, description=unicode)
     def update_description(self, playlist_id, description):
         self.db_session.query(model.Playlist).get(playlist_id).description = description
         self.db_session.flush()
 
-    #@type_enforcement.types(fb_id=int)
     def is_registered_fbid(self, fb_id):
         """ Wraps the inherited function so it can be called via RPC """
         return False
         return self._is_registered_fbid(fb_id)
 
-    @validation.async_and_validated
+    @validated_async_rpc
     @owns_playlist
-    @type_enforcement.types(playlist_id=int, url=unicode)
     def set_image_from_url(self, playlist_id, url):
         self.playlist_id = playlist_id
         http = tornado.httpclient.AsyncHTTPClient()
@@ -77,8 +103,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         result = self._handle_image(response.buffer, self.playlist_id)
         self.result(result)
 
-    #@type_enforcement.types(email=unicode, password=unicode, remember_me=bool)
-    @validation.async_and_validated
+    @validated_async_rpc
     def login(self, email, password, remember_me):
         email = email.strip()
         validator = validation.Validator(immediate_exceptions=True)
@@ -100,8 +125,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self._log_user_out()
         return self.get_current_session().client_visible_attrs
 
-    @validation.async_and_validated
-    @type_enforcement.types(title=unicode, description=unicode)
+    @validated_async_rpc
     def new_playlist(self, title, description):
         title = title.strip()
         description = description.strip()
@@ -117,10 +141,9 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
-#    @type_enforcement.types(name=unicode, email=unicode, password=unicode,
 #                            fb_id=int, auth_token=int)
     @tornadorpc.async
-    @validation.async_and_validated
+    @validated_async_rpc
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()
         name = name.strip()
@@ -151,7 +174,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
             access_token=auth_token,
             callback=self.async_callback(self._on_fb_auth))
 
-    @validation.async_and_validated
+    @validated_async_rpc
     def _on_fb_auth(self, user):
         validator = validation.Validator(immediate_exceptions=True)
         # TODO: Re-enable this before launch.

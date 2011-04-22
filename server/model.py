@@ -36,14 +36,15 @@ class Playlist(object):
         for song in songs:
             title = song['t'] if song.has_key('t') else None
             artist = song['a'] if song.has_key('a') else None
-            image = song['i'] if song.has_key('i') else None
 
             if title.__class__ == unicode and artist.__class__ == unicode:
                 new_song = {'a': artist, 't': title}
-                if image.__class__ == unicode and url_re.match(image) is not None:
-                    new_song['i'] = image
-                else:
-                    new_song['i'] = None
+                if 'i' in song:
+                    image = song['i']
+                    if image.__class__ == unicode and url_re.match(image) is not None:
+                        new_song['i'] = image
+                    else:
+                        new_song['i'] = None
                 sanitized_songs.append(new_song)
 
         return sanitized_songs

@@ -1,43 +1,33 @@
 import re
 import functools
 import jsonrpclib
-
-import rpc
+import json
 
 
 class ValidationFailedException(Exception):
     def __init__(self, errors):
         self.errors = errors
-
-
-def async_and_validated(method):
+        
+        
+def validated(method):
     """ Wraps a method. Method will return dictionary with validation results.
     
-    This is the hackiest function I ever wrote, but the results are actually 
-    quite nice. It is intended for use as a decorator on RPC methods in a JSON
-    RPC handler. It overrides the handler's result method so that calling 
-    result will actually send a dictionary with a flag indicating whether
-    validation was succesful as well as the result. Also catches any exceptions
-    thrown by a validator in order to return error messages to the client. This
-    is for methods that can return errors that should be displayed to the user.
+    The wrapped function MUST NOT be async and MUST NOT be RPC.
     """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        def result_with_validation(result):
-            if (result.__class__ is not jsonrpclib.jsonrpc.Fault
-                and (result.__class__ is not dict or "success" not in result)):
-                result = {"success": True, "result": result}
-            super(rpc.JsonRpcHandler, self).result(result)
-        self.result = result_with_validation
         try:
-            method(self, *args, **kwargs)
+            returned = method(self, *args, **kwargs)
+            result = {
+                "success": True,
+                "result": returned
+            }
         except ValidationFailedException as e:
             result = {
-                 "success": False,
-                 "errors": e.errors
+                "success": False,
+                "errors": e.errors
             }
-            self.result(result)
-    wrapper.async = True
+        self.write(json.dumps(result))
     return wrapper
 
 
