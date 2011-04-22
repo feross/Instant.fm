@@ -62,7 +62,7 @@ class Playlist(object):
                 if len(self._cover_images) == 4:
                     break
 
-        self._cover_images = [cover_image.replace('/34/', '/174s/') 
+        self._cover_images = [cover_image.replace('/34s/', '/174s/') 
                               for cover_image in self._cover_images]
         return self._cover_images
 
