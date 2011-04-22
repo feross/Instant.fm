@@ -17,8 +17,8 @@ class Application(tornado.web.Application):
 
     def __init__(self):
         url_handlers = [
-            (r"/", handlers.HomeHandler),
             (r"/json-rpc/?$", rpc.JsonRpcHandler),
+            (r"/user/([a-zA-Z0-9-]+)/?$", handlers.ProfileHandler),
             (r"/upload/?$", handlers.UploadHandler),
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
@@ -26,6 +26,7 @@ class Application(tornado.web.Application):
             (r"/([^/]+)/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
             (r"/tts/[0-9a-f]+.mp3$", handlers.TTSHandler),
+            (r"/", handlers.HomeHandler),
             (r".*", handlers.ErrorHandler),
         ]
         tornado.web.Application.__init__(self, url_handlers, **options.tornado_settings)

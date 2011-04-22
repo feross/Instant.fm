@@ -214,10 +214,9 @@ class PlaylistHandler(PlaylistHandlerBase):
     def get(self, playlist_alpha_id):
         playlist_id = utils.base36_10(playlist_alpha_id)
         playlist = self.db_session.query(model.Playlist).get(playlist_id)
-
         if playlist is None:
             return self.send_error(404)
-            return
+        playlist.views += 1
                 
         if self.get_argument('json', default=False):
             self.write(playlist.json())
@@ -409,8 +408,13 @@ class UploadHandler(PlaylistHandlerBase):
         
         self.set_header("Content-Type", "application/json")
         return playlist.client_visible_attrs;
-
-
+    
+    
+class ProfileHandler(PlaylistHandlerBase):
+    def get(self, requested_user_name):
+        self._render_playlist_view('profile.html', playlist=None)
+    
+    
 class TTSHandler(PlaylistHandlerBase):
     q = None
     

@@ -187,9 +187,9 @@ function setSession(session) {
     if (session.user) {
         $('html').addClass('loggedIn');
         $('html').removeClass('loggedOut');
-        log(session.user.name);
         $('.username').text(session.user.name);
-        $('.profileLink').attr('href', session.user.profile_url);
+        $('.profileLink').attr('href', session.user.profile_url)
+                         .attr('title', session.user.name);
     }
     ownershipStatusChanged();
 }

@@ -88,6 +88,9 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		case 'partial album':
 		    view = new AlbumView(config);
 			break;
+		case 'partial profile':
+		    view = new ProfileView(config);
+		    break;
 		case 'partial static': // all static partials
 		    view = new BaseView(config);
 		    break;
