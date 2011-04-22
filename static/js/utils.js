@@ -78,7 +78,7 @@ function scrollTo(selectedElem, _container, _options) {
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
 function cleanSongTitle(title) {
-    return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix|version).*?[\)\]]/gi, '');
+    return title.replace(/[\(\[].*?(id|feat|ft|produce|dirty|clean|edit|mix|version).*?[\)\]]/gi, '');
 }
 
 // Remove all html tags
