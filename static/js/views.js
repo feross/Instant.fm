@@ -213,10 +213,7 @@ SearchView.prototype._handleSongSearchResults = function(data) {
         return;
     }
     
-    var playlist = {
-        title: "Search results",
-        songs: songs,
-    };
+    var playlist = {songs: songs};
     var songlist = new SongList(playlist);
 
     $('.songResults ul', this.content).remove();

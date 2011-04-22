@@ -619,7 +619,12 @@ Player._songsFromTrackList = function(trackList) {
 
         song.t = songResult.name;
         song.a = (songResult.artist.name ? songResult.artist.name : songResult.artist);
-        song.i = songResult.image && songResult.image[2]['#text'];
+        var image = songResult.image && songResult.image[2]['#text'];
+        if (image !== undefined) {
+            songs.i = image;
+        } else {
+            songs.i = null;
+        }
 
         songs.push(song);
     };
