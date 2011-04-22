@@ -1,5 +1,5 @@
 {% extends "playlist.html" %}
 
 {% block lastfm_playlist_loader %}
-    loadArtistPlaylistByName('{{ artist_name }}');
+    player.loadPlaylistForArtist('{{ artist_name }}');
 {% end %}

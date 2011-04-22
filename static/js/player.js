@@ -397,6 +397,44 @@ Player.prototype.loadPlaylistByUrl = function(url) {
     });
 };
 
+
+// Retrieves an artist's top songs from Last.fm and loads them as a playlist
+Player.prototype.loadPlaylistForArtist = function(artist_name) {
+    var _this_player = this;
+    model.lastfm.artist.getTopTracks({
+        artist: artist_name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+            var playlist = Player._playlistFromArtistTracks(data.toptracks);
+            _this_player.loadPlaylist(playlist);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+} 
+
+
+Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
+    var _this_player = this;
+    model.lastfm.album.getInfo({
+        album: album_title,
+        artist: artist_name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+            var playlist = Player._playlistFromAlbum(data.album);
+            _this_player.loadPlaylist(playlist);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+}
+
 // Updates the playlist table
 Player.prototype.renderPlaylist = function(playlist) {
     
@@ -534,6 +572,59 @@ Player.prototype.highlightSong = function(selector, container, _effect, _effectO
         }
     });
 };
+
+
+Player._playlistFromArtistTracks = function(trackList) {
+    var playlist = {};
+    playlist.artist = trackList['@attr'].artist;
+    playlist.title = playlist.artist + "'s Top Songs";
+    playlist.url = '/' + canonicalize(playlist.artist);
+    playlist.songs = Player._songsFromTrackList(trackList);   
+    return playlist;
+}
+
+
+Player._playlistFromAlbum = function(album) {
+    var playlist = {};
+    playlist.artist = album.artist;
+    playlist.title = '"' + album.name + '" by ' + album.artist;
+    playlist.url = '/' + canonicalize(album.artist) + '/' + canonicalize(album.name);
+    playlist.songs = Player._songsFromTrackList(album.tracks);
+    if (album.image && album.image[0]) {
+        for (var i = 0; i < playlist.songs.length; i++) {
+            playlist.songs[i].i = album.image[0]['#text'];
+        }
+    }
+    return playlist;
+}
+
+Player._songsFromTrackList = function(trackList) {
+    if (!trackList && trackList.track) {
+        // TODO: View code should not be here! I don't know what this does!
+        $('.songResults', this.content).hide();
+        return;
+    }
+    
+    // It's possible for "track" to be a single track instead of array.
+    // If it's a single track, make it an array. This is maybe not the best.
+    if (trackList.track.length === undefined) {
+        trackList.track = [trackList.track];
+    }
+    
+    var songs = [];
+    for (var i = 0; i < trackList.track.length; i++) {
+        var songResult = trackList.track[i];
+        var song = {};
+
+        song.t = songResult.name;
+        song.a = songResult.artist.name;
+        song.i = songResult.image && songResult.image[2]['#text'];
+
+        songs.push(song);
+    };
+    return songs;
+}
+
 
 Player.prototype.tts = function(text) {
     if (!soundManagerLoaded) {

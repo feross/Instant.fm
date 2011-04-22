@@ -107,8 +107,16 @@ class PlaylistHandlerBase(HandlerBase):
     """
 
     def _render_playlist_view(self, template_name, playlist=None, **kwargs):
-        template = ('partial/' if self._is_partial() else '') + template_name
-        self.render(template, is_partial=self._is_partial(), playlist=playlist, **kwargs)
+        share = None
+        if self.get_argument('share', default=False):
+            share = {'yt': self.get_argument('yt'),
+                     'img': self.get_argument('img'),
+                     'track': self.get_argument('track'),
+                     'artist': self.get_argument('artist')}
+        if self._is_partial():
+            template_name = 'partial/' + template_name
+            
+        self.render(template_name, is_partial=self._is_partial(), playlist=playlist, share=share, **kwargs)
 
     def _is_partial(self):
         return self.get_argument('partial', default=False)
@@ -229,22 +237,15 @@ class PlaylistHandler(PlaylistHandlerBase):
         playlist = self.db_session.query(model.Playlist).get(playlist_id)
 
         if playlist is None:
-            self.send_error(404)
+            return self.send_error(404)
             return
                 
         if self.get_argument('json', default=False):
             self.write(playlist.json())
         else:
-            if self.get_argument('share', default=False):
-                share = {'yt': self.get_argument('yt'),
-                         'img': self.get_argument('img'),
-                         'track': self.get_argument('track'),
-                         'artist': self.get_argument('artist')}
-            else:
-                share = False
-            self.render('playlist.html', playlist=playlist, share=share)
+            self._render_playlist_view('playlist.html', playlist=playlist)
 
-
+        
 class SearchHandler(PlaylistHandlerBase):
     def get(self):
         self._render_playlist_view('search.html')
@@ -254,13 +255,18 @@ class ArtistHandler(PlaylistHandlerBase):
     """ Renders an empty artist template """
     def get(self, requested_artist_name):
         artist_name = utils.deurlify(requested_artist_name)
-        self._render_playlist_view('artist.html', artist=None, artist_name=artist_name)
+        self._render_playlist_view('artist.html', 
+                                   artist_name=artist_name)
 
 
 class AlbumHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name, requested_album_name):
         """ Renders an empty album template """
-        self._render_playlist_view('album.html', album=None)
+        artist_name = utils.deurlify(requested_artist_name)
+        album_name = utils.deurlify(requested_album_name)
+        self._render_playlist_view('album.html', 
+                                   artist_name=artist_name, 
+                                   album_name=album_name)
 
 
 class UploadHandler(UploadHandlerBase, PlaylistHandlerBase):
