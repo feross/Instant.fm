@@ -633,7 +633,7 @@
         <echo message="Run htmlcompressor on the HTML"/>
         <echo message=" - maintaining whitespace"/>
         <echo message=" - removing html comments"/>
-        <echo message=" - compressing inline style/script tag contents"/>
+        <echo message=" - compressing inline style/script tag contents (DISABLED inline script compression because it conflicted with Tornado template blocks.)"/>
         <apply executable="java" parallel="false" force="true" dest="./${dir.publish}/" >
             <fileset dir="./${dir.publish}/" includes="${page-files}"/>
             <arg value="-jar"/>
@@ -641,7 +641,7 @@
             <arg line="--type html"/>
             <arg line="--preserve-multi-spaces"/>
             <arg line="--remove-quotes"/>
-            <arg line="--compress-js"/>
+            <!-- <arg line="- -compress-js"/> -->
             <arg line="--compress-css"/>
             <srcfile/>
             <arg value="-o"/>
