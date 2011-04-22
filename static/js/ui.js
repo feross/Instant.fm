@@ -345,7 +345,7 @@ function makeAlbumList(albums) {
 // like a mouse or keuyboard event, it will fail to prompt the user for permission.
 // After we have permission, it's okay to call it anytime without user interaction.
 function showDesktopNotification(image, title, description) {
-    if (window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
+    if (window.webkitNotifications && window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
 
         var notification = window.webkitNotifications.createNotification(
                                image || '/images/unknown.jpg',
@@ -360,6 +360,6 @@ function showDesktopNotification(image, title, description) {
         }, 5000);
         
     } else {
-        window.webkitNotifications.requestPermission();
+        window.webkitNotifications && window.webkitNotifications.requestPermission();
     }
 }
