@@ -201,7 +201,13 @@ class ImageHandlerBase(HandlerBase):
 
 class HomeHandler(HandlerBase):
     def get(self):
-        self.render("index.html", title="Instant.fm - Share Music Instantly")
+        playlists = (self.db_session.query(model.Playlist)
+                       .order_by(model.Playlist.views.desc())
+                       .limit(12)
+                       .all())
+        self.render("index.html", 
+                    title="Instant.fm - Share Music Instantly",
+                    playlists=playlists)
 
 
 class TermsHandler(HandlerBase):

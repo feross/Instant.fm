@@ -612,7 +612,7 @@ ProfileView.prototype._handlePlaylists = function(playlists) {
         if (playlist.songs.length > 0) {
             container.append($('<h1>').text(playlist.title));
             container.append($('<span>').text(playlist.songs.length + ' songs'));
-            container.append($('<a>').text('Play with me')
+            container.append($('<a>').text('Play')
                                      .addClass('playAll')
                                      .attr('href', '#playAll')
                                      .click(function() {
