@@ -34,7 +34,7 @@ def validated_async_rpc(method):
         self.result = result_with_validation
         try:
             method(self, *args, **kwargs)
-        except ValidationFailedException as e:
+        except validation.ValidationFailedException as e:
             result = {
                  "success": False,
                  "errors": e.errors
