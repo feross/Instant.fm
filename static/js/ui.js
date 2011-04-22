@@ -346,11 +346,7 @@ function makeAlbumList(albums) {
 // After we have permission, it's okay to call it anytime without user interaction.
 function showDesktopNotification(image, title, description) {
     if (window.webkitNotifications.checkPermission() == 0) { // 0 is PERMISSION_ALLOWED
-        // Only show notification when the tab doesn't have focus
-        // if (!$('html').hasClass('blurred')) {
-        //     return;
-        // }
-        
+
         var notification = window.webkitNotifications.createNotification(
                                image || '/images/unknown.jpg',
                                title, description);
@@ -367,23 +363,3 @@ function showDesktopNotification(image, title, description) {
         window.webkitNotifications.requestPermission();
     }
 }
-
-if (/*@cc_on!@*/false) { // check for Internet Explorer
-	document.onfocusin = onDocumentFocus;
-	document.onfocusout = onDocumentBlur;
-} else {
-	window.onfocus = onDocumentFocus;
-	window.onblur = onDocumentBlur;
-}
-
-function onDocumentBlur() {
-    $('html')
-        .removeClass('focused')
-        .addClass('blurred');
-};
-
-function onDocumentFocus(){
-    $('html')
-        .removeClass('blurred')
-        .addClass('focused');
-};
