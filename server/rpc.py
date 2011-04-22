@@ -77,8 +77,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         user = (self.db_session.query(model.User)
                    .filter_by(profile=user_profile)
                    .one())
-        self.result([playlist.client_visible_attrs
-                     for playlist in user.playlists])
+        return [playlist.client_visible_attrs for playlist in user.playlists]
 
     @owns_playlist
     def update_songlist(self, playlist_id, songs):

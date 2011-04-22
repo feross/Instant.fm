@@ -245,7 +245,9 @@ NowPlaying.prototype.renderPlaylistInfo = function(playlist) {
             // Add byline
             var byline, bylineContainer = $('#byline').empty();
             if (model.playlist.user.profile_url) {
-                byline = $('<a/>').attr('href', model.playlist.user.profile_url);
+                byline = $('<a/>').attr('href', model.playlist.user.profile_url)
+                                  .attr('title', model.playlist.user.name)
+                                  .attr('rel', 'partial profile');
             } else {
                 byline = $('<span/>');
             }

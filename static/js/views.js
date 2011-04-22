@@ -593,8 +593,41 @@ function ProfileView(config) {
 }
 copyPrototype(ProfileView, BaseView);
 
+ProfileView.prototype._fetchData = function() {
+    var profile = this.config.path.split('/')[2];
+    var that = this;
+    instantfm.get_playlists_for_user({
+        params: [profile],
+        onSuccess: function(data) {
+            that._handlePlaylists(data);
+        }
+    });
+}
+
+ProfileView.prototype._handlePlaylists = function(playlists) {
+    for (var i = 0; i < playlists.length; i++) {
+        var playlist = playlists[i];
+        var songList = new SongList(playlist);
+        var container = $('<div>').addClass('songResults');
+        if (playlist.songs.length > 0) {
+            container.append($('<h1>').text(playlist.title));
+            container.append($('<span>').text(playlist.songs.length + ' songs'));
+            container.append($('<a>').text('Play with me')
+                                     .addClass('playAll')
+                                     .attr('href', '#playAll')
+                                     .click(function() {
+                                        player.loadPlaylist(playlist);
+                                     }));
+            
+            songList.render(container);
+            $(this.content).append(container);
+        }
+    }
+}
+
 ProfileView.prototype.willSlide = function() {
     this.BaseView.prototype.willSlide(this.config);
+    this._fetchData();
 };
 
 ProfileView.prototype.didSlide = function() {
