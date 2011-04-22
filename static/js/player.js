@@ -82,6 +82,7 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     
     // Empty playlist?
     if (!song) {
+        $('#navSearch').click(); // show search for empty playlists
         return;
     }
         
@@ -92,7 +93,7 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     if (!isUserInitiated) {
         showDesktopNotification(song.i, title, artist);
     } else {
-        window.webkitNotifications.requestPermission();
+        window.webkitNotifications && window.webkitNotifications.requestPermission();
     }
 
     player.playSongBySearch(title, artist, player.songIndex);
