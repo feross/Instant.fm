@@ -617,7 +617,7 @@ Player._songsFromTrackList = function(trackList) {
         var song = {};
 
         song.t = songResult.name;
-        song.a = songResult.artist.name;
+        song.a = (songResult.artist.name ? songResult.artist.name : songResult.artist);
         song.i = songResult.image && songResult.image[2]['#text'];
 
         songs.push(song);

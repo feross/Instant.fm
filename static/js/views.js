@@ -204,54 +204,22 @@ SearchView.prototype.search = function(searchString, delay) {
 
 SearchView.prototype._handleSongSearchResults = function(data) {
     var tracks = [];
-    var trackResults = data && data.results && data.results.trackmatches && data.results.trackmatches.track;
-
-    if (!trackResults || !trackResults.length) {
+    var trackResults = data && data.results && data.results.trackmatches;
+    var songs = Player._songsFromTrackList(data.results.trackmatches);
+    
+    if (!songs || !songs.length) {
         $('.songResults', this.content).slideUp();
         this._incNoResults();
         return;
     }
-
-    for (var i = 0; i < trackResults.length; i++) {
-        var trackResult = trackResults[i];
-        var track = {};
-
-        track.t = trackResult.name;
-        track.a = trackResult.artist;
-
-        if (trackResult.image) {
-            track.i = trackResult.image[0]['#text'];
-        } else {
-            track.i = '';
-        }
-
-        tracks.push(track);
+    
+    var playlist = {
+        title: "Search results",
+        songs: songs,
     };
+    var songlist = new SongList(playlist);
 
     $('.songResults ul', this.content).remove();
-    
-    var songlist = new SongList({
-        playlist: {
-            title: 'Search results',
-            description: '',
-            songs: tracks
-        },
-        onClick: function(song) {
-            $('.playing').removeClass('playing');
-            $(this).addClass('playing');
-            player.playSongBySearch(song.t, song.a);
-        },
-        buttons: [{
-            action: function(event, song) {
-                player.addSongToPlaylist(song, event);
-                $(event.target).addClass('dulled');
-            },
-            className: 'awesome small white mustOwn',
-            text: 'Add to Playlist'
-        }],
-        startingLen: 10
-    });
-    
     var $songResults = $('.songResults', this.content);
     songlist.render($songResults);
     $songResults.slideDown();
