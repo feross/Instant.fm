@@ -24,6 +24,7 @@ a.awesome:hover { text-decoration: none; }
     text-shadow: 0 -1px 1px rgba(0,0,0,0.25);
 }
 .large.awesome, .large.awesome:visited          { font-size: 14px; padding: 8px 14px 9px; }
+.extralarge.awesome, .extralarge.awesome:visited{ font-size: 24px; padding: 16px 28px 18px; }
 .green.awesome, .green.awesome:visited          { background-color: #91bd09; }
 .green.awesome:hover                            { background-color: #749a02; }
 .red.awesome, .red.awesome:visited              { background-color: #e33100; }

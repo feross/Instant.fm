@@ -1,27 +1,15 @@
 {% extends "base.html" %}
 
-{% block html-classes %}{% if handler.get_current_user() is not None %}loggedIn{% else %}loggedOut{% end %} {% if handler.owns_playlist(playlist) %}isOwner{% else %}isNotOwner{% end %}{% end %}
-
 {% block bodyId %}p{% end %}
 
-{% block backgroundStyle %}{% if playlist is not None and playlist.image is not None %}background-image:url('{{playlist.image.original}}'){% end %}{% end %}
 {% block body %}
 {% import utils %}
 <div id="container">
   <header class="clearfix" id="header">
     <a class="ir" href="/" id="headerLogo">
-      <h1>Instant.fm - Share Music Playlists Instantly</h1>
+      <h1>Instant.fm - Share Music Instantly</h1>
     </a>
-    <nav>
-      <a id="navNewPlaylist" href="#new">New Playlist</a>
-      <a id="navSearch" href="/search" rel="partial search" title="Search">Search</a>
-      <a class="mustLogout" id="navLogin" href="#login">Log In</a>
-      <a class="mustLogout" id="navSignup" href="#signUp">Sign Up</a>
-      <a href="{{ handler.get_current_user().url if handler.get_current_user() else '' }}" class="mustLogin profileLink username" id="navProfile" href="#profile"> 
-            {{ handler.get_current_user().name if handler.get_current_user() else ''}} 
-      </a>
-      <a class="mustLogin" id="navLogout" href="#logout">Log Out</a>
-    </nav>
+    {% include "partial/headerNav.html" %}
   </header>
   <div class="clearfix" id="main"> 
        
@@ -29,9 +17,9 @@
     
       <div id="videoDiv">
         <div id="player">
-          <noscript>This content requires the Adobe Flash Player. <a href="http://www.adobe.com/go/getflash/">Get Flash</a>.</noscript>
+          <noscript>This content requires Adobe Flash Player. <a href="http://www.adobe.com/go/getflash/">Get Flash</a>.</noscript>
         </div>
-        <h2 id="altPlaylistTitle"></h2>
+        <h2 id="altPlaylistTitle" style="display: none;"></h2>
       </div>
       
       <div id="playlistDiv">
@@ -227,17 +215,12 @@
 {% end %}
 
 {% block scripts %}
-  {% block scripts-partial %}{% end %}
-  <script>
     $(function() {
         onloadPlaylist();
-        setSession({{handler.get_current_session().json}});
         {% if playlist is not None %}
-        player.loadPlaylist({{playlist.json}})
+        player.loadPlaylist({{playlist.json}});
         {% else %}
-            {% block lastfm_playlist_loader %}
-            {% end %}
+            {% block lastfm_playlist_loader %}{% end %}
         {% end %}
     });
-  </script>
 {% end %}

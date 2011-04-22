@@ -201,7 +201,7 @@ class ImageHandlerBase(HandlerBase):
 
 class HomeHandler(HandlerBase):
     def get(self):
-        self.render("index.html", title="Instant.fm, Share Music Instantly")
+        self.render("index.html", title="Instant.fm - Share Music Instantly")
 
 
 class TermsHandler(HandlerBase):

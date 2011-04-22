@@ -206,7 +206,7 @@ function setupFBML() {
           xfbml: true
         });
          
-        model.playlist && nowplaying.tryLoadComments(model.playlist.url);
+        model && model.playlist && nowplaying.tryLoadComments(model.playlist.url);
     };
     
     (function() {
@@ -332,7 +332,7 @@ function setupNewPlaylist() {
                             .success(function(data, textStatus, jqXHR) {
                                 onNewPlaylistResponse(data);
                             })
-                            .failure(function(data, textStatus, jqXHR) {
+                            .error(function(data, textStatus, jqXHR) {
                                 onNewPlaylistResponse(null);
                             });
                         }
@@ -425,8 +425,8 @@ function setupLogout() {
 		instantfm.logout({
 		    onSuccess: function(newSession) { setSession(newSession); }
 		});
-		$('html').removeClass('loggedIn')
-		$('html').addClass('loggedOut')
+		$('html').removeClass('loggedIn');
+		$('html').addClass('loggedOut');
     });
 }
 

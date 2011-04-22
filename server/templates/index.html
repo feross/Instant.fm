@@ -4,47 +4,39 @@
 
 {% block body %}
 <div id="container">
-  <div id="main">
-    <header id="header">
-      <img alt="Instant.fm - Share Music Playlists Instantly" src="/images/logo-large.png" />
-      <span class="ir">Instant.fm - Share Music Playlists Instantly</span>
+    <header class="clearfix" id="header">
+        {% include "partial/headerNav.html" %}
     </header>
-    <div class="clearfix" id="uploadDiv">
-      
-      <div id="upload">
-        <form id="uploadForm" action="/upload?redirect=true" method="POST" enctype="multipart/form-data">
-          <input type="file" class="file" id="file" name="file" />
-          <div id="fakefile">
-            <div id="fakeinput">Choose an M3U or TXT playlist file.</div>
-      			<a class="large red awesome">Upload a playlist &raquo;</a>
-          </div>
-          {{ xsrf_form_html() }}
-        </form>
-      </div>
+    <div class="clearfix" id="main">
+        <header id="header">
+            <img alt="Instant.fm - Share Music Instantly" src="/images/logo-home.png" />
+            <span class="ir">Instant.fm - Share Music Playlists Instantly</span>
+        </header>
+        <div id="actions">
+            <a href="#new" class="awesome red extralarge">Create a New Playlist</a>
+        </div>
+    </div>
+    <div id="showcase">
+        <div class="playlist">
+            
+        </div>
     </div>
     
-    <small>
-      Or, you can drag and drop files onto this page.
-    </small>
-        
-    
-  </div>
-  <footer id="footer">
-    <nav>
-      <a href="/">Instant.fm</a>
-      <a href="#">FAQ</a>
-      <a href="#">Blog</a>
-      <a href="#">Contact</a>
-    </nav>
-  </footer>
+    <footer id="footer">
+      <nav>
+        <div class="left">
+          <span class="byline">Created by Feross Aboukhadijeh and Jake Becker from Stanford.</span>
+        </div>
+        <div class="right">
+        </div>
+      </nav>
+    </footer>
 </div> <!-- end of #container -->
 
 {% end %}
 
 {% block scripts %}
-  <script>
     $(function() {
-      onloadHome();
+        onloadHome();
     });
-  </script>
 {% end %}

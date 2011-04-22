@@ -356,7 +356,8 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
     
     if (window.location.href.indexOf('share=1') == -1) {
-        if(!Modernizr.history && window.location != playlist.url) {
+        if((!Modernizr.history && window.location != playlist.url) ||
+           ($('body').attr('id') == 'home')) {
             window.location = playlist.url;
         }
 

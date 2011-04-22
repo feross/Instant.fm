@@ -47,21 +47,26 @@ var appSettings = {
 };
 
 function onloadHome() {
-    $('.file').change(function(event) {
-        var val = $(this).val();
-        if (val.length) {
-            $('#uploadForm').submit();
+    model = new Model();
+    player = new Player();
+    // nowplaying = new NowPlaying();
+    // browser = new MiniBrowser();
+    
+    // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
+    // If there is saved state, load the correct playlist.
+    window.onpopstate = function(event) {
+        var state = event.state;
+        if (state && state.url != model.playlist.url) {
+            player.loadPlaylistByUrl(state.url);
         }
-    });
-    setupDragDropUploader('home', function(response) {
-        // Redirect to playlist with the given id
-        var playlist = $.parseJSON(response);
-        if(playlist.status != 'ok') {
-            log('Error loading playlist: ' + playlist.status);
-            return;
-        }
-        window.location = playlist.url;
-    });
+    };
+
+    setupFBML();
+    setupSignup();
+    setupLogin();
+    setupLogout();
+    setupNewPlaylist();
+    setupRpc();
 }
 
 function onloadPlaylist() {

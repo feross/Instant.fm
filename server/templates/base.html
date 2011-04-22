@@ -2,7 +2,7 @@
 <!--[if lt IE 7 ]> <html class="no-js ie6" lang="en" xmlns:og="http://ogp.me/ns#"> <![endif]-->
 <!--[if IE 7 ]>    <html class="no-js ie7" lang="en" xmlns:og="http://ogp.me/ns#"> <![endif]-->
 <!--[if IE 8 ]>    <html class="no-js ie8" lang="en" xmlns:og="http://ogp.me/ns#"> <![endif]-->
-<!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js {% block html-classes %}{% end %}" lang="en" xmlns:og="http://ogp.me/ns#"> <!--<![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js {% if handler.get_current_user() is not None %}loggedIn{% else %}loggedOut{% end %}{% block html-classes %}{% end %}" lang="en" xmlns:og="http://ogp.me/ns#"> <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -48,18 +48,24 @@
 </head>
 
 <body id="{% block bodyId %}{% end %}">
-  <div id="background" style="{% block backgroundStyle %}{% end %}">
     {% block body %}{% end %}
-    
+
     <div id="fb-root"></div>
-  
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.js"></script>
     <script>window.jQuery || document.write("<script src='/js/libs/jquery-1.5.1.min.js'>\x3C/script>")</script>
     <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-    {% block scripts %}{% end %}
-    
+
+    <script>
+    {% block scripts %}
+    {% end %}
+    $(function() {
+        setSession({{handler.get_current_session().json}});
+    });
+    </script>
+
     <!-- scripts concatenated and minified via ant build script-->
-    
+
     <script src="/js/mylibs/jquery-ui-1.8.8.custom.min.js"></script>
     <script src="/js/mylibs/jquery.autogrow.js"></script>
     <script src="/js/mylibs/jquery.colorbox.js"></script>
@@ -74,7 +80,7 @@
     <script src="/js/mylibs/rpc.js"></script>
     <script src="/js/mylibs/sha1.min.js"></script>
     <script src="/js/mylibs/soundmanager2-nodebug.min.js"></script>
-    
+
     <script src="/js/browser.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/model.js"></script>
@@ -86,7 +92,7 @@
     <script src="/js/views.js"></script>
 
     <!-- end scripts -->
-    
+
     <!--[if lt IE 7 ]>
       <script src="js/libs/dd_belatedpng.js"></script>
       <script>DD_belatedPNG.fix("img, .png_bg");</script>
@@ -98,8 +104,7 @@
       g.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js";
       s.parentNode.insertBefore(g,s)}(document,"script"));
     </script>
-  </div>
   
-  {{ xsrf_form_html() }}
+    {{ xsrf_form_html() }}
 </body>
 </html>
