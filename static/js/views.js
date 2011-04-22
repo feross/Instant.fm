@@ -2,7 +2,7 @@
 
 // All views should extend this one!
 function BaseView() {
-};
+}
 
 // Called after content is added to DOM but before animation.
 BaseView.prototype.willSlide = function(config) {
@@ -111,10 +111,11 @@ SearchView.prototype._addSearchHandlers = function() {
 SearchView.prototype.search = function(searchString, delay) {
     searchString = $.trim(searchString);
     
+    var timeout;
     if (delay) {
-        var timeout = 150;
+        timeout = 150;
     } else {
-        var timeout = 0;
+        timeout = 0;
     }
     
     $('.songResults, .artistResults, .albumResults', this.content).addClass('loading');
@@ -144,7 +145,7 @@ SearchView.prototype.search = function(searchString, delay) {
         model.lastfm.track.search(
         {
             track: searchString,
-            limit: 50,
+            limit: 50
         },
         {
             success: function(data) {
@@ -163,7 +164,7 @@ SearchView.prototype.search = function(searchString, delay) {
 
         model.lastfm.artist.search({
             artist: searchString,
-            limit: 3,
+            limit: 3
         },
         {
             success: function(data) {
