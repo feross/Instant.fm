@@ -49,14 +49,50 @@ h6 { font-size: 10px; }
 
 #showcase .playlist {
     background: #fff;
+    display: inline-block;
     float: left;
     height: 219px;
     margin: 40px 14px;
+    position: relative;
     width: 219px;
     
     -moz-box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
     -webkit-box-shadow: 2px 5px 5px rgba(0,0,0,0.6);
     box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
+}
+
+#showcase .playlist.hover:before {
+    content: ' ';
+    background-color: rgba(0,0,0,0.6);
+    border: 3px solid #fff;
+    display: block;
+    height: 60px;
+    left: 75px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 75px;
+    width: 60px;
+    
+    -webkit-border-radius: 60px;
+    -moz-border-radius: 60px;
+    border-radius: 60px;
+}
+
+#showcase .playlist.hover:after {
+    content: 'a';
+    display: block;
+    height: 60px;
+    left: 75px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 75px;
+    width: 60px;
+    
+    -webkit-border-radius: 60px;
+    -moz-border-radius: 60px;
+    border-radius: 60px;
 }
 
 #showcase .playlist img {
