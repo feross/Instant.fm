@@ -183,9 +183,9 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     @validated_async_rpc
     def _on_fb_auth(self, user):
         validator = validation.Validator(immediate_exceptions=True)
-        # TODO: Re-enable this before launch.
-        #if user['id'] != self._fb_id:
-        #    validator.error('Failed to authenticate to Facebook.')
+
+        if user['id'] != self._fb_id:
+           validator.error('Failed to authenticate to Facebook.')
 
         # Write the user to DB
         user = model.User()
