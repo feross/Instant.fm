@@ -332,6 +332,26 @@
 					 -set-permissions,
                      -imagespng,
                      -imagesjpg"/>
+                     
+     <target name="-noimg.production"
+             depends="-rev,
+                      -clean,
+ 					 -stop-server,
+ 					 -git-pull,
+                      -prodcopy,
+                      -usemin,
+                      -js.all.minify,
+                      -js.main.concat,
+                      -js.mylibs.concat,
+                      -js.scripts.concat,
+                      -js.delete,
+                      -strip-console.log,
+                      -css,
+                      -html,
+                      -htmlclean,
+ 					 -reload-supervisord-config,
+ 					 -start-server,
+ 					 -set-permissions"/>
 
     <!-- Target: minify -->
     <target name="-minify.dev"
