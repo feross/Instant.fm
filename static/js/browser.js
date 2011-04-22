@@ -88,6 +88,9 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		case 'partial album':
 		    view = new AlbumView(config);
 			break;
+		case 'partial static': // all static partials
+		    view = new BaseView(config);
+		    break;
 		default:
 		    view = new BaseView(config);
 		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+_title+')');

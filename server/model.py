@@ -161,6 +161,6 @@ _url = 'mysql+mysqldb://{0}:{1}@{2}/{3}'.format(
 _engine = sqlalchemy.create_engine(
     _url,
     pool_recycle=3600,
-    echo=True)
+    echo=options.cli_args.debug)
 DbSession = sqlalchemy.orm.sessionmaker(bind=_engine, autocommit=True)
 _setup()

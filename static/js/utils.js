@@ -35,6 +35,24 @@ function showPop(url, _name, _height, _width) {
     }
 }
 
+function tts(text) {
+    if (!soundManagerLoaded) {
+        return;
+    }
+    
+    var hash = hex_sha1(text);
+    var soundObj = soundManager.createSound({
+        id: hash,
+        url: '/tts/'+hash+'.mp3?q='+encodeURIComponent(text)
+    });
+    soundObj.play({
+        onfinish:function() {
+            // once sound has loaded and played, unload and destroy it.
+            this.destruct(); // will also try to unload before destroying.
+        }
+    });
+}
+
 // Scroll element into view
 function scrollTo(selectedElem, _container, _options) {
     var container = _container || 'html,body',
@@ -60,7 +78,7 @@ function scrollTo(selectedElem, _container, _options) {
 
 // Remove unecessary parenthesized text from song titles. It messes up YouTube/Last.fm searches.
 function cleanSongTitle(title) {
-    return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix).*?[\)\]]/gi, '');
+    return title.replace(/[\(\[].*?(feat|ft|produce|dirty|clean|edit|mix|version).*?[\)\]]/gi, '');
 }
 
 // Remove all html tags
