@@ -138,6 +138,32 @@
         </else>
     </if>
     </target>
+    
+    <target name="noimg">
+    <if>
+        <equals arg1="${env}" arg2="dev"/>
+        <then>
+            <!-- Build a dev environment -->
+            <echo message="Building a Development Environment..."/>
+            <antcall target="-noimg.dev" />
+        </then>
+
+        <elseif>
+            <equals arg1="${env}" arg2="test"/>
+            <then>
+                <!-- Build a test environment -->
+                <echo message="Building a Test Environment..."/>
+                <antcall target="-noimg.test" />
+            </then>
+        </elseif>
+
+        <else>
+            <!-- Build a production environment -->
+            <echo message="Building a Production Environment..."/>
+            <antcall target="-noimg.production" />
+        </else>
+    </if>
+    </target>
 
 
     <target name="minify">
@@ -333,11 +359,13 @@
                      -imagespng,
                      -imagesjpg"/>
                      
-     <target name="-noimg.production"
+                     
+     <!-- Target: noimg -->  
+     <target name="-noimg.dev"
              depends="-rev,
                       -clean,
- 					 -stop-server,
- 					 -git-pull,
+ 					  -stop-server,
+ 					  -git-pull,
                       -prodcopy,
                       -usemin,
                       -js.all.minify,
@@ -349,9 +377,47 @@
                       -css,
                       -html,
                       -htmlclean,
- 					 -reload-supervisord-config,
- 					 -start-server,
- 					 -set-permissions"/>
+ 					  -reload-supervisord-config,
+ 					  -start-server,
+ 					  -set-permissions"/>
+ 	<target name="-noimg.test"
+             depends="-rev,
+                      -clean,
+ 					  -stop-server,
+ 					  -git-pull,
+                      -prodcopy,
+                      -usemin,
+                      -js.all.minify,
+                      -js.main.concat,
+                      -js.mylibs.concat,
+                      -js.scripts.concat,
+                      -js.delete,
+                      -strip-console.log,
+                      -css,
+                      -html,
+                      -htmlclean,
+ 					  -reload-supervisord-config,
+ 					  -start-server,
+ 					  -set-permissions"/>               
+     <target name="-noimg.production"
+             depends="-rev,
+                      -clean,
+ 					  -stop-server,
+ 					  -git-pull,
+                      -prodcopy,
+                      -usemin,
+                      -js.all.minify,
+                      -js.main.concat,
+                      -js.mylibs.concat,
+                      -js.scripts.concat,
+                      -js.delete,
+                      -strip-console.log,
+                      -css,
+                      -html,
+                      -htmlclean,
+ 					  -reload-supervisord-config,
+ 					  -start-server,
+ 					  -set-permissions"/>
 
     <!-- Target: minify -->
     <target name="-minify.dev"
