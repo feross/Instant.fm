@@ -397,6 +397,12 @@ function setupLogin() {
                                     $.colorbox.close();
                                     log('Login succeeded.');
                                     
+                                    // If we session-own the current playlist, promote it
+                                    // client-side so we user-own it too.
+                                    if (model.playlist.user.id == model.session.user.id) {
+                                        model.playlist.user = model.session.user;
+                                    }
+                                    
                                 // server-side validation failed.
                                 } else if (response && response.errors) {
                                     showErrors(response.errors)

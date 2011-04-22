@@ -129,8 +129,8 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
 
     def logout(self):
         """ Deletes current session and returns a new one """
-        self._log_user_out()
-        return self.get_current_session().client_visible_attrs
+        new_session = self._log_user_out()
+        return new_session.client_visible_attrs
 
     @validated_async_rpc
     def new_playlist(self, title, description):
