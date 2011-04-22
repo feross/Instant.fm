@@ -789,20 +789,30 @@ a:hover .zoomIcon {
 #newPlaylistForm { text-align: left; }
 
 #dragDrop {
-    border: 4px dashed #DDD;
+    border: 4px dashed #bbb;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
 	border-radius: 5px;
-	color: #ccc;
+	color: #aaa;
 	float: right;
 	font-size: 18px;
+	font-weight: bold;
 	padding: 20px;
 	margin: 5px 0;
 	text-align: center;
 	width: 230px;
 }
 
-#dragDrop.hover { border: 4px dashed #999; color: #999; }
+.drag #dragDrop { border: 4px dashed #666; color: #666; }
+
+.dropped #dragDrop {
+    background: transparent url('/images/playlist-icon.png') no-repeat 5px center;
+    border: 4px dashed #444;
+    color: #444;
+    padding-left: 60px;
+    text-align: left;
+    width: 190px;
+}
 
 #normalUpload {
     float: right;
@@ -812,7 +822,7 @@ a:hover .zoomIcon {
 #newPlaylistForm .colorboxSubmitButtons em {
     color: #999;
     font-size: 14px;
-    margin-top: 10px;
+    margin-top: 5px;
     vertical-align: middle;
 }
 

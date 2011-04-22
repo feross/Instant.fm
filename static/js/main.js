@@ -102,9 +102,4 @@ function onloadPlaylist() {
     setupLogout();
     setupNewPlaylist();
     setupRpc();
-   
-    setupDragDropUploader('dragDrop', function(response) {
-        playlist = $.parseJSON(response);
-        player.loadPlaylist(playlist);
-    });
 }

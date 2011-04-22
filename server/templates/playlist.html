@@ -293,26 +293,34 @@
     
     <div class="error" id="newPlaylistErrors"></div>
     
-    <form id="newPlaylistForm">
+    <form id="newPlaylistForm" method="POST">
+      
       <div class="clearfix formRow">
         <label for="newPlaylistTitle">Title</label>
         <input id="newPlaylistTitle" name="title" type="text" required="required" placeholder="e.g. Workout Music, 90's Rock ...">
       </div>
+      
       <div class="clearfix formRow">
         <label for="newPlaylistDescription">Description</label>
         <textarea id="newPlaylistDescription" name="description" type="text" placeholder="Optional"></textarea>
       </div>
+      
       <div class="clearfix formRow" id="playlistUpload" style="display: none;">
         <label>Upload</label>
-        <div id="dragDrop">Drag and drop file here.</div>
+        <div id="dragDrop">
+           Drag and drop file here.
+        </div>
         <small>We support .m3u, .txt, and .pls playlist formats.</small>
         <!-- <div id="normalUpload">Select file to upload.</div> -->
       </div>
+      
       <div class="clearfix colorboxSubmitButtons" style="float: right;">
-        <input type="button" class="blue large awesome" name="showPlaylistUpload" id="showPlaylistUpload" value="Upload a Playlist from iTunes">
+        <input type="button" class="blue large awesome" name="showPlaylistUpload" id="showPlaylistUpload" value="Upload a Playlist...">
         <em> or </em> 
         <input type="submit" class="red large awesome" name="submit" id="submitNewPlaylist" value="Finish">
       </div>
+      
+      {{ xsrf_form_html() }}
     </form>
   </div>
   
