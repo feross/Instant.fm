@@ -82,11 +82,11 @@ class HandlerBase(tornado.web.RequestHandler):
         session = self.get_current_session()
 
         (self.db_session.query(model.Playlist)
-            .filter_by(session_id=session.id)
+            .filter_by(session_id=session.id, user_id=None)
             .update({"user_id": user.id}))
 
         (self.db_session.query(model.Image)
-            .filter_by(session_id=session.id)
+            .filter_by(session_id=session.id, user_id=None)
             .update({"user_id": user.id}))
 
         session.user_id = user.id
