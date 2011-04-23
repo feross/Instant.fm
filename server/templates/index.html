@@ -47,6 +47,6 @@
 
 {% block scripts %}
     $(function() {
-        onloadHome();
+        onloadHome({{handler.get_current_session().json}});
     });
 {% end %}

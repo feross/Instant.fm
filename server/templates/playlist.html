@@ -216,7 +216,7 @@
 
 {% block scripts %}
     $(function() {
-        onloadPlaylist();
+        onloadPlaylist({{handler.get_current_session().json}});
         {% if playlist is not None %}
         player.loadPlaylist({{playlist.json}});
         {% else %}

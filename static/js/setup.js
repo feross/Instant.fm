@@ -347,9 +347,6 @@ function onNewPlaylistResponse(data) {
         var playlist = data.result;
         player.loadPlaylist(playlist);
         $.colorbox.close();
-        if (playlist.songs.length == 0) {
-            browser.pushSearchPartial(true);
-        }
     } else {
         var errors = data && data.errors;
         if (errors) {
