@@ -214,9 +214,9 @@ class ImageHandlerBase(HandlerBase):
 class HomeHandler(HandlerBase):
     def get(self):
         playlists = (self.db_session.query(model.Playlist)
-                       .filter(sqlalchemy.or_(model.Playlist.featured == True, model.Playlist.user_id == 1))
+                       .filter_by(featured=True)
                        .order_by(model.Playlist.views.desc())
-                       .limit(12)
+                       .limit(8)
                        .all())
         self.render("index.html",
                     title="Instant.fm - Share Music Instantly",
