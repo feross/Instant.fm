@@ -76,7 +76,7 @@ class HandlerBase(tornado.web.RequestHandler):
         user = self.get_current_user()
 
         # The Feross Exception
-        if user.id == 1:
+        if user is not None and user.id == 1:
             return True
 
         return ((session.id is not None and str(session.id) == str(playlist.session_id))
