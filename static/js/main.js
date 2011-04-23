@@ -46,11 +46,11 @@ var appSettings = {
     }
 };
 
-function onloadHome() {
+function onloadHome(session) {
     model = new Model();
     player = new Player();
-    // nowplaying = new NowPlaying();
-    // browser = new MiniBrowser();
+
+    setSession(session);
     
     // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
     // If there is saved state, load the correct playlist.
@@ -69,11 +69,13 @@ function onloadHome() {
     setupRpc();
 }
 
-function onloadPlaylist() {
+function onloadPlaylist(session) {
     model = new Model();
     player = new Player();
     nowplaying = new NowPlaying();
     browser = new MiniBrowser();
+    
+    setSession(session);
     
     updateDisplay();
     $(window).resize(updateDisplay);

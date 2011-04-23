@@ -82,9 +82,6 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     
     // Empty playlist?
     if (!song) {
-        if (isOwner()){
-            $('#navSearch').click(); // show search for empty playlists
-        }
         return;
     }
         
@@ -385,7 +382,11 @@ Player.prototype.loadPlaylist = function(playlist) {
 
     player.playSong(0, true);
     ownershipStatusChanged();
-        
+    
+    if (isOwner() && !playlist.songs.length){
+        $('#navSearch').click(); // show search for empty playlists
+    }
+    
     nowplaying.tryLoadComments(playlist.url); // update the comment widget
     log('Loaded playlist: ' + playlist.url);
 };

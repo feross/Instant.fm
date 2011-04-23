@@ -58,9 +58,6 @@
 
     <script>
     {% block scripts %}{% end %}
-    $(function() {
-        setSession({{handler.get_current_session().json}});
-    });
     </script>
 
     <!-- scripts concatenated and minified via ant build script-->
