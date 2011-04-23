@@ -386,9 +386,6 @@ Player.prototype.loadPlaylist = function(playlist) {
     if (isOwner() && !playlist.songs.length){
         $('#navSearch').click(); // show search for empty playlists
     }
-    
-    nowplaying.tryLoadComments(playlist.url); // update the comment widget
-    log('Loaded playlist: ' + playlist.url);
 };
 
 // Load a playlist with the given id

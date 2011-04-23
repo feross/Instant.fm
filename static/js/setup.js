@@ -202,8 +202,6 @@ function setupFBML() {
           cookie: true,
           xfbml: true
         });
-         
-        model && model.playlist && nowplaying.tryLoadComments(model.playlist.url);
     };
     
     (function() {
