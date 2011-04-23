@@ -30,7 +30,7 @@ class HandlerBase(tornado.web.RequestHandler):
         self._current_session = None
         self._current_user = None
         self.xsrf_token  # Sets token
-        
+
 
     def get_error_html(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
@@ -55,7 +55,7 @@ class HandlerBase(tornado.web.RequestHandler):
         if session_id:
             self._current_session = (self.db_session.query(model.Session)
                                        .get(session_id))
-            
+
         if self._current_session == None:
             self._current_session = model.Session()
             self.db_session.add(self._current_session)
@@ -74,7 +74,7 @@ class HandlerBase(tornado.web.RequestHandler):
             return False
         session = self.get_current_session()
         user = self.get_current_user()
-        
+
         # The Feross Exception
         if user.id == 1:
             return True
@@ -102,15 +102,16 @@ class HandlerBase(tornado.web.RequestHandler):
         session_id = self.get_secure_cookie('session_id')
         self.clear_cookie('session_id')
         self._current_session = None
-#        if session_id:
-#            (self.db_session.query(model.Session)
-#                .filter_by(id=session_id)
-#                .delete())
-        
+        if session_id:
+            (self.db_session.query(model.Session)
+                .filter_by(id=session_id)
+                .delete())
+
         # New session
         new_session = model.Session();
         self.db_session.add(new_session)
         self.db_session.flush()
+        self.set_secure_cookie('session_id', str(new_session.id))
         return new_session
 
 
@@ -129,10 +130,10 @@ class PlaylistHandlerBase(HandlerBase):
             title = share['track'] + ' by ' + share['artist'];
         elif playlist is not None:
             title = playlist.title
-            
+
         if self._is_partial():
             template_name = 'partial/' + template_name
-            
+
         self.render(template_name, playlist=playlist, share=share, title=title, **kwargs)
 
     def _is_partial(self):
@@ -213,11 +214,11 @@ class ImageHandlerBase(HandlerBase):
 class HomeHandler(HandlerBase):
     def get(self):
         playlists = (self.db_session.query(model.Playlist)
-                       .filter(sqlalchemy.or_(model.Playlist.featured==True, model.Playlist.user_id==1))
+                       .filter(sqlalchemy.or_(model.Playlist.featured == True, model.Playlist.user_id == 1))
                        .order_by(model.Playlist.views.desc())
                        .limit(12)
                        .all())
-        self.render("index.html", 
+        self.render("index.html",
                     title="Instant.fm - Share Music Instantly",
                     playlists=playlists)
 
@@ -235,13 +236,13 @@ class PlaylistHandler(PlaylistHandlerBase):
         if playlist is None:
             return self.send_error(404)
         playlist.views += 1
-                
+
         if self.get_argument('json', default=False):
             self.write(playlist.json())
         else:
             self._render_playlist_view('playlist.html', playlist=playlist)
 
-        
+
 class SearchHandler(PlaylistHandlerBase):
     def get(self):
         self._render_playlist_view('search.html')
@@ -251,7 +252,7 @@ class ArtistHandler(PlaylistHandlerBase):
     """ Renders an empty artist template """
     def get(self, requested_artist_name):
         artist_name = utils.deurlify(requested_artist_name)
-        self._render_playlist_view('artist.html', 
+        self._render_playlist_view('artist.html',
                                    artist_name=artist_name)
 
 
@@ -260,15 +261,15 @@ class AlbumHandler(PlaylistHandlerBase):
         """ Renders an empty album template """
         artist_name = utils.deurlify(requested_artist_name)
         album_name = utils.deurlify(requested_album_name)
-        self._render_playlist_view('album.html', 
-                                   artist_name=artist_name, 
+        self._render_playlist_view('album.html',
+                                   artist_name=artist_name,
                                    album_name=album_name)
 
 
 class UploadHandler(PlaylistHandlerBase):
 
     """ Handles playlist upload requests """
-    
+
     def _has_uploaded_files(self):
         files = self.request.files
         if 'file' not in files or len(files['file']) == 0:
@@ -409,13 +410,13 @@ class UploadHandler(PlaylistHandlerBase):
         validator.add_rule(title, 'Title', min_length=1)
         description = self.get_argument('description', default=None, strip=True)
         songs = []
-        
+
         if self._has_uploaded_files():
             try:
                 songs = self._parse_songs_from_uploaded_file()
             except UnsupportedFormatException:
                 validator.error('Unsupported format.')
-        
+
         playlist = model.Playlist(title)
         playlist.description = description
         playlist.songs = songs
@@ -423,26 +424,26 @@ class UploadHandler(PlaylistHandlerBase):
         playlist.user = self.get_current_user()
         self.db_session.add(playlist)
         self.db_session.flush()
-        
+
         self.set_header("Content-Type", "application/json")
         return playlist.client_visible_attrs;
-    
-    
+
+
 class ProfileHandler(PlaylistHandlerBase):
     def get(self, requested_user_name):
         self._render_playlist_view('profile.html', playlist=None)
-    
-    
+
+
 class TTSHandler(PlaylistHandlerBase):
     q = None
-    
+
     @tornado.web.asynchronous
     def get(self):
         self.q = self.get_argument("q")
         self.set_header("Content-Type", "audio/mpeg")
-        
+
         q_encoded = urllib2.quote(self.q.encode("utf-8"))
-        url = "http://translate.google.com/translate_tts?q="+q_encoded+"&tl=en"
+        url = "http://translate.google.com/translate_tts?q=" + q_encoded + "&tl=en"
         http = tornado.httpclient.AsyncHTTPClient()
         http.fetch(url, callback=self.on_response)
 
@@ -450,7 +451,7 @@ class TTSHandler(PlaylistHandlerBase):
         if response.error: raise tornado.web.HTTPError(500)
         filename = hashlib.sha1(self.q.encode('utf-8')).hexdigest()
 
-        fileObj = open(os.path.join(os.path.dirname(__file__), "../static/tts/"+filename+".mp3"), "w")
+        fileObj = open(os.path.join(os.path.dirname(__file__), "../static/tts/" + filename + ".mp3"), "w")
         fileObj.write(response.body)
         fileObj.close()
         self.write(response.body)
