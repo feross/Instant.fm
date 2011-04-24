@@ -1065,8 +1065,9 @@ nav a:hover { color: inherit; text-decoration: underline; }
 #footer .left { float: left; }
 #footer .right { float: right; }
 
-#footer nav .left a, #footer nav .left span { margin-right: 25px; }
-#footer nav .right a, #footer nav .right span { margin-left: 25px; }
+#footer .left a, #footer .left span { margin-right: 25px; }
+#footer .right a, #footer .right span { margin-left: 25px; }
+#footer .byline a { margin-left: 0; margin-right: 0; }
 
 /* Search partial */
 
