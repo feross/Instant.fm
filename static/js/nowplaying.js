@@ -4,6 +4,8 @@
 
 function NowPlaying() {
     this.setupHandlers();
+    
+    $('.iPhoneHeader').disableSelection();
 }
 
 NowPlaying.prototype.setupHandlers = function() {
