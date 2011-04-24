@@ -20,6 +20,7 @@ var MiniBrowser = function() {
 
     this.setupHandlers();
     this.sliderWidth = $('#FS_slider').width() + 50;
+    $('.iPhoneHeader').disableSelection();
 };
 
 MiniBrowser.prototype.setupHandlers = function() {
@@ -41,29 +42,13 @@ MiniBrowser.prototype.setupHandlers = function() {
         browser.pop();
     });
     
-    // Open minibrowser
-    $('a[href="#open"]').live('click', function(event) {
-        event.preventDefault(); event.stopPropagation();
-        if (browser.viewStack.length > 0) {
-            browser.toggle(true, true);
-        } else {
-            browser.pushSearchPartial();
-        }
-    });
-    
-    // Close minibrowser
-    $('a[href="#close"]').live('click', function(event) {
-        event.preventDefault(); event.stopPropagation();
-        browser.toggle(false);
-    });
 };
 
-MiniBrowser.prototype.pushSearchPartial = function(noAnimateModal) {
+MiniBrowser.prototype.pushSearchPartial = function() {
     browser.pushPartial({
         path: '/search',
         type: 'partial search',
         linkElem: $(this),
-        noAnimateModal: noAnimateModal
     });
 };
 
@@ -108,9 +93,6 @@ MiniBrowser.prototype.pushStatic = function(path, view) {
     var topPath = this.getTopView() && this.getTopView().config.path;
     if (topPath && (topPath == path || topPath == view.config.path)) {
         
-        if (view.config.noAnimateModal) {
-            browser.preventModalAnimate();
-        }
         browser.toggle(true, true);
         return;
     }
@@ -140,9 +122,6 @@ MiniBrowser.prototype.push = function(elem, view) {
     } else {
         slideAnimationDuration = 500;
         
-        if (view.config.noAnimateModal) {
-            browser.preventModalAnimate();
-        }
         this.toggle(true, false);
     }
     window.setTimeout(function() {
@@ -276,11 +255,4 @@ MiniBrowser.prototype.toggle = function(toggle, awaken) {
             $('#modal').css(css);
         }
     }
-};
-
-MiniBrowser.prototype.preventModalAnimate = function() {
-    $('#modal').removeClass('animate');
-    window.setTimeout(function() {
-        $('#modal').addClass('animate');
-    }, 500);
 };

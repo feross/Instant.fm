@@ -68,7 +68,7 @@ function setupKeyboardShortcuts() {
     // Handle the display of Keyboard shortcuts colorbox
     $('a[href="#helpBox"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_help.html').success(function(markup) {    
+        $.get('/partial/colorbox_help.html').success(function(markup) {    
             $.colorbox({
                 html: markup,
                 open: true,
@@ -267,7 +267,7 @@ function setupUploader(formElem) {
 function setupNewPlaylist() {
     $('a[href="#new"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_newPlaylist.html').success(function(markup) {    
+        $.get('/partial/colorbox_newPlaylist.html').success(function(markup) {    
             $.colorbox({
                 html: markup,
                 open: true,
@@ -359,7 +359,7 @@ function onNewPlaylistResponse(data) {
 function setupLogin() {
     $('a[href="#login"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_login.html').success(function(markup) {    
+        $.get('/partial/colorbox_login.html').success(function(markup) {    
             $.colorbox({
                 html: markup,
                 open: true,
@@ -431,7 +431,7 @@ function setupLogout() {
 function setupSignup() {
     $('a[href="#signUp"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_signup.html').success(function(markup) {    
+        $.get('/partial/colorbox_signup.html').success(function(markup) {    
             $.colorbox({
                 html: markup,
                 open: true,

@@ -1,6 +1,5 @@
 var model;
 var player;
-var nowplaying;
 var browser;
 
 var keyEvents = true; // Are keyboard shortuts enabled?
@@ -9,7 +8,6 @@ var soundManagerLoaded = false; // Is SoundManager2 loaded?
 
 soundManager.url = '/swf/';
 soundManager.flashVersion = 8; // optional: shiny features (default = 8)
-//soundManager.useHTML5Audio = true;
 soundManager.onload = function() {
     soundManagerLoaded = true;
 };
@@ -72,7 +70,6 @@ function onloadHome(session) {
 function onloadPlaylist(session) {
     model = new Model();
     player = new Player();
-    nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
     setSession(session);

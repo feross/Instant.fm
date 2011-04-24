@@ -88,7 +88,6 @@ Player.prototype.playSong = function(i, isUserInitiated) {
     var title = cleanSongTitle(song.t);
     var artist = song.a;
     
-    log(isUserInitiated);
     if (!isUserInitiated) {
         showDesktopNotification(song.i, title, artist);
     } else {
@@ -151,7 +150,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
                 player.playSongById(videos[0].id);
-                nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
+                // nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
                 // Go to next song in a few seconds
@@ -505,7 +504,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
         player.reorderedSong = null; // we're done dragging now
     });
     
-    nowplaying.renderPlaylistInfo(playlist);
+    //nowplaying.renderPlaylistInfo(playlist);
     $('#altPlaylistTitle').text(playlist.title);
 };
 

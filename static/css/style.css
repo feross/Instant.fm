@@ -577,10 +577,10 @@ h6 { font-size: 10px; }
 	-webkit-transition: all 0.6s ease-in-out;
 }
 
-/* Current Playlist Info */
+/* Playlist Info */
 
-#nowPlaying { margin-top: 12px; }
-#nowPlaying article { margin: 10px 0 0 0; }
+.playlistPartial { margin-top: 12px; }
+.playlistPartial article { margin: 10px 0 0 0; }
 
 #curPlaylistTitle { display: inline; }
 
@@ -613,7 +613,7 @@ header:hover .editLink, article:hover .editLink {
     text-shadow: none;
 }
 
-#nowPlaying header .editLink { top: -3px; }
+.playlistPartial header .editLink { top: -3px; }
 
 #curPlaylistTitle textarea { color: #444; float: left; font-weight: bold; padding-left: 3px; outline: none; min-height: 30px; }
 #curPlaylistTitle button { float: left; margin-left: 8px; }
