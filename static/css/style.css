@@ -1045,8 +1045,8 @@ nav a:hover { color: inherit; text-decoration: underline; }
     background: transparent url('/images/settings.png') left center no-repeat;
     padding-left: 20px;
 }
-#navReportBug {
-    background: transparent url('/images/bug.png') left bottom no-repeat;
+#navGiveFeedback {
+    background: transparent url('/images/give-feedback.png') left bottom no-repeat;
     padding-left: 22px;
 }
 
