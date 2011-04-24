@@ -431,7 +431,7 @@ NowPlaying.prototype.shareOnFacebook = function() {
 };
 
 NowPlaying.prototype.shareOnTwitter = function() {
-    var tweetText = encodeURIComponent("♫ I'm listening to "+model.playlist.title);
+    var tweetText = encodeURIComponent("#NowPlaying I'm listening to "+model.playlist.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm' + model.playlist.url +
               '&text='+tweetText+'&via=instantDOTfm';

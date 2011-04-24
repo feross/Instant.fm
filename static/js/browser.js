@@ -96,7 +96,7 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		    break;
 		default:
 		    view = new BaseView(config);
-		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+_title+')');
+		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+config.title+')');
 		    break;
 	}
 	view.config = config;

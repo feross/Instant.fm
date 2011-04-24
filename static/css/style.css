@@ -40,7 +40,7 @@ h6 { font-size: 10px; }
 
 #home #actions { margin-top: 10px; }
 
-#home #footer { margin: 50px 0 10px 0; }
+#home #footer { margin: 50px 0 10px 0; text-align: center; }
 
 
 /* Home Page Showcase */
@@ -1435,16 +1435,20 @@ a.artistResult:hover, a.albumResult:hover {
 
 .meetTheTeamPartial > div { margin: 25px auto 0 auto; }
 
-.meetTheTeamPartial .topTeamMembers { width: 460px; }
+.meetTheTeamPartial .intro { margin: 15px auto 0 auto; }
 
-.meetTheTeamPartial .teamMember {
+.meetTheTeamPartial .logo { margin-bottom: 10px; }
+
+.topTeamMembers { width: 460px; }
+
+.teamMember {
     float: left;
     width: 215px;
 }
 
-.meetTheTeamPartial .teamMember.feross { margin-right: 30px; }
+.teamMember.feross { margin-right: 30px; }
 
-.meetTheTeamPartial img {
+.teamMember img {
     height: 215px;
     width: 215px;
 }
@@ -1455,6 +1459,9 @@ a.artistResult:hover, a.albumResult:hover {
 }
 
 .meetTheTeamPartial h3 { font-size: 13px; margin: 2px 0 10px 0; }
+
+.meetTheTeamPartial .links { margin-top: 8px; }
+.meetTheTeamPartial .links a { font-weight: normal; margin-left: 7px; }
 
 .meetTheTeamPartial h1:first-child { margin: 15px 0 10px 0; text-align: center; }
 
