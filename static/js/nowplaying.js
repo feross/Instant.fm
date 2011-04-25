@@ -4,23 +4,11 @@
 
 function NowPlaying() {
     this.setupHandlers();
+    
+    $('.iPhoneHeader').disableSelection();
 }
 
 NowPlaying.prototype.setupHandlers = function() {
-    $('#addComment').click(function(event) {
-        event.preventDefault();
-        if (!$('#comments').data('loaded')) {
-            return;
-        }
-        if ($('#comments').is(':visible')) {
-            $('#addComment').html('Add a Comment');
-            $('#comments').slideUp();
-        } else {
-            $('#addComment').html('Hide Comments');
-            $('#comments').slideDown();
-        }
-    });
-    
     $('#fbShare').click(function(event) {
         event.preventDefault();
         nowplaying.shareOnFacebook();
@@ -354,34 +342,6 @@ NowPlaying.prototype.updateOpenButtonText = function(text) {
         );  
 };
 
-NowPlaying.prototype.tryLoadComments = function(url) {    
-    // Optimization: Don't load Facebook comments until video is playing
-    // TODO: Determine if we actually need this check.
-    if (player.isPlaying()) {
-        nowplaying._loadComments(url);
-    } else {
-        window.setTimeout(function() {
-            nowplaying.tryLoadComments(url);
-        }, 500);
-    }
-};
-
-// Private method to load playlist's comments
-NowPlaying.prototype._loadComments = function(url) {
-    $('#addComment').html('Add a Comment');
-
-    // Load Facebook comment box
-    $('#comments')
-        .empty()
-        .html('<fb:comments href="http://instant.fm'+url+'" num_posts="3" width="480"></fb:comments>');
-    FB.XFBML.parse($('#comments').get(0), function(response) {
-        $('#comments')
-            .appendTo('#playlistActions')
-            .hide()
-            .data('loaded', true);
-    });
-};
-
 // Makes the given element editable by adding an edit link.
 // @elem - the element to make editable
 // @updateCallback - the function to call when the value is modified
@@ -473,7 +433,7 @@ NowPlaying.prototype.shareOnFacebook = function() {
 };
 
 NowPlaying.prototype.shareOnTwitter = function() {
-    var tweetText = encodeURIComponent("♫ I'm listening to "+model.playlist.title);
+    var tweetText = encodeURIComponent("#NowPlaying I'm listening to "+model.playlist.title);
     var url = 'http://twitter.com/share'+
               '?url=http://instant.fm' + model.playlist.url +
               '&text='+tweetText+'&via=instantDOTfm';

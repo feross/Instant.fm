@@ -88,6 +88,7 @@ class HandlerBase(tornado.web.RequestHandler):
             query = query.filter_by(user_id=self.get_current_user().id)
         else:
             query = query.filter_by(session_id=self.get_current_session().id)
+        query = query.order_by(model.Playlist.id.desc())
         return query.all()
 
     def _log_user_in(self, user, expire_on_browser_close=False):

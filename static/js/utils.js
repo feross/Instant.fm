@@ -89,21 +89,6 @@ function cleanHTML(html) {
         .replace(new RegExp('[\n\r]', 'g'), '<br>'); // Convert newlines to <br>
 }
 
-// A bizarre function to make Javascript's inheritance less incomprehensible
-function copyPrototype(descendant, parent) {
-    var sConstructor = parent.toString();
-    var aMatch = sConstructor.match( /\s*function (.*)\(/ );
-    if ( aMatch != null ) { descendant.prototype[aMatch[1]] = parent; }
-    for (var m in parent.prototype) {
-        descendant.prototype[m] = parent.prototype[m];
-    }
-}
-
-function getCookie(name) {
-    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
-    return r ? r[1] : undefined;
-};
-
 function htmlEncode(value){ 
   return $('<div/>').text(value).html(); 
 } 
