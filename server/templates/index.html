@@ -17,19 +17,28 @@
         </div>
     </div>
     
-    <div class="clearfix" id="showcase">
-        {% set default_img = '/images/unknown.jpg' %}
-        {% for playlist in playlists %}
-        <a class="playlist hover" href="{{playlist.url}}">
-            <div class="clearfix picture">
-                <img src="{{playlist.cover_images[0] if len(playlist.cover_images) > 0 else default_img}}">
-                <img class="two" src="{{playlist.cover_images[1] if len(playlist.cover_images) > 1 else default_img}}">
-                <img class="three" src="{{playlist.cover_images[2] if len(playlist.cover_images) > 2 else default_img}}">
-                <img class="four" src="{{playlist.cover_images[3] if len(playlist.cover_images) > 3 else default_img}}">
-            </div>
-            <h1>{{playlist.title}}</h1>
-        </a>
+    <div class="clearfix showcase">
+    {% set default_img = '/images/unknown.jpg' %}
+    {% for category in categories %}
+    	{% if category['playlists'] %}
+    	<div class="clearfix">
+    	<h1> {{ category['title'] }} </h1>
+    	<div>
+	        {% for playlist in category['playlists'] %}
+		        <a class="playlist hover" href="{{playlist.url}}">
+		            <div class="clearfix picture">
+		                <img src="{{playlist.cover_images[0] if len(playlist.cover_images) > 0 else default_img}}">
+		                <img class="two" src="{{playlist.cover_images[1] if len(playlist.cover_images) > 1 else default_img}}">
+		                <img class="three" src="{{playlist.cover_images[2] if len(playlist.cover_images) > 2 else default_img}}">
+		                <img class="four" src="{{playlist.cover_images[3] if len(playlist.cover_images) > 3 else default_img}}">
+		            </div>
+		            <h2>{{playlist.title}}</h2>
+		        </a>
+	        {% end %}
+        </div>
+        </div>
         {% end %}
+	{% end %}
     </div>
     
     <footer id="footer">

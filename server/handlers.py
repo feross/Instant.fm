@@ -82,6 +82,14 @@ class HandlerBase(tornado.web.RequestHandler):
         return ((session.id is not None and str(session.id) == str(playlist.session_id))
                 or (user is not None and str(user.id) == str(playlist.user_id)))
 
+    def get_playlists_for_current_user(self):
+        query = self.db_session.query(model.Playlist)
+        if self.get_current_user() is not None:
+            query = query.filter_by(user_id=self.get_current_user().id)
+        else:
+            query = query.filter_by(session_id=self.get_current_session().id)
+        return query.all()
+
     def _log_user_in(self, user, expire_on_browser_close=False):
         # Promote playlists, uploaded images, and session to be owned by user
         session = self.get_current_session()
@@ -213,14 +221,26 @@ class ImageHandlerBase(HandlerBase):
 
 class HomeHandler(HandlerBase):
     def get(self):
-        playlists = (self.db_session.query(model.Playlist)
-                       .filter_by(featured=True)
-                       .order_by(model.Playlist.views.desc())
-                       .limit(8)
-                       .all())
+        categories = []
+
+        my_lists_title = ('My Playlists' if self.get_current_user() is None
+                          else self.get_current_user().name + "'s Playlists")
+        categories.append({
+            'title': my_lists_title,
+            'playlists': self.get_playlists_for_current_user()
+        })
+        categories.append({
+            'title': 'Staff Picks',
+            'playlists': (self.db_session.query(model.Playlist)
+                            .filter_by(featured=True)
+                            .order_by(model.Playlist.views.desc())
+                            .limit(8)
+                            .all())
+        })
+
         self.render("index.html",
                     title="Instant.fm - Share Music Instantly",
-                    playlists=playlists)
+                    categories=categories)
 
 
 class TermsHandler(HandlerBase):
