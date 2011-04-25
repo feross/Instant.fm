@@ -154,6 +154,11 @@ function setupKeyboardShortcuts() {
                     showHideUI();
                     break;
                 case 65: // a
+                    if (!model.playlist || !model.playlist.songs ||
+                        !model.playlist.songs.length) {
+                        
+                        return;    
+                    }
                     var song = model.playlist.songs[player.songIndex];
                     this.tts(cleanSongTitle(song.t)+', by '+song.a);
                     break;

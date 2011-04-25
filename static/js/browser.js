@@ -142,7 +142,7 @@ var MiniBrowser = Base.extend({
                 elem.shorten({width: 100});
             });
             leftButton =
-                $('<a class="left" href="#back"></a>').append(prevTitleElem.html('&larr;'+prevTitleElem.text()));
+                $('<a class="left" href="#back"></a>').append(prevTitleElem.html('&larr; '+prevTitleElem.text()));
         } else {
             leftButton = $('<span class="left"></span>');
         }
