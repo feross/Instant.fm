@@ -57,6 +57,10 @@ Player.prototype.isPaused = function() {
 };
 
 Player.prototype.increaseVolume = function() {
+    if (!player.ytplayer) {
+        return;
+    }
+    
     if (player.ytplayer.isMuted()) {
         player.ytplayer.unMute();
     }
@@ -67,6 +71,10 @@ Player.prototype.increaseVolume = function() {
 };
 
 Player.prototype.decreaseVolume = function() {
+    if (!player.ytplayer) {
+        return;
+    }
+    
     player.volume -= 15;
     player.volume = (player.volume >= 0) ? player.volume : 0;
     
