@@ -44,10 +44,10 @@ $.editable.addInputType('autogrow', {
         var width;
         switch(elemId) {
             case 'curPlaylistTitle':
-                width = 390;
+                width = 380;
                 break;
             case 'curPlaylistDesc':
-                width = 470;
+                width = 460;
                 break;
             default:
                 width = $(this).width();

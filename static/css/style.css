@@ -171,15 +171,6 @@ h6 { font-size: 10px; }
 	transition: height 0.6s ease-in-out;
 }
 
-#altPlaylistTitle {
-    color: #fff;
-    font-size: 20px;
-    margin: 10px 10px 0 15px;
-    position: absolute;
-    text-shadow: #000 0 1px 2px;
-    top: 0;
-}
-
 #ytPlayer {
     position: relative;
     top: 0;
@@ -394,34 +385,7 @@ h6 { font-size: 10px; }
     color: #fff;
     text-shadow: 0 -1px 1px rgba(0,0,0,0.4);
     
-    background: rgba(127, 148, 176, 0.8);
-    background: transparent -webkit-gradient(
-        linear,
-        0 0,
-        0 100%,
-        color-stop(0, rgb(181,192,206)),
-        color-stop(0.5, rgb(136,155,179)),
-        color-stop(0.51, rgb(127,148,176)),
-        color-stop(1, rgb(109,131,161))
-    ) top left no-repeat;
-    background: transparent -moz-linear-gradient(
-        top center,
-        rgb(181,192,206) 0%,
-        rgb(136,155,179) 50%,
-        rgb(127,148,176) 51%,
-        rgb(109,131,161) 100%
-    ) top left no-repeat;
-    
-    border-bottom: 1px solid #2d3033;
-    -webkit-border-top-left-radius:5px;
-    -webkit-border-top-right-radius:5px;
-    -moz-border-radius-topleft:5px;
-    -moz-border-radius-topright:5px;
-    border-top-left-radius:5px;
-    border-top-right-radius:5px;
-}
-
-.iPhoneHeader.black {
+    background: rgba(255, 255, 255, 0.7);
     background: transparent -webkit-gradient(
         linear,
         0 0,
@@ -438,27 +402,31 @@ h6 { font-size: 10px; }
         rgba(23,25,30,0.8) 51%,
         rgba(0,0,0,0.8) 100%
     ) top left no-repeat;
+    
+    border-bottom: 1px solid #2d3033;
+    -webkit-border-top-left-radius:5px;
+    -webkit-border-top-right-radius:5px;
+    -moz-border-radius-topleft:5px;
+    -moz-border-radius-topright:5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
 }
 
 .iPhoneHeader a {
     color: #fff;
     font-size: 13px;
     font-weight: bold;
-    height: 31px;
-    line-height: 31px;
+    height: 28px;
+    line-height: 30px;
     -moz-opacity: 0.9;
     filter: alpha(opacity: 90);
     opacity: 0.9;
+    padding: 0 8px;
     position: absolute;
     text-decoration: none;
     text-shadow: 0 -1px 0 rgba(0,0,0,.4);
     top: 7px;
-}
 
-.iPhoneHeader a.left { left: 20px; }
-.iPhoneHeader a.right { right: 9px; }
-
-.iPhoneHeader a.black {
     background: transparent -webkit-gradient(
         linear,
         0 0,
@@ -483,15 +451,18 @@ h6 { font-size: 10px; }
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
-
-    height: 30px;
-    padding: 0 8px;
 }
 .iPhoneHeader a:active {
     -moz-opacity: 0.65 !important;
     filter: alpha(opacity: 65) !important;
     opacity: 0.65 !important;
 }
+
+.iPhoneHeader a.left {
+    left: 10px;
+}
+
+.iPhoneHeader a.right { right: 9px; }
 
 
 /* Playlist Info */
@@ -989,10 +960,33 @@ nav a:hover { color: inherit; text-decoration: underline; }
 /* Search view */
 
 .searchBox {
-    background: transparent url('/images/search-box.png') top left no-repeat;
     display: block;
     height: 40px;
     margin: 5px auto 5px auto;
+    width: 465px;
+    
+    background-image:
+        -webkit-gradient(
+            linear,
+            0% 0%,
+            0% 15%,
+            from(#efefef),
+            to(#fff)
+        );
+    background-image: 
+        -moz-linear-gradient(
+            center top,
+            #efefef 0%,
+            #fff 100%
+        );
+    
+    -moz-box-shadow: inset 0 2px 2px #999;
+    -webkit-box-shadow: inset 0 2px 2px #999;
+    box-shadow: inset 0 2px 2px #999;
+    
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;
+    border-radius: 40px;
 }
 
 .searchBox input.search {
@@ -1000,27 +994,31 @@ nav a:hover { color: inherit; text-decoration: underline; }
     border: 0;
     color: #222;
     font-size: 24px;
-    margin: 5px 0px 3px 18px;
+    margin: 8px 0px 3px 18px;
     outline: 0;
     padding: 0;
     text-align: left;
-    width: 310px;
+    width: 300px;
     -webkit-appearance: none;
-    -webkit-border-horizontal-spacing: 0;
-    -webkit-border-vertical-spacing: 0;
 }
 
 .searchBox input.submit {
-    background: transparent url('/images/search-button.png') 0 -40px no-repeat;
+/*    background: transparent url('/images/search-button.png') 0 -40px no-repeat;*/
+    
     border: 0;
+    float: right;
+    font-size: 20px;
     height: 40px;
-    text-align: left;
-    text-indent: -9999px;
+    text-align: center;
+    text-shadow: rgba(0,0,0,0.5) 1px 1px 1px;
     width: 140px;
+    
+    -webkit-border-radius: 40px;
+    -moz-border-radius: 40px;
+    border-radius: 40px;
 }
 
 .searchBox input.submit:hover {
-    background: transparent url('/images/search-button.png') 0 0 no-repeat;
 }
 
 

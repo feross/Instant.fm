@@ -510,8 +510,6 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
     $('#playlist').mouseup(function(event) {
         player.reorderedSong = null; // we're done dragging now
     });
-    
-    $('#altPlaylistTitle').text(playlist.title);
 };
 
 Player.prototype._onClickSong = function() {

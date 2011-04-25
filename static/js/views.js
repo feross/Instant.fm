@@ -123,8 +123,10 @@ var SearchView = View.extend({
 
         var that = this;
         window.setTimeout(function() {
-
-            $('.start', that.content).fadeOut();
+            
+            if (searchString.length) {
+                $('.start', that.content).fadeOut();
+            }
 
             var searchInput = $('.searchBox input.search', that.content);
             if (searchString != $.trim(searchInput.val())) {
@@ -873,7 +875,7 @@ var PlaylistView = View.extend({
 
             that._makeEditable($('#curPlaylistTitle'), function(newTitle) {
                 model.updateTitle(newTitle);
-                $('#altPlaylistTitle').text(newTitle);
+                that.config.title = newTitle;
             });
             that._makeEditable($('#curPlaylistDesc'), model.updateDesc);
 

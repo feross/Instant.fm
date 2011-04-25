@@ -139,10 +139,10 @@ var MiniBrowser = Base.extend({
         if (this.viewStack.length > 1) {
             var prevTitle = this.viewStack[this.viewStack.length-2].config.title;
             var prevTitleElem = renderConditionalText(prevTitle, 'span', function(elem) {
-                elem.shorten({width: 70});
+                elem.shorten({width: 100});
             });
             leftButton =
-                $('<a class="left prev blue" href="#back"></a>').append(prevTitleElem);
+                $('<a class="left" href="#back"></a>').append(prevTitleElem.text('← '+prevTitleElem.text()));
         } else {
             leftButton = $('<span class="left"></span>');
         }
