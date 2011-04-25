@@ -16,21 +16,10 @@ function updateDisplay() {
     var browserHeight = mainHeight - 45;
     browserHeight = (browserHeight > 0) ? browserHeight : 0;
     $('#browser').height(browserHeight);
-    $('#nowPlayingContainer').height(browserHeight);
     
-    // + good measure
-    // Save the top position of the browser in it's closed state.
-    browser.closedCSSTop = mainHeight + 2;
-    
-    // Set it immediately, if the browser is closed. If the browser is open, don't do anything.
-    if (!browser.isOpen) {
-        $('#modal').removeClass('animate');
-        browser.toggle(false);
-        
-        window.setTimeout(function() {
-            $('#modal').addClass('animate');
-        }, 0);
-    }
+    // - top/bottom padding on .view
+    var viewHeight = browserHeight - 40;
+    $('#views, .view').height(viewHeight);
 }
 
 function makeSeeMoreLink(onclick, _text) {
@@ -277,9 +266,8 @@ SongList.prototype._fetchAlbumImgsHelper = function(albumIndex, song) {
 SongList.prototype.playAll = function() {
     var playlist = $.extend({status: 'ok'}, this.playlist);
     player.loadPlaylist(playlist);
-    window.setTimeout(function() {
-        browser.toggle(false); 
-    }, 250);
+    
+    // TODO: Switch songlist into NowPlaying-esque view.
 };
 
 
@@ -299,7 +287,7 @@ function makeArtistList(artists) {
         $('<a></a>', {
 			'class': 'artistResult',
 			href: '/'+canonicalize(artist.name),
-			rel: 'partial artist',
+			rel: 'view artist',
 			title: artist.name
 		})
             .append('<div>'+artist.name+'</div>')
@@ -327,7 +315,7 @@ function makeAlbumList(albums) {
 			'class': 'albumResult',
 			'data-artist': album.artist,
 			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
-			rel: 'partial album',
+			rel: 'view album',
 			title: album.name
 		})
         // .append('<span class="mask"></span>'+'<div>' + album.name + '<span class="artistName">' + album.artist + '</span></div>')

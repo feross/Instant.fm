@@ -150,7 +150,7 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
                 player.playSongById(videos[0].id);
-                // nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
+                PlaylistView.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
                 // Go to next song in a few seconds
@@ -354,29 +354,38 @@ Player.prototype.loadPlaylist = function(playlist) {
     }
     
     if (window.location.href.indexOf('share=1') == -1) {
-        if((!Modernizr.history && window.location != playlist.url) ||
+        if ((!Modernizr.history && window.location.pathname != playlist.url) ||
            ($('html').attr('id') == 'home')) {
             window.location = playlist.url;
         }
 
         // Replace history if initial page load, otherwise push.
-        if (model.playlist == null) {
-            window.history.replaceState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );
-        } else {
-            window.history.pushState(
-                playlist,
-                playlist.title,
-                playlist.url
-            );
+        if (Modernizr.history) {
+            if (model.playlist == null) {
+                window.history.replaceState(
+                    playlist,
+                    playlist.title,
+                    playlist.url
+                );
+            } else {
+                window.history.pushState(
+                    playlist,
+                    playlist.title,
+                    playlist.url
+                );
+            }
         }
     }
  
     model.updatePlaylist(playlist);
     player.renderPlaylistInfo(playlist);
+
+    browser.pushView({
+        path: playlist.url,
+        type: 'view playlist',
+        title: playlist.title,
+        playlist: playlist
+    });
 
     player.playSong(0, true);
     ownershipStatusChanged();
@@ -402,7 +411,6 @@ Player.prototype.loadPlaylistByUrl = function(url) {
 
 // Retrieves an artist's top songs from Last.fm and loads them as a playlist
 Player.prototype.loadPlaylistForArtist = function(artist_name) {
-    var _this_player = this;
     model.lastfm.artist.getTopTracks({
         artist: artist_name,
         autocorrect: 1,
@@ -410,7 +418,7 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
     {
         success: function(data) {
             var playlist = Player.playlistFromArtistTracks(data.toptracks);
-            _this_player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -420,7 +428,6 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
 
 
 Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
-    var _this_player = this;
     model.lastfm.album.getInfo({
         album: album_title,
         artist: artist_name,
@@ -429,7 +436,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
     {
         success: function(data) {
             var playlist = Player.playlistFromAlbum(data.album);
-            _this_player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -504,7 +511,6 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
         player.reorderedSong = null; // we're done dragging now
     });
     
-    //nowplaying.renderPlaylistInfo(playlist);
     $('#altPlaylistTitle').text(playlist.title);
 };
 

@@ -4,35 +4,49 @@ var View = Base.extend({
         this.config = config;
     },
     
+    // Path to the static HTML for this view (ex: /view/artist.html)
+    // Note: This is usually different from path in this.config.path (ex: /lady-gaga)
+    //       except when we have a static view (ex: /view/meetTheTeam.html)
+    getStaticPath: function() {
+        return this.config.path;
+    },
+    
     // Called after content is added to DOM but before animation.
     willSlide: function() {
-        $('#browser').scrollTop(0);
-        browser._updateHeader();
+        browser.updateHeader(this.config.title);
     },
 
     // Called after content is fully slid into view.
     didSlide: function() {
-        //nowplaying.updateOpenButtonText(this.config.title);
     },
 
     // Called before we push a new view (hiding this one) or pop the current one.
     willSleep: function() {
         $('input, textarea', this.content).blur();
     },
+    
+    // Called after we push a new view (hiding this one) or pop the current one.
+    didSleep: function() {
+        this.content.css({visibility: 'hidden'});
+    },
 
     // Called when another view gets popped and before this one re-appears.
     willAwake: function() {
-        $('#browser').scrollTop(0);
-        browser._updateHeader();
+        this.content.css({visibility: 'visible'});
+        browser.updateHeader(this.config.title);
     },
 
     // Called when another view was popped and this one has re-appeared.
     didAwake: function() {
-        //nowplaying.updateOpenButtonText(this.config.title);
     },
 
-    // Called immediately before the view is popped.
+    // Called before the view is popped.
     willPop: function() {
+        $('input, textarea', this.content).blur();
+    },
+    
+    // Called after the view is popped.
+    didPop: function() {
     }
     
 });
@@ -52,6 +66,10 @@ var SearchView = View.extend({
         this.config.title = {mustOwn: 'Add Songs', mustNotOwn: 'Search'};
     },
     
+    getStaticPath: function() {
+        return '/view/search.html';
+    },
+    
     willSlide: function() {
         this.base();
         this._addSearchHandlers();
@@ -64,7 +82,6 @@ var SearchView = View.extend({
 
     didAwake: function() {
         this.base();
-        $('.searchBox input.search', this.content).focus();
     },
 
     // Private function that adds handlers to the search box
@@ -282,6 +299,10 @@ var ArtistView = View.extend({
     	this.songlist;
     },
     
+    getStaticPath: function() {
+        return '/view/artist.html';
+    },
+    
     willSlide: function() {
         this.base();
     	this._fetchData();
@@ -417,12 +438,11 @@ var ArtistView = View.extend({
     _updateArtistImg: function(src, alt) {
     	if (src) {
             var imgBlock = $('<a class="artistImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
-                .colorbox({
+                .colorbox($.extend({
                     href: src,
                     photo: true,
-                    returnFocus: false,
                     title: '&nbsp;' // don't show a title
-                });
+                }, appSettings.colorbox));
             $('.artistImg', this.content).replaceWith(imgBlock);
 
         } else {
@@ -440,6 +460,10 @@ var AlbumView = View.extend({
         this.albumName = config.title;
     	this.artistName = config.linkElem.attr('data-artist');
     	this.songlist;
+    },
+    
+    getStaticPath: function() {
+        return '/view/album.html';
     },
     
     willSlide: function() {
@@ -514,7 +538,7 @@ var AlbumView = View.extend({
      	$('.albumDesc', this.content).fadeIn();
 
         this.playlist = Player.playlistFromAlbum(data.album);
-        this.songlist = new SongList(this.playlist);
+        this.songlist = new SongList(this.playlist, {startingLen: 100});
 
         var $songResults = $('.songResults', this.content)
         this.songlist.render($songResults);
@@ -525,12 +549,11 @@ var AlbumView = View.extend({
     _updateAlbumImg: function(src, alt) {
     	if (src) {    
             var imgBlock = $('<a class="albumImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
-                .colorbox({
+                .colorbox($.extend({
                     href: src,
                     photo: true,
-                    returnFocus: false,
                     title: '&nbsp;' // don't show a title
-                });
+                }, appSettings));
             $('.albumImg', this.content).replaceWith(imgBlock);
 
         } else {
@@ -544,6 +567,10 @@ var AlbumView = View.extend({
 var ProfileView = View.extend({
     constructor: function(config) {
         this.base(config);
+    },
+    
+    getStaticPath: function() {
+        return '/view/profile.html';
     },
     
     willSlide: function() {
@@ -595,7 +622,13 @@ var PlaylistView = View.extend({
         this.base(config);
     },
     
+    getStaticPath: function() {
+        return '/view/playlist.html';
+    },
+    
     willSlide: function() {
+        this.base();
+        
         var that = this;
         $('#fbShare').click(function(event) {
             event.preventDefault();
@@ -606,6 +639,8 @@ var PlaylistView = View.extend({
             event.preventDefault();
             that.shareOnTwitter();
         });
+        
+        this._renderPlaylistInfo(this.config.playlist);
     },
 
     // Update the currently playing song with Last.fm data
@@ -613,17 +648,19 @@ var PlaylistView = View.extend({
     // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
     //             hasn't changed before we update the DOM.
     updateCurPlaying: function(t, a, ytId, _srcIndex) {
+        var that = this;
     	model.lastfm.track.search({
     	    artist: a || '',
     	    limit: 1,
     	    track: t || ''
     	}, {
     	    success: function(data) {
-    	        this._handleSongResults(t, a, ytId, _srcIndex, data);
+    	        log(this);
+    	        that._handleSongResults(t, a, ytId, _srcIndex, data);
     	    },
     	    error: function(code, message) {
     	        log(code + ' ' + message);
-    	        this.renderAlbumBlock({
+    	        that.renderAlbumBlock({
                     albumImg: undefined,
                     trackName: t,
                     artistName: a,
@@ -663,12 +700,11 @@ var PlaylistView = View.extend({
             callback: function() {
                 // Add colorbox to album image
                 if (albumImg) {
-                    $('#curAlbumImg').colorbox({
+                    $('#curAlbumImg').colorbox($.extend({
                         href: albumImg,
                         photo: true,
-                        returnFocus: false,
                         title: '&nbsp;' // don't show a title
-                    });
+                    }, appSettings.colorbox));
                 } else {
                     $('#curAlbumImg').click(function(event) {
                         event.preventDefault();
@@ -678,17 +714,18 @@ var PlaylistView = View.extend({
         });
 
         // Get detailed track info
+        var that = this;
         trackName && artistName && model.lastfm.track.getInfo({
     	    artist: artistName || '',
     	    autocorrect: 1,
     	    track: trackName || ''
     	}, {
     	    success: function(data){
-    	        this._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
+    	        that._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
     	    },
     	    error: function(code, message) {
     	        log(code + ' ' + message);
-    	        this.renderSongDesc(false);
+    	        that.renderSongDesc(false);
     		}
     	});
 
@@ -698,10 +735,10 @@ var PlaylistView = View.extend({
     	    autocorrect: 1
     	}, {
     	    success: function(data){
-    	        this._handleArtistInfo(artistName, srcIndex, data);
+    	        that._handleArtistInfo(artistName, srcIndex, data);
     	    },
     	    error: function(code, message) {
-    	        this.renderArtistDesc(false);
+    	        that.renderArtistDesc(false);
     	        log(code + ' ' + message);
     		}
     	});
@@ -724,7 +761,7 @@ var PlaylistView = View.extend({
 
         if (albumName) {
             var albumHref = '/'+canonicalize(artistName)+'/'+canonicalize(albumName);
-            $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="partial album">'+albumName+'</a>');
+            $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="view album">'+albumName+'</a>');
             $('#curAlbum').fadeIn('fast');
         }
 
@@ -796,12 +833,11 @@ var PlaylistView = View.extend({
 
                     // Add colorbox to artist image
                     if (artistImg) {
-                        $('#curArtistImg').colorbox({
+                        $('#curArtistImg').colorbox($.extend({
                             href: artistImg,
                             photo: true,
-                            returnFocus: false,
                             title: '&nbsp;' // don't show a title
-                        });
+                        }, appSettings.colorbox));
                     }
                 }
             });
@@ -810,7 +846,8 @@ var PlaylistView = View.extend({
         }
     },
 
-    renderPlaylistInfo: function(playlist) {    
+    _renderPlaylistInfo: function(playlist) {
+        var that = this;
         $('#curPlaylist').fadeOut('fast', function() {
             $('#curPlaylist').empty();
             $('#curPlaylistTemplate')
@@ -823,7 +860,7 @@ var PlaylistView = View.extend({
                 if (model.playlist.user.profile_url) {
                     byline = $('<a/>').attr('href', model.playlist.user.profile_url)
                                       .attr('title', model.playlist.user.name)
-                                      .attr('rel', 'partial profile');
+                                      .attr('rel', 'view profile');
                 } else {
                     byline = $('<span/>');
                 }
@@ -834,11 +871,11 @@ var PlaylistView = View.extend({
 
             $('.editLink').remove(); // remove all edit links
 
-            this._makeEditable($('#curPlaylistTitle'), function(newTitle) {
+            that._makeEditable($('#curPlaylistTitle'), function(newTitle) {
                 model.updateTitle(newTitle);
                 $('#altPlaylistTitle').text(newTitle);
             });
-            this._makeEditable($('#curPlaylistDesc'), model.updateDesc);
+            that._makeEditable($('#curPlaylistDesc'), model.updateDesc);
 
             $('#curPlaylist').fadeIn('fast');
         });
@@ -920,16 +957,6 @@ var PlaylistView = View.extend({
         $('body').attr('style', bg_style_str);
     },
 
-    updateOpenButtonText: function(text) {
-        $('#nowPlayingHeader .right')
-            .empty()
-            .append(
-                renderConditionalText(text, 'span', function(elem) {
-                    elem.shorten({width: 125});
-                })
-            );  
-    },
-
     // Makes the given element editable by adding an edit link.
     // @elem - the element to make editable
     // @updateCallback - the function to call when the value is modified
@@ -950,7 +977,7 @@ var PlaylistView = View.extend({
                 break;
         }
 
-        elem.after($('<a class="editLink mustOwn" href="#edit">Edit</a>')
+        elem.after($('<a class="editLink mustOwn" href="#edit"> Edit</a>')
                 .click(function(event) {
                     event.preventDefault();
                     $.extend(appSettings.jeditable.autogrow, autogrowSettings);
@@ -1030,6 +1057,15 @@ var PlaylistView = View.extend({
         showPop(url, 'instantfmBuzzShare', 420, 700);
     }
     
+},
+// Static methods
+{
+    updateCurPlaying: function(t, a, ytId, _srcIndex) {
+        var topView = browser.getTopView();
+        if (topView instanceof PlaylistView) {
+            topView.updateCurPlaying(t, a, ytId, _srcIndex);
+        }
+    }
 });
 
 

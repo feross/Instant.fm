@@ -131,13 +131,7 @@ class PlaylistHandlerBase(HandlerBase):
         elif playlist is not None:
             title = playlist.title
 
-        if self._is_partial():
-            template_name = 'partial/' + template_name
-
         self.render(template_name, playlist=playlist, share=share, title=title, **kwargs)
-
-    def _is_partial(self):
-        return self.get_argument('partial', default=False)
 
 
 class UserHandlerBase(HandlerBase):

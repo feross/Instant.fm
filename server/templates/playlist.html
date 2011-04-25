@@ -35,49 +35,26 @@
           <a href="#toggleRepeat" id="toggleRepeat"><span>Repeat</span></a>
         </div>
         <div class="right">
-          <a href="/search" class="mustOwn" id="addSongs" rel="partial search" title="Add Songs"><span>Add Songs</span></a>
+          <a href="/search" class="mustOwn" id="addSongs" rel="view search" title="Add Songs"><span>Add Songs</span></a>
         </div>
       </div>
       
     </section> <!-- end of #playlistDisplay -->
   
     <section id="browserDisplay">
+        
+      <header class="iPhoneHeader black" id="browserHeader">
+        <div class="left"><!-- dynamic --></div>
+        <div class="title"><!-- dynamic --></div>
+        <div class="right"><!-- dynamic --></div>
+      </header>
       
-      <div id="behind">
-        
-        <header class="iPhoneHeader black" id="nowPlayingHeader">
-          <span class="left"><!-- not used on now playing view --></span>
-          <div class="title"><h1>Now Playing</h1></div>
-          <a class="right black" href="#open">
-            <span class="mustNotOwn">Search</span>
-            <span class="mustOwn">Add Songs</span>
-          </a>
-        </header>
-        
-        <div id="nowPlayingContainer">
-                    
-        </div> <!-- end of #nowPlayingContainer -->
-        
-      </div> <!-- end of #behind -->
-      
-      <div class="animate" id="modal">
-        
-        <header class="iPhoneHeader blue" id="browserHeader">
-          <span class="left"><!-- dynamic back button --></span>
-          <div class="title"><!-- dynamic title --></div>
-          <a class="right black" href="#close">Now Playing</a>
-        </header>
-        
-        <div id="browser">
-          <div id="FS_slider">
-            <div id="FS_holder">
-              {% block mini-browser %}{% end %}
-            </div> <!-- end of #FS_holder -->
-          </div> <!-- end of #FS_slider -->
-        </div> <!-- end of #browser -->
-        
-      </div> <!-- end of #modal -->
-     
+      <div id="browser">
+        <div id="views">
+          {% block mini-browser %}{% end %}
+        </div> <!-- end of #views -->
+      </div> <!-- end of #browser -->
+             
     </section> <!-- end of #browserDisplay -->
 
   </div> <!-- end of #main -->
@@ -86,7 +63,7 @@
     <nav>
       <div class="left">
         <span class="byline">Created by <a href="http://www.feross.org" target="_blank">Feross</a> and <a href="http://www.quora.com/Jake-Becker" target="_blank">Jake</a> from Stanford.</span>
-        <a href="/partial/meetTheTeam.html" id="navMeetTheTeam" rel="partial static" title="Meet the Team">Meet the Team</a>
+        <a href="/view/meetTheTeam.html" id="navMeetTheTeam" rel="view static" title="Meet the Team">Meet the Team</a>
       </div>
       <div class="right">
         <a href="javascript:UserVoice.showPopupWidget();" id="navGiveFeedback">Give Us Feedback</a>
@@ -149,7 +126,7 @@
     {{'{{'}}if artistName && artistHref}}
       <div id="curArtist">
         <span class="curLabel">by</span> 
-        <h4><a href="${artistHref}" title="${artistName}" rel="partial artist">${artistName}</a></h4>
+        <h4><a href="${artistHref}" title="${artistName}" rel="view artist">${artistName}</a></h4>
       </div>
     {{'{{'}}/if}}
     <div id="curAlbum" style="display:none;">
