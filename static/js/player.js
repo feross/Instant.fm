@@ -391,7 +391,9 @@ Player.prototype.loadPlaylist = function(playlist) {
     ownershipStatusChanged();
     
     if (isOwner() && !playlist.songs.length){
-        $('#navSearch').click(); // show search for empty playlists
+        window.setTimeout(function() {
+            $('#navSearch').click(); // show search for empty playlists
+        }, 2000);
     }
 };
 
