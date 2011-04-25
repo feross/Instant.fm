@@ -15,7 +15,7 @@ $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
             // Only send the token to relative URLs i.e. locally.
-            xhr.setRequestHeader("X-CSRFToken", getCookie('_xsrf'));
+            xhr.setRequestHeader("X-CSRFToken", readCookie('_xsrf'));
         }
     }
 });
@@ -202,8 +202,6 @@ function setupFBML() {
           cookie: true,
           xfbml: true
         });
-         
-        model && model.playlist && nowplaying.tryLoadComments(model.playlist.url);
     };
     
     (function() {
@@ -549,7 +547,7 @@ function setupRpc() {
     	'is_registered_fbid', 'set_image_from_url', 'login', 'logout', 
     	'new_playlist', 'signup_with_fbid', 'get_playlists_for_user'];
         
-    instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + getCookie('_xsrf'), {
+    instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + readCookie('_xsrf'), {
                                      "sanitize": true,
                                      "protocol": 'JSON-RPC',
                                      "methods": methods,

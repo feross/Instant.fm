@@ -154,7 +154,6 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 nowplaying.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
                 player.pause();
-                tts('Not found');
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
@@ -386,9 +385,6 @@ Player.prototype.loadPlaylist = function(playlist) {
     if (isOwner() && !playlist.songs.length){
         $('#navSearch').click(); // show search for empty playlists
     }
-    
-    nowplaying.tryLoadComments(playlist.url); // update the comment widget
-    log('Loaded playlist: ' + playlist.url);
 };
 
 // Load a playlist with the given id

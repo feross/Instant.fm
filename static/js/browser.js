@@ -92,14 +92,13 @@ MiniBrowser.prototype.pushPartial = function(config) {
 		    view = new ProfileView(config);
 		    break;
 		case 'partial static': // all static partials
-		    view = new BaseView(config);
+		    view = new View(config);
 		    break;
 		default:
-		    view = new BaseView(config);
-		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+_title+')');
+		    view = new View(config);
+		    log('Warning: All partials must create a view and push it onto the viewStack. Did you define a createView function? ('+config.title+')');
 		    break;
 	}
-	view.config = config;
 	this.pushStatic(newPath, view);
 };
 
