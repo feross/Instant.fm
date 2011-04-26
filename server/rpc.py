@@ -151,7 +151,7 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
     def delete_playlist(self, playlist_id):
         query = self.db_session.query(model.Playlist)
         query = query.filter_by(id=playlist_id)
-        query.delete()
+        query.update({"user_id": None, "session_id": None})
 
     @validated_async_rpc
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):

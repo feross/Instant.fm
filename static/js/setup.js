@@ -555,16 +555,16 @@ function setupDeletePlaylist() {
 	$('a.delete').live('click', function(event) {
 		event.preventDefault();
 		id = $(this).data('id');
-		instantfm.delete_playlist({
-			params: [id],
-			onSuccess: function(response) {
-				log("Deleted playlist " + id);
-				var confirmed = window.confirm("Really delete?")
-				if (confirmed) {
+		var confirmed = window.confirm("Really delete?")
+		if (confirmed) {
+			instantfm.delete_playlist({
+				params: [id],
+				onSuccess: function(response) {
+					log("Deleted playlist " + id);
 					$('div.playlist[data-id="' + id + '"]').remove();
 				}
-			}
-		});
+			});
+		}
 	})
 }
 
