@@ -59,6 +59,16 @@ h6 { font-size: 10px; }
     box-shadow: 3px 6px 6px rgba(0,0,0,0.75);
 }
 
+.playlist a.delete {
+    background: transparent url('/images/x.png') top left no-repeat;
+    display: block;
+    height: 30px;
+    left: -15px;
+    position: absolute;
+    top: -15px;
+    width: 30px;
+}
+
 .showcase a.playlist:hover { text-decoration: none; }
 
 .showcase .playlist:hover:after {

@@ -25,18 +25,20 @@
     	<h1> {{ category['title'] }} </h1>
     	<div>
 	        {% for playlist in category['playlists'] %}
-		        <a class="playlist hover" href="{{playlist.url}}">
+		        <div class="playlist" href="{{playlist.url}}">
 	            	{% if handler.owns_playlist(playlist) %}
-	            		<img class="close_button" src="http://www.cabel.name/images-global/zoom/closebox.png"></img>
+	            		<a class="delete ir">Delete this playlist</a>
 	            	{% end %}
-	           		<div class="clearfix picture">
-		                <img class="cover_art" src="{{playlist.cover_images[0] if len(playlist.cover_images) > 0 else default_img}}">
-		                <img class="cover_art two" src="{{playlist.cover_images[1] if len(playlist.cover_images) > 1 else default_img}}">
-		                <img class="cover_art three" src="{{playlist.cover_images[2] if len(playlist.cover_images) > 2 else default_img}}">
-		                <img class="cover_art four" src="{{playlist.cover_images[3] if len(playlist.cover_images) > 3 else default_img}}">
-		            </div>
-		            <h2>{{playlist.title}}</h2>
-		        </a>
+	            	<a href="{{playlist.url}}">
+  	           		<div class="clearfix picture">
+  		                <img class="cover_art" src="{{playlist.cover_images[0] if len(playlist.cover_images) > 0 else default_img}}">
+  		                <img class="cover_art two" src="{{playlist.cover_images[1] if len(playlist.cover_images) > 1 else default_img}}">
+  		                <img class="cover_art three" src="{{playlist.cover_images[2] if len(playlist.cover_images) > 2 else default_img}}">
+  		                <img class="cover_art four" src="{{playlist.cover_images[3] if len(playlist.cover_images) > 3 else default_img}}">
+  		            </div>
+		              <h2>{{playlist.title}}</h2>
+		            </a>
+		        </div>
 	        {% end %}
         </div>
         </div>
