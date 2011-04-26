@@ -59,11 +59,22 @@
     <script>
     {% block scripts %}{% end %}
     </script>
-
+    
+    <!-- UserVoice Feedback Widget Start -->
+    <script type="text/javascript">
+      (function() {
+        var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+        uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/KjpNAWFK35l5yhGqYQbgzA.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+      })();
+    </script>
+    <!-- UserVoice Feedback Widget End -->
+    
     <!-- scripts concatenated and minified via ant build script-->
 
     <script src="/js/mylibs/base.js"></script>
     <script src="/js/mylibs/jquery-ui-1.8.8.custom.min.js"></script>
+    <script src="/js/mylibs/jquery.animate-enhanced.min.js"></script>
     <script src="/js/mylibs/jquery.autogrow.js"></script>
     <script src="/js/mylibs/jquery.colorbox.js"></script>
     <script src="/js/mylibs/jquery.fileupload.js"></script>
@@ -81,7 +92,6 @@
     <script src="/js/browser.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/model.js"></script>
-    <script src="/js/nowplaying.js"></script>
     <script src="/js/player.js"></script>
     <script src="/js/setup.js"></script>
     <script src="/js/ui.js"></script>

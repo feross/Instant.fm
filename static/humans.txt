@@ -3,18 +3,19 @@
 
 
 /* TEAM */
-  <your title>: <your name>
-  Site: 
-  Twitter: 
-  Location: 
+  Co-founder: Feross Aboukhadijeh
+  Co-founder: Jake Becker
+  Site: http://instant.fm
+  Twitter: @InstantDOTfm
+  Location: Stanford, California, United States
 
 /* THANKS */
-  Names (& URL): 
+  Names (& URL): John Hiesey & John Ousterhout.
 
 /* SITE */
   Standards: HTML5, CSS3
   Components: Modernizr, jQuery
-  Software:
+  Software: Nginx, Tornado
   
 
                                     

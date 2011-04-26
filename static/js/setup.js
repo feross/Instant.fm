@@ -44,10 +44,10 @@ $.editable.addInputType('autogrow', {
         var width;
         switch(elemId) {
             case 'curPlaylistTitle':
-                width = 390;
+                width = 380;
                 break;
             case 'curPlaylistDesc':
-                width = 470;
+                width = 460;
                 break;
             default:
                 width = $(this).width();
@@ -68,13 +68,11 @@ function setupKeyboardShortcuts() {
     // Handle the display of Keyboard shortcuts colorbox
     $('a[href="#helpBox"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_help.html').success(function(markup) {    
-            $.colorbox({
+        $.get('/partial/colorbox_help.html').success(function(markup) {    
+            $.colorbox($.extend({
                 html: markup,
-                open: true,
-                returnFocus: false,
-                scrolling: false
-            });
+                open: true
+            }, appSettings.colorbox));
         });
     });
     
@@ -140,7 +138,7 @@ function setupKeyboardShortcuts() {
                     $('#navNewPlaylist').click();
                     break;
                 case 70: // f
-                    browser.pushSearchPartial();
+                    $('#navSearch').trigger('click');
                     break;
                 case 191: // ?
                     $('#navShortcuts').trigger('click');
@@ -156,6 +154,11 @@ function setupKeyboardShortcuts() {
                     showHideUI();
                     break;
                 case 65: // a
+                    if (!model.playlist || !model.playlist.songs ||
+                        !model.playlist.songs.length) {
+                        
+                        return;    
+                    }
                     var song = model.playlist.songs[player.songIndex];
                     this.tts(cleanSongTitle(song.t)+', by '+song.a);
                     break;
@@ -173,13 +176,11 @@ function setupKeyboardShortcuts() {
         // These keyboard events will always get captured (even when textboxes are focused)
         switch (k) {
             case 27: // escape
-                if (!browser.isOpen || colorboxOpen) {
+                if (colorboxOpen) {
                     return;
                 }    
                 if (browser.viewStack.length > 1) {
                     browser.pop();
-                } else {
-                    browser.toggle(false);
                 }
                 break;
             default:
@@ -267,12 +268,10 @@ function setupUploader(formElem) {
 function setupNewPlaylist() {
     $('a[href="#new"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_newPlaylist.html').success(function(markup) {    
-            $.colorbox({
+        $.get('/partial/colorbox_newPlaylist.html').success(function(markup) {    
+            $.colorbox($.extend({
                 html: markup,
                 open: true,
-                returnFocus: false,
-                scrolling: false,
                 onComplete: function() {
                     var form = $('#newPlaylistForm');
                     
@@ -333,7 +332,7 @@ function setupNewPlaylist() {
                         }
                     });
                 }
-            });
+            }, appSettings.colorbox));
         });
     });
 }
@@ -359,12 +358,10 @@ function onNewPlaylistResponse(data) {
 function setupLogin() {
     $('a[href="#login"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_login.html').success(function(markup) {    
-            $.colorbox({
+        $.get('/partial/colorbox_login.html').success(function(markup) {    
+            $.colorbox($.extend({
                 html: markup,
                 open: true,
-                returnFocus: false,
-                scrolling: false,
                 onComplete: function() {
                     var form = $('#login');
                     $('input[name=email]', form).focus();
@@ -385,7 +382,7 @@ function setupLogin() {
                                 if (response && response.success)  {
                                     var session = response.result;
                                     setSession(session);
-                                    tts('Hello '+session.user.name);
+                                    tts('Hello, '+session.user.name.split(' ', 1));
                                     $.colorbox.close();
                                     log('Login succeeded.');
                                     
@@ -410,7 +407,7 @@ function setupLogin() {
                         });
                     });
                 }
-            });
+            }, appSettings.colorbox));
         });
     });
     
@@ -431,12 +428,10 @@ function setupLogout() {
 function setupSignup() {
     $('a[href="#signUp"]').click(function(e) {
         e.preventDefault();
-        $.get('/static/colorbox_signup.html').success(function(markup) {    
-            $.colorbox({
+        $.get('/partial/colorbox_signup.html').success(function(markup) {    
+            $.colorbox($.extend({
                 html: markup,
                 open: true,
-                returnFocus: false,
-                scrolling: false,
                 width: 450,
                 onComplete: function() {
                     var form = $('#fbSignupForm');
@@ -462,7 +457,7 @@ function setupSignup() {
                     // Connect button
                     $('#fbConnectButton').click(onFBConnect);
                 }
-            });
+            }, appSettings.colorbox));
 
         });
     });

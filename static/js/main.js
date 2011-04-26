@@ -1,6 +1,5 @@
 var model;
 var player;
-var nowplaying;
 var browser;
 
 var keyEvents = true; // Are keyboard shortuts enabled?
@@ -9,7 +8,6 @@ var soundManagerLoaded = false; // Is SoundManager2 loaded?
 
 soundManager.url = '/swf/';
 soundManager.flashVersion = 8; // optional: shiny features (default = 8)
-//soundManager.useHTML5Audio = true;
 soundManager.onload = function() {
     soundManagerLoaded = true;
 };
@@ -18,6 +16,12 @@ var appSettings = {
     autogrow: {
         expandTolerance: 0.001,
         lineHeight: 16,
+    },
+    colorbox: {
+        returnFocus: false,
+        scrolling: false,
+        speed: 0, // don't animate, since it conflicts with jquery.animate-enhanced.min.js
+        transtion: 'none',
     },
     fbAppId: window.location.host != 'localhost' ? '114871205247916' : '186788488008637',
     fbPageURL: 'http://www.facebook.com/pages/Instantfm/198137876872500',
@@ -72,7 +76,6 @@ function onloadHome(session) {
 function onloadPlaylist(session) {
     model = new Model();
     player = new Player();
-    nowplaying = new NowPlaying();
     browser = new MiniBrowser();
     
     setSession(session);

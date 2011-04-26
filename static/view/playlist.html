@@ -1,0 +1,36 @@
+{% block mini-browser %}
+<section class="playlistView view">
+  
+  <section id="curPlaylist">
+    <!-- curPlaylistTemplate -->
+  </section>
+  
+  <section id="playlistActions">
+    <a href="#fbShare" id="fbShare" class="darkblue awesome">
+      Share on Facebook
+    </a>
+    <a href="#twShare" id="twShare" class="blue awesome">
+      Share on Twitter
+    </a>
+  </section> <!-- end of #playlistActions -->
+      
+  <hr class="separator">
+
+  <section id="curPlaying">
+    <div class="clearfix" id="curAlbumBlock">
+      <!-- curAlbumBlockTemplate -->
+    </div>
+    <div id="curDescs">
+      <section id="curSongDesc">
+        <!-- curSongDescTemplate -->
+      </section>
+      
+      <section class="artistDesc" id="curArtistDesc">
+        <!-- curArtistDescTemplate -->
+      </section>
+    </div> <!-- end of #curDescs -->
+
+  </section> <!-- end of #curPlaying -->
+
+</section> <!-- end of #nowPlaying -->
+{% end %}

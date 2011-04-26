@@ -4,35 +4,49 @@ var View = Base.extend({
         this.config = config;
     },
     
+    // Path to the static HTML for this view (ex: /view/artist.html)
+    // Note: This is usually different from path in this.config.path (ex: /lady-gaga)
+    //       except when we have a static view (ex: /view/meetTheTeam.html)
+    getStaticPath: function() {
+        return this.config.path;
+    },
+    
     // Called after content is added to DOM but before animation.
     willSlide: function() {
-        $('#browser').scrollTop(0);
-        browser._updateHeader();
+        browser.updateHeader(this.config.title);
     },
 
     // Called after content is fully slid into view.
     didSlide: function() {
-        nowplaying.updateOpenButtonText(this.config.title);
     },
 
     // Called before we push a new view (hiding this one) or pop the current one.
     willSleep: function() {
         $('input, textarea', this.content).blur();
     },
+    
+    // Called after we push a new view (hiding this one) or pop the current one.
+    didSleep: function() {
+        this.content.css({visibility: 'hidden'});
+    },
 
     // Called when another view gets popped and before this one re-appears.
     willAwake: function() {
-        $('#browser').scrollTop(0);
-        browser._updateHeader();
+        this.content.css({visibility: 'visible'});
+        browser.updateHeader(this.config.title);
     },
 
     // Called when another view was popped and this one has re-appeared.
     didAwake: function() {
-        nowplaying.updateOpenButtonText(this.config.title);
     },
 
-    // Called immediately before the view is popped.
+    // Called before the view is popped.
     willPop: function() {
+        $('input, textarea', this.content).blur();
+    },
+    
+    // Called after the view is popped.
+    didPop: function() {
     }
     
 });
@@ -52,6 +66,10 @@ var SearchView = View.extend({
         this.config.title = {mustOwn: 'Add Songs', mustNotOwn: 'Search'};
     },
     
+    getStaticPath: function() {
+        return '/view/search.html';
+    },
+    
     willSlide: function() {
         this.base();
         this._addSearchHandlers();
@@ -64,7 +82,6 @@ var SearchView = View.extend({
 
     didAwake: function() {
         this.base();
-        $('.searchBox input.search', this.content).focus();
     },
 
     // Private function that adds handlers to the search box
@@ -106,8 +123,10 @@ var SearchView = View.extend({
 
         var that = this;
         window.setTimeout(function() {
-
-            $('.start', that.content).fadeOut();
+            
+            if (searchString.length) {
+                $('.start', that.content).fadeOut();
+            }
 
             var searchInput = $('.searchBox input.search', that.content);
             if (searchString != $.trim(searchInput.val())) {
@@ -282,6 +301,10 @@ var ArtistView = View.extend({
     	this.songlist;
     },
     
+    getStaticPath: function() {
+        return '/view/artist.html';
+    },
+    
     willSlide: function() {
         this.base();
     	this._fetchData();
@@ -417,12 +440,11 @@ var ArtistView = View.extend({
     _updateArtistImg: function(src, alt) {
     	if (src) {
             var imgBlock = $('<a class="artistImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
-                .colorbox({
+                .colorbox($.extend({
                     href: src,
                     photo: true,
-                    returnFocus: false,
                     title: '&nbsp;' // don't show a title
-                });
+                }, appSettings.colorbox));
             $('.artistImg', this.content).replaceWith(imgBlock);
 
         } else {
@@ -440,6 +462,10 @@ var AlbumView = View.extend({
         this.albumName = config.title;
     	this.artistName = config.linkElem.attr('data-artist');
     	this.songlist;
+    },
+    
+    getStaticPath: function() {
+        return '/view/album.html';
     },
     
     willSlide: function() {
@@ -514,7 +540,7 @@ var AlbumView = View.extend({
      	$('.albumDesc', this.content).fadeIn();
 
         this.playlist = Player.playlistFromAlbum(data.album);
-        this.songlist = new SongList(this.playlist);
+        this.songlist = new SongList(this.playlist, {startingLen: 100});
 
         var $songResults = $('.songResults', this.content)
         this.songlist.render($songResults);
@@ -525,12 +551,11 @@ var AlbumView = View.extend({
     _updateAlbumImg: function(src, alt) {
     	if (src) {    
             var imgBlock = $('<a class="albumImg reflect" href="#"><img alt="'+alt+'" src="'+src+'"><span class="zoomIcon"></span></a>')
-                .colorbox({
+                .colorbox($.extend({
                     href: src,
                     photo: true,
-                    returnFocus: false,
                     title: '&nbsp;' // don't show a title
-                });
+                }, appSettings));
             $('.albumImg', this.content).replaceWith(imgBlock);
 
         } else {
@@ -540,9 +565,14 @@ var AlbumView = View.extend({
     
 });
 
+
 var ProfileView = View.extend({
     constructor: function(config) {
         this.base(config);
+    },
+    
+    getStaticPath: function() {
+        return '/view/profile.html';
     },
     
     willSlide: function() {
@@ -587,4 +617,461 @@ var ProfileView = View.extend({
     }
 
 });
+
+
+var PlaylistView = View.extend({
+    constructor: function(config) {
+        this.base(config);
+    },
+    
+    getStaticPath: function() {
+        return '/view/playlist.html';
+    },
+    
+    willSlide: function() {
+        this.base();
+        
+        var that = this;
+        $('#fbShare').click(function(event) {
+            event.preventDefault();
+            that.shareOnFacebook();
+        });
+
+        $('#twShare').click(function(event) {
+            event.preventDefault();
+            that.shareOnTwitter();
+        });
+        
+        this._renderPlaylistInfo(this.config.playlist);
+    },
+
+    // Update the currently playing song with Last.fm data
+    // @t - song title, @a - artist, @ytId - yt video id (used for Like button song share)
+    // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
+    //             hasn't changed before we update the DOM.
+    updateCurPlaying: function(t, a, ytId, _srcIndex) {
+        var that = this;
+    	model.lastfm.track.search({
+    	    artist: a || '',
+    	    limit: 1,
+    	    track: t || ''
+    	}, {
+    	    success: function(data) {
+    	        log(this);
+    	        that._handleSongResults(t, a, ytId, _srcIndex, data);
+    	    },
+    	    error: function(code, message) {
+    	        log(code + ' ' + message);
+    	        that.renderAlbumBlock({
+                    albumImg: undefined,
+                    trackName: t,
+                    artistName: a,
+                    ytId: ytId
+                });
+    		}
+    	});
+    },
+
+    // Private method to handle song search results from Last.fm
+    _handleSongResults: function(t, a, ytId, srcIndex, data) {
+        if (srcIndex && srcIndex != player.songIndex) {
+            return; // The request was too slow. We don't need it anymore.
+        }
+        if (!data.results || !data.results.trackmatches || !data.results.trackmatches.track) {
+            this.renderSongDesc(false);
+            this.renderArtistDesc(false);
+            this.renderAlbumBlock({
+                albumImg: undefined,
+                trackName: t,
+                artistName: a,
+                ytId: ytId
+            });
+            return;
+        }
+
+        var track = data.results.trackmatches.track;
+        var trackName = track.name || t;
+        var artistName = track.artist || a;
+        var albumImg = track.image && track.image[track.image.length - 1]['#text'];
+
+        this.renderAlbumBlock({
+            albumImg: albumImg,
+            trackName: trackName,
+            artistName: artistName,
+            ytId: ytId,
+            callback: function() {
+                // Add colorbox to album image
+                if (albumImg) {
+                    $('#curAlbumImg').colorbox($.extend({
+                        href: albumImg,
+                        photo: true,
+                        title: '&nbsp;' // don't show a title
+                    }, appSettings.colorbox));
+                } else {
+                    $('#curAlbumImg').click(function(event) {
+                        event.preventDefault();
+                    });
+                }
+            }
+        });
+
+        // Get detailed track info
+        var that = this;
+        trackName && artistName && model.lastfm.track.getInfo({
+    	    artist: artistName || '',
+    	    autocorrect: 1,
+    	    track: trackName || ''
+    	}, {
+    	    success: function(data){
+    	        that._handleSongInfo(trackName, artistName, albumImg, srcIndex, data);
+    	    },
+    	    error: function(code, message) {
+    	        log(code + ' ' + message);
+    	        that.renderSongDesc(false);
+    		}
+    	});
+
+    	// Get detailed artist info (proceeds simultaneously with previous req)
+    	artistName && model.lastfm.artist.getInfo({
+    	    artist: artistName || '',
+    	    autocorrect: 1
+    	}, {
+    	    success: function(data){
+    	        that._handleArtistInfo(artistName, srcIndex, data);
+    	    },
+    	    error: function(code, message) {
+    	        that.renderArtistDesc(false);
+    	        log(code + ' ' + message);
+    		}
+    	});
+    },
+
+    // Private method to handle song information from Last.fm
+    _handleSongInfo: function(trackName, artistName, albumImg, srcIndex, data) {
+        if (srcIndex && srcIndex != player.songIndex) {
+            return; // The request was too slow. We don't need it anymore.
+        }
+        if (!data.track) {
+            this.renderSongDesc(false);
+            return;
+        }
+
+        var track = data.track;
+        var albumName = track.album && track.album.title;
+        var trackSummary = track.wiki && track.wiki.summary;
+        var trackLongDesc = track.wiki && track.wiki.content;
+
+        if (albumName) {
+            var albumHref = '/'+canonicalize(artistName)+'/'+canonicalize(albumName);
+            $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="view album">'+albumName+'</a>');
+            $('#curAlbum').fadeIn('fast');
+        }
+
+        // Update song summary
+        var shortContent;
+        if (trackSummary) {
+            shortContent = cleanHTML(trackSummary);
+            $('#curSongDesc article').html(shortContent);
+
+            this.renderSongDesc({
+                trackName: track.name,
+                trackDescription: shortContent,
+                callback: function() {
+                    // Add link to longer description
+                    if (trackLongDesc) {
+                        var longContent = cleanHTML(trackLongDesc);
+
+                        $('#curSongDesc article')
+                            .data('longContent', longContent)
+                            .data('shortContent', shortContent);
+
+                        var link = makeSeeMoreLink(onShowMoreText);
+                        $('#curSongDesc article').append(' ').append(link);
+                    }
+                }
+            });
+        } else {
+            this.renderSongDesc(false);
+        }
+
+    },
+
+    // Private method to handle artist information from Last.fm
+    _handleArtistInfo: function(artistName, srcIndex, data) {
+        if (srcIndex && srcIndex != player.songIndex) {
+            return; // The request was too slow. We don't need it anymore.
+        }
+        if (!data.artist) {
+            this.renderArtistDesc(false);
+            return;
+        }
+
+        var artist = data.artist;
+        var artistSummary = artist.bio && artist.bio.summary;
+        var artistLongDesc = artist.bio && artist.bio.content;
+        var artistImg = artist.image && artist.image[artist.image.length - 1]['#text'];
+
+        // Update artist summary
+        var shortContent;
+        if (artistSummary) {                  
+            shortContent = cleanHTML(artistSummary);
+
+            this.renderArtistDesc({
+                artistName: artistName,
+                artistImg: artistImg,
+                artistDescription: shortContent,
+                callback: function() {
+                    // Add link to longer description
+                    if (artistLongDesc) {
+                        var longContent = cleanHTML(artistLongDesc); 
+
+                        $('#curArtistDesc article')
+                            .data('longContent', longContent)
+                            .data('shortContent', shortContent);
+
+                        var link = makeSeeMoreLink(onShowMoreText);
+                        $('#curArtistDesc article').append(' ').append(link);
+                    }
+
+                    // Add colorbox to artist image
+                    if (artistImg) {
+                        $('#curArtistImg').colorbox($.extend({
+                            href: artistImg,
+                            photo: true,
+                            title: '&nbsp;' // don't show a title
+                        }, appSettings.colorbox));
+                    }
+                }
+            });
+        } else {
+            this.renderArtistDesc(false);
+        }
+    },
+
+    _renderPlaylistInfo: function(playlist) {
+        var that = this;
+        $('#curPlaylist').fadeOut('fast', function() {
+            $('#curPlaylist').empty();
+            $('#curPlaylistTemplate')
+                .tmpl(playlist)
+                .appendTo('#curPlaylist');
+
+            if (model.playlist && model.playlist.user) {
+                // Add byline
+                var byline, bylineContainer = $('#byline').empty();
+                if (model.playlist.user.profile_url) {
+                    byline = $('<a/>').attr('href', model.playlist.user.profile_url)
+                                      .attr('title', model.playlist.user.name)
+                                      .attr('rel', 'view profile');
+                } else {
+                    byline = $('<span/>');
+                }
+                byline.text(model.playlist.user.name);
+                bylineContainer.text('by ').append(byline);
+                log(byline);
+            }
+
+            $('.editLink').remove(); // remove all edit links
+
+            that._makeEditable($('#curPlaylistTitle'), function(newTitle) {
+                model.updateTitle(newTitle);
+                that.config.title = newTitle;
+            });
+            that._makeEditable($('#curPlaylistDesc'), model.updateDesc);
+
+            $('#curPlaylist').fadeIn('fast');
+        });
+
+        // Change the background image
+        this.setBackground(playlist.bg_original);
+    },
+
+    renderAlbumBlock: function(data) {
+        if (data.albumImg) {
+            data.albumAlt = data.artistName ? ('Album by ' + data.artistName) : '';
+        } else {
+            // Need absolute URL for FB share
+            data.albumImg = 'http://instant.fm/images/unknown.jpg';
+            data.albumAlt = 'Unknown album';
+        }
+
+        if (data.artistName) {
+            data.artistHref = '/'+canonicalize(data.artistName);
+        }
+
+        data.songHref = 'http://instant.fm'+model.playlist.url;
+        if (data.ytId) {
+            data.songHref += '?share=1&yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg)+'&track='+encodeURIComponent(data.trackName)+'&artist='+encodeURIComponent(data.artistName);
+            log(data.songHref);
+        }
+
+        $('#curAlbumBlock').fadeOut('fast', function() {
+            $('#curAlbumBlock').empty();
+            $('#curAlbumBlockTemplate')
+                .tmpl(data)
+                .appendTo('#curAlbumBlock');
+            FB.XFBML.parse($('#curSongLike').get(0), function(reponse) {
+                $('#curSongLike').fadeIn('fast');
+            });
+            data.callback && data.callback();
+            $('#curAlbumBlock').fadeIn('fast');
+        });
+    },
+
+    renderSongDesc: function(data) {    
+        $('#curSongDesc').fadeOut('fast', function() {
+            $('#curSongDesc').empty();
+            if (data) {
+                $('#curSongDescTemplate')
+                    .tmpl(data)
+                    .appendTo('#curSongDesc');
+
+                data.callback && data.callback();
+                $('#curSongDesc').fadeIn('fast');
+            }
+        });
+    },
+
+    renderArtistDesc: function(data) {
+        if (data.artistName) {
+            data.artistHref = '/'+canonicalize(data.artistName);
+        }
+
+        $('#curArtistDesc').fadeOut('fast', function() {
+            $('#curArtistDesc').empty();
+            if (data) {
+                $('#curArtistDescTemplate')
+                    .tmpl(data)
+                    .appendTo('#curArtistDesc');
+
+                    data.callback && data.callback();
+                $('#curArtistDesc').fadeIn('fast');
+            }
+        });
+    },
+
+    setBackground: function(image_url) {
+        // TODO: Make this a nice cross-fade animation.
+        var bg_style_str = "";
+        if (image_url && image_url != '') {
+            bg_style_str = "background-image:url('" + image_url + "');";
+        }
+        $('body').attr('style', bg_style_str);
+    },
+
+    // Makes the given element editable by adding an edit link.
+    // @elem - the element to make editable
+    // @updateCallback - the function to call when the value is modified
+    _makeEditable: function(elem, updateCallback) {    
+        var elemId = elem.attr('id');
+        var buttonClass, autogrowSettings;
+        switch (elemId) {
+            case 'curPlaylistTitle':
+                autogrowSettings = {
+                    expandTolerance: 0.05,
+                    lineHeight: 30,
+                };
+                buttonClass = 'large awesome white';
+                break;
+            default:
+                autogrowSettings = $.extend({}, appSettings.autogrow);
+                buttonClass = 'small awesome white';
+                break;
+        }
+
+        elem.after($('<a class="editLink mustOwn" href="#edit"> Edit</a>')
+                .click(function(event) {
+                    event.preventDefault();
+                    $.extend(appSettings.jeditable.autogrow, autogrowSettings);
+
+                    $(this).prev().trigger('editable');
+                    $(this).hide();
+                })
+            )
+            .editable(function(value, settings) {
+                $(this).next().show();
+
+                updateCallback(value);
+                return value;
+            }, $.extend({}, appSettings.jeditable, {
+                buttonClass: buttonClass,
+                onreset: function() {
+                    $(this).parent().next().show(); // Show the edit button again if the edit is canceled.
+                }
+            }));
+    },
+
+    shareOnFacebook: function() {
+        // Use first non-blank album as share image
+        var bestAlbumImg;
+        for (var i = 0; i < model.playlist.songs.length; i++) {
+            var image = model.playlist.songs[i].i;
+            if (image) {
+                bestAlbumImg = image.replace('serve/34s', 'serve/126s');
+                break;
+            }
+        }
+
+        // Get top playlist artists
+        var topArtists = [];
+        $.each(model.playlist.songs, function(index, value) {
+           var artist = value.a;
+           if (artist && $.inArray(artist, topArtists) == -1) {
+              topArtists.push(artist);
+           }
+           if (topArtists.length >= 4) {
+               return false; // end the $.each() iteration
+           }
+        });
+
+        FB.ui(
+          {
+            method: 'feed',
+            name: model.playlist.title,
+            link: 'http://instant.fm' + model.playlist.url,
+            picture: bestAlbumImg || 'http://instant.fm/images/unknown.jpg',
+            caption: 'Instant.fm Playlist',
+            description: model.playlist.description + '\n',
+            properties: {'Artists in this playlist': topArtists.join(', ')},
+            actions: {name: 'Create new playlist', link: 'http://instant.fm/'}
+          },
+          function(response) {
+            if (response && response.post_id) {
+                // TODO: show status message in UI
+              log('Post was published.');
+            } else {
+              log('Post was not published.');
+            }
+          }
+        );
+    },
+
+    shareOnTwitter: function() {
+        var tweetText = encodeURIComponent("#NowPlaying I'm listening to "+model.playlist.title);
+        var url = 'http://twitter.com/share'+
+                  '?url=http://instant.fm' + model.playlist.url +
+                  '&text='+tweetText+'&via=instantDOTfm';
+        showPop(url, 'instantfmTwitterShare');
+    },
+
+    shareOnBuzz: function() {
+        var url = 'http://www.google.com/buzz/post?url=http://instant.fm' + model.playlist.url;
+        showPop(url, 'instantfmBuzzShare', 420, 700);
+    }
+    
+},
+// Static methods
+{
+    updateCurPlaying: function(t, a, ytId, _srcIndex) {
+        var topView = browser.getTopView();
+        if (topView instanceof PlaylistView) {
+            topView.updateCurPlaying(t, a, ytId, _srcIndex);
+        }
+    }
+});
+
+
+
+
+
 
