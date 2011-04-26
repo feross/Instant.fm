@@ -1,32 +1,6 @@
 /* Primary Styles */
 /* Our blue: #499bd1 */
 
-::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-}
-::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
-    display: block;
-    height: 0;
-    background-color: transparent;
-}
-::-webkit-scrollbar-track-piece {
-    background-color: #FAFAFA;
-    -webkit-border-radius: 0;
-    -webkit-border-bottom-right-radius: 8px;
-    -webkit-border-bottom-left-radius:8px;
-}
-::-webkit-scrollbar-thumb:vertical {
-    height: 50px;
-    background-color: #666;
-    -webkit-border-radius: 8px;
-}
-::-webkit-scrollbar-thumb:horizontal {
-    width: 50px;
-    background-color: #666;
-    -webkit-border-radius: 8px;
-}
-
 body, select, input, textarea { color: #333; }
 h1,h2,h3,h4,h5,h6 { font-weight: bold; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
@@ -54,6 +28,32 @@ h3 { font-size: 22px; margin: 10px 0 8px 0; }
 h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 10px; }
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
+    display: block;
+    height: 0;
+    background-color: transparent;
+}
+::-webkit-scrollbar-track-piece {
+    background-color: #FAFAFA;
+    -webkit-border-radius: 0;
+    -webkit-border-bottom-right-radius: 8px;
+    -webkit-border-bottom-left-radius:8px;
+}
+::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: #666;
+    -webkit-border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+    width: 50px;
+    background-color: #666;
+    -webkit-border-radius: 8px;
+}
 
 
 /* Home Page */
@@ -405,7 +405,7 @@ h6 { font-size: 10px; }
 	margin: 0 50px 0 0;
     overflow: auto;
     overflow-y: scroll;
-    overflow-x: hidden;
+    overflow-x: auto;
     padding: 20px 20px 20px 20px;
 	width: 479px;
 }
@@ -579,11 +579,10 @@ header:hover .editLink, article:hover .editLink {
 .curLabel {
     display: inline-block;
     font-size: 12px;
-    font-style: italic;
-    margin: 3px 3px 0 0;
+    margin: 3px 3px 0 1px;
     overflow: hidden;
-    text-align: right;
-    width: 15px;
+    text-align: left;
+    width: 14px;
     vertical-align: top;
 }
 
@@ -601,7 +600,7 @@ header:hover .editLink, article:hover .editLink {
 .artistView .artistImg,
 .albumView .albumImg { float: left; }
 
-#curAlbumImg img { height: 140px; width: 140px; }
+#curAlbumImg img { height: 135px; width: 135px; }
 
 .artistImg img,
 .albumImg img { width: 200px; }
@@ -642,13 +641,6 @@ a:hover .zoomIcon {
 #curSong h4 { font-size: 20px; width: 300px; }
 
 #curSongLike { margin-top: 10px; }
-#curSongLike div { float: left }
-#curSongLike .likeButton { width: 58px; }
-#curSongLike .likeText {
-    font-size: 11px;
-    font-family: "lucida grande", sans-serif;
-    margin-top: 3px;
-}
 
 #curDescs { margin: 10px 0 0 0; }
 
