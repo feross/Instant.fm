@@ -1379,6 +1379,8 @@ a.artistResult:hover, a.albumResult:hover {
 .meetTheTeamView > div { margin: 25px auto 0 auto; }
 .meetTheTeamView > div:first-child { margin: 0 auto; }
 
+.meetTheTeamView .intro { text-align: center; }
+
 .meetTheTeamView .logo { margin-bottom: 10px; }
 
 .topTeamMembers { width: 460px; }
@@ -1407,7 +1409,8 @@ a.artistResult:hover, a.albumResult:hover {
 
 .meetTheTeamView h1:first-child { margin: 15px 0 10px 0; text-align: center; }
 
-.meetTheTeamView p { font-size: 13px; }
+.meetTheTeamView p { font-size: 14px; }
+.meetTheTeamView .teamMember p { font-size: 13px; }
 
 .meetTheTeamView .contact span { font-weight: bold; margin-right: 15px; }
 
