@@ -540,7 +540,8 @@ function onFBConnect(event) {
 function setupRpc() {
     var methods = ['update_songlist', 'update_title', 'update_description', 
     	'is_registered_fbid', 'set_image_from_url', 'login', 'logout', 
-    	'new_playlist', 'signup_with_fbid', 'get_playlists_for_user'];
+    	'new_playlist', 'signup_with_fbid', 'get_playlists_for_user',
+    	'delete_playlist'];
         
     instantfm = new rpc.ServiceProxy("/json-rpc?_xsrf=" + readCookie('_xsrf'), {
                                      "sanitize": true,
@@ -548,6 +549,22 @@ function setupRpc() {
                                      "methods": methods,
     }); 
 }
+
+
+function setupDeletePlaylist() {
+	$('a.delete').live('click', function(event) {
+		event.preventDefault();
+		id = $(this).data('id');
+		instantfm.delete_playlist({
+			params: [id],
+			onSuccess: function(response) {
+				log("Deleted playlist " + id);
+				$('div.playlist[data-id="' + id + '"]').remove();
+			}
+		});
+	})
+}
+
 
 function showErrors(errors) {
     if (!errors) {
@@ -560,12 +577,3 @@ function showErrors(errors) {
     });
     $.colorbox.resize();
 }
-
-
-
-
-
-
-
-
-

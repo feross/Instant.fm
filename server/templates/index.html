@@ -25,9 +25,9 @@
     	<h1> {{ category['title'] }} </h1>
     	<div>
 	        {% for playlist in category['playlists'] %}
-		        <div class="playlist" href="{{playlist.url}}">
+		        <div class="playlist" href="{{playlist.url}}" data-id="{{ playlist.id }}">
 	            	{% if handler.owns_playlist(playlist) %}
-	            		<a class="delete ir">Delete this playlist</a>
+	            		<a class="delete ir" data-id="{{ playlist.id }}">Delete this playlist</a>
 	            	{% end %}
 	            	<a href="{{playlist.url}}">
   	           		<div class="clearfix picture">

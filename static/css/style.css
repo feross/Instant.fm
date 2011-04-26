@@ -114,15 +114,6 @@ h6 { font-size: 10px; }
 }
 
 
-.close_button .showcase .playlist {
-	background: transparent url("http://www.cabel.name/images-global/zoom/closebox.png") left center no-repeat;
-	float: left;
-	position: relative;
-	top: -15px;
-	left: -15px;
-}
-
-
 .showcase .playlist img.two { margin-left: 0; }
 .showcase .playlist img.three { margin-top: 0; }
 .showcase .playlist img.four { margin-left: 0; margin-top: 0; }
