@@ -1,6 +1,32 @@
 /* Primary Styles */
 /* Our blue: #499bd1 */
 
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
+    display: block;
+    height: 0;
+    background-color: transparent;
+}
+::-webkit-scrollbar-track-piece {
+    background-color: #FAFAFA;
+    -webkit-border-radius: 0;
+    -webkit-border-bottom-right-radius: 8px;
+    -webkit-border-bottom-left-radius:8px;
+}
+::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: #666;
+    -webkit-border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+    width: 50px;
+    background-color: #666;
+    -webkit-border-radius: 8px;
+}
+
 body, select, input, textarea { color: #333; }
 h1,h2,h3,h4,h5,h6 { font-weight: bold; }
 a, a:active, a:visited { color: #499bd1; text-decoration: none; }
