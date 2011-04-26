@@ -559,7 +559,10 @@ function setupDeletePlaylist() {
 			params: [id],
 			onSuccess: function(response) {
 				log("Deleted playlist " + id);
-				$('div.playlist[data-id="' + id + '"]').remove();
+				var confirmed = window.confirm("Really delete?")
+				if (confirmed) {
+					$('div.playlist[data-id="' + id + '"]').remove();
+				}
 			}
 		});
 	})
