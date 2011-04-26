@@ -6,7 +6,6 @@ import jsonrpclib
 import handlers
 import model
 import utils
-import type_enforcement
 import validation
 
 
@@ -148,7 +147,12 @@ class JsonRpcHandler(tornadorpc.json.JSONRPCHandler,
         self.db_session.flush()
         self.result(playlist.client_visible_attrs)
 
-    @tornadorpc.async
+    @owns_playlist
+    def delete_playlist(self, playlist_id):
+        query = self.db_session.query(model.Playlist)
+        query = query.filter_by(id=playlist_id)
+        query.update({"user_id": None, "session_id": None})
+
     @validated_async_rpc
     def signup_with_fbid(self, name, email, password, fb_id, auth_token):
         email = email.strip()

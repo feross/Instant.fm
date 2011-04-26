@@ -70,6 +70,7 @@ function onloadHome(session) {
     setupLogin();
     setupLogout();
     setupNewPlaylist();
+    setupDeletePlaylist();
     setupRpc();
 }
 
