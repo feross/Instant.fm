@@ -29,7 +29,7 @@
 	            	{% if handler.owns_playlist(playlist) %}
 	            		<a class="delete ir" data-id="{{ playlist.id }}">Delete this playlist</a>
 	            	{% end %}
-	            	<a href="{{playlist.url}}">
+	            	<a class="link" href="{{playlist.url}}">
   	           		<div class="clearfix picture">
   		                <img class="cover_art" src="{{playlist.cover_images[0] if len(playlist.cover_images) > 0 else default_img}}">
   		                <img class="cover_art two" src="{{playlist.cover_images[1] if len(playlist.cover_images) > 1 else default_img}}">
