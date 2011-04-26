@@ -1,0 +1,5 @@
+{% extends "playlist.html" %}
+
+{% block lastfm_playlist_loader %}
+    player.loadPlaylistForSong("{{ escape(artist_name) }}", "{{ escape(song_name) }}");
+{% end %}

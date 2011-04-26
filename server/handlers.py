@@ -278,6 +278,16 @@ class AlbumHandler(PlaylistHandlerBase):
                                    album_name=album_name)
 
 
+class SongHandler(PlaylistHandlerBase):
+    def get(self, requested_artist_name, requested_song_name):
+        """ Renders an empty album template """
+        artist_name = utils.deurlify(requested_artist_name)
+        song_name = utils.deurlify(requested_song_name)
+        self._render_playlist_view('song.html',
+                                   artist_name=artist_name,
+                                   song_name=song_name)
+
+
 class UploadHandler(PlaylistHandlerBase):
 
     """ Handles playlist upload requests """

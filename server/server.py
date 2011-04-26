@@ -24,7 +24,8 @@ class Application(tornado.web.Application):
             (r"/terms/?$", handlers.TermsHandler),
             (r"/search/?$", handlers.SearchHandler),
             (r"/tts/[0-9a-f]+.mp3$", handlers.TTSHandler),
-            (r"/([^/]+)/([^/]+)/?", handlers.AlbumHandler),
+            (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
+            (r"/([^/]+)/([^/]+)/?", handlers.SongHandler),
             (r"/([^/]+)/?", handlers.ArtistHandler),
             (r"/", handlers.HomeHandler),
             (r".*", handlers.ErrorHandler),
@@ -39,7 +40,7 @@ def main():
         try:
             import daemon
             # Note: Publicly visible tornado.log file!
-            log = open(os.path.join(sys.path[0], '../static/tornado.log'), 'a+') 
+            log = open(os.path.join(sys.path[0], '../static/tornado.log'), 'a+')
             context = daemon.DaemonContext(stdout=log, stderr=log, working_directory=os.path.join(sys.path[0], '../static/'))
             context.open()
         except ImportError:

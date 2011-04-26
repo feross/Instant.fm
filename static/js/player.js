@@ -454,6 +454,26 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
     });
 };
 
+
+Player.prototype.loadPlaylistForSong = function(artist_name, song_name) {
+    model.lastfm.track.getSimilar({
+        track: song_name,
+        artist: artist_name,
+        autocorrect: 1,
+    },
+    {
+        success: function(data) {
+        	log(data);
+            var playlist = Player.playlistFromSimilarTracks(data.similartracks);
+            player.loadPlaylist(playlist);
+        },
+        error: function(code, message) {
+            log(code + ' ' + message);
+        }
+    });
+};
+
+
 // Updates the playlist table
 Player.prototype.renderPlaylistInfo = function(playlist) {
     
@@ -604,7 +624,7 @@ Player.playlistFromAlbum = function(album) {
     var playlist = {};
     playlist.artist = album.artist;
     playlist.title = '"' + album.name + '" by ' + album.artist;
-    playlist.url = '/' + canonicalize(album.artist) + '/' + canonicalize(album.name);
+    playlist.url = '/' + canonicalize(album.artist) + '/album/' + canonicalize(album.name);
     playlist.songs = Player._songsFromTrackList(album.tracks);
     if (album.wiki && album.wiki.summary) {
         playlist.description = album.wiki.summary;
@@ -614,6 +634,22 @@ Player.playlistFromAlbum = function(album) {
             playlist.songs[i].i = album.image[0]['#text'];
         }
     }
+    return playlist;
+}
+
+
+Player.playlistFromSimilarTracks = function(similarTracks) {
+	var originalTrack = {
+		a: similarTracks["@attr"]["artist"],
+		t: similarTracks["@attr"]["track"],
+	}
+	
+    var playlist = {};
+    playlist.title = originalTrack.t;
+    playlist.url = '/' + canonicalize(originalTrack.a) + '/' + canonicalize(originalTrack.t);
+    playlist.description = '"' + originalTrack.t + '" by ' + originalTrack.a + ' and songs like it.';
+    playlist.songs = Player._songsFromTrackList(similarTracks);
+    playlist.songs.splice(0, 0, originalTrack);
     return playlist;
 }
 
