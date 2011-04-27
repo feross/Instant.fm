@@ -29,27 +29,27 @@ h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 10px; }
 
-::-webkit-scrollbar {
+body ::-webkit-scrollbar {
     width: 9px;
     height: 9px;
 }
-::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
+body ::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
     display: block;
     height: 0;
     background-color: transparent;
 }
-::-webkit-scrollbar-track-piece {
+body ::-webkit-scrollbar-track-piece {
     background-color: #FAFAFA;
     -webkit-border-radius: 0;
     -webkit-border-bottom-right-radius: 8px;
     -webkit-border-bottom-left-radius:8px;
 }
-::-webkit-scrollbar-thumb:vertical {
+body ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: #666;
     -webkit-border-radius: 8px;
 }
-::-webkit-scrollbar-thumb:horizontal {
+body ::-webkit-scrollbar-thumb:horizontal {
     width: 50px;
     background-color: #666;
     -webkit-border-radius: 8px;

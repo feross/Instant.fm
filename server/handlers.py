@@ -125,16 +125,8 @@ class PlaylistHandlerBase(HandlerBase):
     """ Any handler that involves playlists should extend this.
     """
 
-    def _render_playlist_view(self, template_name, playlist=None, **kwargs):
-        share = None
-        title = None
-        if self.get_argument('share', default=False):
-            share = {'yt': self.get_argument('yt'),
-                     'img': self.get_argument('img'),
-                     'track': self.get_argument('track'),
-                     'artist': self.get_argument('artist')}
-            title = share['track'] + ' by ' + share['artist'];
-        elif playlist is not None:
+    def _render_playlist_view(self, template_name, playlist=None, title=None, share=None, **kwargs):
+        if title is None and playlist is not None:
             title = playlist.title
 
         self.render(template_name, playlist=playlist, share=share, title=title, **kwargs)
@@ -256,6 +248,7 @@ class PlaylistHandler(PlaylistHandlerBase):
 
 
 class SearchHandler(PlaylistHandlerBase):
+    # TODO: Make this actually work.
     def get(self):
         self._render_playlist_view('search.html')
 
@@ -281,11 +274,22 @@ class AlbumHandler(PlaylistHandlerBase):
 class SongHandler(PlaylistHandlerBase):
     def get(self, requested_artist_name, requested_song_name):
         """ Renders an empty album template """
+        share = None
         artist_name = utils.deurlify(requested_artist_name)
         song_name = utils.deurlify(requested_song_name)
+        
+        yt = self.get_argument('yt', None)
+        img = self.get_argument('img', None)
+        
+        if yt is not None and img is not None:
+            share = {'yt': yt,
+                     'img': img}
+        
         self._render_playlist_view('song.html',
                                    artist_name=artist_name,
-                                   song_name=song_name)
+                                   song_name=song_name,
+                                   title = song_name + ' by ' + artist_name,
+                                   share=share)
 
 
 class UploadHandler(PlaylistHandlerBase):

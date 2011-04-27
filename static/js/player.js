@@ -355,7 +355,9 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 
 /* Playlist related functions */
 
-Player.prototype.loadPlaylist = function(playlist) {
+// TODO KLUDGE: Remove pushViewOntoStack once we've cleaned up how the PlaylistView works.
+// For now, set it to true to push a PlaylistView onto stack when loading new playlist
+Player.prototype.loadPlaylist = function(playlist, pushViewOntoStack) {
     if (!playlist) {
         log('Attempted to load null playlist.');
         return;
@@ -388,12 +390,15 @@ Player.prototype.loadPlaylist = function(playlist) {
     model.updatePlaylist(playlist);
     player.renderPlaylistInfo(playlist);
 
-    browser.pushView({
-        path: playlist.url,
-        type: 'view playlist',
-        title: playlist.title,
-        playlist: playlist
-    });
+    if (pushViewOntoStack) {
+        browser.pushView({
+            path: playlist.url,
+            type: 'view playlist',
+            title: playlist.title,
+            playlist: playlist
+        });
+    }
+
 
     player.playSong(0, true);
     ownershipStatusChanged();
@@ -460,11 +465,11 @@ Player.prototype.loadPlaylistForSong = function(artist_name, song_name) {
         track: song_name,
         artist: artist_name,
         autocorrect: 1,
+        limit: 10
     },
     {
         success: function(data) {
-        	log(data);
-            var playlist = Player.playlistFromSimilarTracks(data.similartracks);
+            var playlist = Player.playlistFromSimilarTracks(song_name, artist_name, data.similartracks);
             player.loadPlaylist(playlist);
         },
         error: function(code, message) {
@@ -638,16 +643,17 @@ Player.playlistFromAlbum = function(album) {
 }
 
 
-Player.playlistFromSimilarTracks = function(similarTracks) {
+Player.playlistFromSimilarTracks = function(originalTrackTitle, originalArtist, similarTracks) {
+	
 	var originalTrack = {
-		a: similarTracks["@attr"]["artist"],
-		t: similarTracks["@attr"]["track"],
+		a: originalArtist,
+		t: originalTrackTitle,
 	}
 	
     var playlist = {};
     playlist.title = originalTrack.t;
     playlist.url = '/' + canonicalize(originalTrack.a) + '/' + canonicalize(originalTrack.t);
-    playlist.description = '"' + originalTrack.t + '" by ' + originalTrack.a + ' and songs like it.';
+    playlist.description = 'Listen to "' + originalTrack.t + '" by ' + originalTrack.a + ' and 10 more songs that go great with it.';
     playlist.songs = Player._songsFromTrackList(similarTracks);
     playlist.songs.splice(0, 0, originalTrack);
     return playlist;
@@ -655,7 +661,7 @@ Player.playlistFromSimilarTracks = function(similarTracks) {
 
 
 Player._songsFromTrackList = function(trackList) {
-    if (trackList === undefined || trackList.track === undefined) {
+    if (!trackList || !$.isArray(trackList.track)) {
         return [];
     }
     
