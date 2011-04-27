@@ -701,14 +701,25 @@ function onYouTubePlayerReady(playerId) {
     }
 }
 
+var didRecentlyFinishAVideo = false; // Used to prevent a YouTube bug
 function onYouTubePlayerStateChange(newState) {
     switch(newState) {
         case 0: // just finished a video
+            if (didRecentlyFinishAVideo) {
+                return; // Prevent triple video skip YouTube bug
+            }
+        
             if (player.repeat) {
                 player.playSong(songIndex, false);
             } else {
                 player.playNextSong(false);
             }
+            
+            didRecentlyFinishAVideo = true;
+            window.setTimeout(function() {
+               didRecentlyFinishAVideo = false; 
+            }, 200);
+            
             break;
         case 1: // playing
         
