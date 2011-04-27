@@ -149,7 +149,7 @@
 
 {% end %}
 
-{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ url_escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
+{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
 
 {% block open-graph %}
     {% if share %}
