@@ -654,7 +654,7 @@ a:hover .zoomIcon {
 
 #shareSong { margin-top: 10px; }
 
-#shareSong h5 { display: inline-block; font-size: 14px;  }
+#shareSong h5 { color: #666; display: inline-block; font-size: 17px; }
 
 #shareSong .url {
     background: #fff;
@@ -663,12 +663,12 @@ a:hover .zoomIcon {
     display: inline-block;
     font-size: 12px;
     margin-top: 3px;
-    padding: 3px;
+    padding: 4px;
     width: 314px;
     vertical-align: text-bottom;
 }
 
-#shareSong .likeButton { height: 40px; margin-top: 8px; }
+#shareSong .likeButton { height: 40px; margin-top: 9px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
