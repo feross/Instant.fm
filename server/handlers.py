@@ -7,6 +7,7 @@ import bcrypt
 import Image
 import urllib2
 import hashlib
+import sqlalchemy
 
 import validation
 import utils
@@ -206,6 +207,7 @@ class ImageHandlerBase(HandlerBase):
 class HomeHandler(HandlerBase):
     def get(self):
         categories = []
+        used_playlist_ids = set()
 
         my_lists_title = ('My Playlists' if self.get_current_user() is None
                           else self.get_current_user().name + "'s Playlists")
@@ -213,14 +215,27 @@ class HomeHandler(HandlerBase):
             'title': my_lists_title,
             'playlists': self.get_playlists_for_current_user()
         })
+
+        staff_picks = (self.db_session.query(model.Playlist)
+                           .filter_by(featured=True)
+                           .order_by(model.Playlist.views.desc())
+                           .limit(8)
+                           .all())
         categories.append({
             'title': 'Staff Picks',
-            'playlists': (self.db_session.query(model.Playlist)
-                            .filter_by(featured=True)
-                            .order_by(model.Playlist.views.desc())
-                            .limit(8)
-                            .all())
+            'playlists': staff_picks,
         })
+        used_playlist_ids |= set([playlist.id for playlist in staff_picks])
+
+        categories.append({
+            'title': 'Popular',
+            'playlists': (self.db_session.query(model.Playlist)
+                             .filter(model.Playlist._songs != '[]')
+                             .filter(sqlalchemy.not_((model.Playlist.id.in_(used_playlist_ids))))
+                             .order_by(model.Playlist.views.desc())
+                             .limit(20)
+                             .all()
+            )})
 
         self.render("index.html",
                     title="Instant.fm - Share Music Instantly",
