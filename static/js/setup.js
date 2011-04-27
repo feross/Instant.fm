@@ -338,9 +338,7 @@ function setupNewPlaylist() {
 }
 
 function onNewPlaylistResponse(data) {
-    log(data);
     if (data && data.success) {
-        log('hi');
         var playlist = data.result;
         player.loadPlaylist(playlist);
         $.colorbox.close();

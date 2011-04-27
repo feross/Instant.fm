@@ -657,7 +657,6 @@ var PlaylistView = View.extend({
     	    track: t || ''
     	}, {
     	    success: function(data) {
-    	        log(this);
     	        that._handleSongResults(t, a, ytId, _srcIndex, data);
     	    },
     	    error: function(code, message) {
@@ -868,7 +867,6 @@ var PlaylistView = View.extend({
                 }
                 byline.text(model.playlist.user.name);
                 bylineContainer.text('by ').append(byline);
-                log(byline);
             }
 
             $('.editLink').remove(); // remove all edit links
@@ -902,7 +900,6 @@ var PlaylistView = View.extend({
         data.songHref = 'http://instant.fm'+model.playlist.url;
         if (data.ytId) {
             data.songHref += '?share=1&yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg)+'&track='+encodeURIComponent(data.trackName)+'&artist='+encodeURIComponent(data.artistName);
-            log(data.songHref);
         }
 
         $('#curAlbumBlock').fadeOut('fast', function() {

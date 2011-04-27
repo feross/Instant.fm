@@ -217,7 +217,7 @@ Player.prototype._initPlayer = function(firstVideoId) {
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
     '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
-    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF&disablekb=1',
+    '&version=3&hd=1&disablekb=1',
     'player', '480', '295', '8', null, null, params, atts);
 };
 
@@ -465,7 +465,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
-            className: 'drag ir',
+            classes: 'drag ir',
             text: 'Drag song to reorder it'
         },
         {
@@ -477,7 +477,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
                 }
                 player.moveSong(songId, 0);
             },
-            className: 'moveToTop ir',
+            classes: 'moveToTop ir',
             text: 'Move to top'
         },
         {
@@ -486,7 +486,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
                 var songId = parseInt(songItem.attr('id').substring(4));
                 player.removeSongFromPlaylist(songId);
             },
-            className: 'kill ir',
+            classes: 'kill ir',
             text: 'Delete song'
         },
         ],

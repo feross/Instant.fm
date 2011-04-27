@@ -80,14 +80,15 @@ function SongList(playlist, options) {
         $(this).addClass('playing');
         player.playSongBySearch(song.t, song.a);
     };
-    this.buttons = [{
-        action: function(event, song) {
-            player.addSongToPlaylist(song, event);
-            $(event.target).addClass('dulled');
-        },
-        className: 'awesome small white mustOwn',
-        text: 'Add to Playlist'
-    }], 
+    this.buttons = [
+        {
+            action: function(event, song) {
+                player.addSongToPlaylist(song, event);
+                $(event.target).addClass('dulled');
+            },
+            classes: 'awesome small white mustOwn',
+            text: 'Add to Playlist'
+        }];
     this.isNumbered = false;
     this.startingLen = 10; // Number of songs to show before user hits "more"
     $.extend(this, options);
@@ -145,7 +146,7 @@ SongList.prototype._makeItem = function(song, _songNum) {
     var $buttonActions = $('<div class="songActions"></div>');
     for (var i = 0; i < this.buttons.length; i++) {
         $('<div></div>')
-            .addClass(this.buttons[i].className)
+            .addClass(this.buttons[i].classes || '')
             .text(this.buttons[i].text || '')
             .click(this.buttonHelper(i, song))
             .appendTo($buttonActions);
@@ -338,9 +339,6 @@ function showDesktopNotification(image, title, description) {
         var notification = window.webkitNotifications.createNotification(
                                image || '/images/unknown.jpg',
                                title, description);
-        notification.ondisplay = function() {
-            log('ondisplay');
-        };
         notification.show();
         
         window.setTimeout(function() {

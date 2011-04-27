@@ -1003,6 +1003,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
     margin: 5px auto 5px auto;
     width: 465px;
     
+    background: #fff;
     background-image:
         -webkit-gradient(
             linear,
@@ -1028,7 +1029,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
 }
 
 .searchBox input.search {
-    background: #fff;
+    background-color: transparent;
     border: 0;
     color: #222;
     font-size: 24px;
