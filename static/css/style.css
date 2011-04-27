@@ -641,7 +641,7 @@ a:hover .zoomIcon {
 }
 
 
-#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
+#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 320px; }
 
 #curAlbumBlock h4 {
     display: inline-block;
@@ -652,7 +652,23 @@ a:hover .zoomIcon {
 
 #curSong h4 { font-size: 20px; width: 300px; }
 
-#curSongLike { margin-top: 10px; }
+#shareSong { margin-top: 10px; }
+
+#shareSong h5 { display: inline-block; font-size: 14px;  }
+
+#shareSong .url {
+    background: #fff;
+    background: rgba(255,255,255,0.5);
+    border: 1px rgba(255,255,255,0.7);
+    display: inline-block;
+    font-size: 12px;
+    margin-top: 3px;
+    padding: 3px;
+    width: 314px;
+    vertical-align: text-bottom;
+}
+
+#shareSong .likeButton { margin-top: 8px; }
 
 #curDescs { margin: 10px 0 0 0; }
 

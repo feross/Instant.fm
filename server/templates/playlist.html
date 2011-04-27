@@ -133,11 +133,9 @@
       <h4></h4>
     </div>
     
-    <!-- <div id="curButtons">
-      <a class="small awesome white mp3" href="#mp3">MP3</a>
-    </div> -->
-    
-    <div id="curSongLike" style="display:none;">
+    <div id="shareSong" style="display:none;">
+      <h5>Share this song with your friends</h5>
+      <input class="url" value="http://instant.fm/${canonicalize(artistName)}/${canonicalize(trackName)}"></input>
       <div class="likeButton">
 				<fb:like href="${songHref}" layout="standard" show_faces="false" width="340" send="true"></fb:like>
 			</div>

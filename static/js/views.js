@@ -642,6 +642,12 @@ var PlaylistView = View.extend({
             that.shareOnTwitter();
         });
         
+        // Must use 'live' instead of just 'click' since the element is initially hidden
+        $('#shareSong .url').live('click', function(event) {
+            this.focus();
+            this.select();
+        });
+        
         this._renderPlaylistInfo(this.config.playlist);
     },
 
@@ -907,8 +913,8 @@ var PlaylistView = View.extend({
             $('#curAlbumBlockTemplate')
                 .tmpl(data)
                 .appendTo('#curAlbumBlock');
-            FB.XFBML.parse($('#curSongLike').get(0), function(reponse) {
-                $('#curSongLike').fadeIn('fast');
+            FB.XFBML.parse($('#shareSong').get(0), function(reponse) {
+                $('#shareSong').fadeIn('fast');
             });
             data.callback && data.callback();
             $('#curAlbumBlock').fadeIn('fast');

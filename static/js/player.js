@@ -433,7 +433,7 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
     {
         success: function(data) {
             var playlist = Player.playlistFromArtistTracks(data.toptracks);
-            player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -451,7 +451,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
     {
         success: function(data) {
             var playlist = Player.playlistFromAlbum(data.album);
-            player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -470,7 +470,7 @@ Player.prototype.loadPlaylistForSong = function(artist_name, song_name) {
     {
         success: function(data) {
             var playlist = Player.playlistFromSimilarTracks(song_name, artist_name, data.similartracks);
-            player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);

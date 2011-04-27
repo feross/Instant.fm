@@ -236,7 +236,7 @@ class HomeHandler(HandlerBase):
                              .filter(model.Playlist.hide == 0)
                              .filter(sqlalchemy.not_((model.Playlist.id.in_(used_playlist_ids))))
                              .order_by(model.Playlist.views.desc())
-                             .limit(12)
+                             .limit(16)
                              .all()
             )})
 
