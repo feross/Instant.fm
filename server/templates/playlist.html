@@ -158,7 +158,7 @@
     <meta property="og:title" content="{{ title }}" />
     <meta property="og:type" content="song" />
     <meta property="og:image" content="{{ escape(share['img']) }}" />
-    <meta property="og:url" content="http://instant.fm{{ request.path }}?yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}" />
+    <meta property="og:url" content="http://instant.fm{{ url_escape(request.path) }}?yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}" />
     <meta property="og:site_name" content="Instant.fm" />
     <meta property="og:video" content="http://www.youtube.com/v/{{ escape(share['yt']) }}?autoplay=1&amp;fs=1&amp;rel=0" />
     <meta property="og:video:height" content="259" />

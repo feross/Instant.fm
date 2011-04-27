@@ -959,7 +959,7 @@ var PlaylistView = View.extend({
     // Makes the given element editable by adding an edit link.
     // @elem - the element to make editable
     // @updateCallback - the function to call when the value is modified
-    _makeEditable: function(elem, updateCallback) {    
+    _makeEditable: function(elem, updateCallback) {
         var elemId = elem.attr('id');
         var buttonClass, autogrowSettings;
         switch (elemId) {

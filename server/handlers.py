@@ -231,9 +231,12 @@ class HomeHandler(HandlerBase):
             'title': 'Popular',
             'playlists': (self.db_session.query(model.Playlist)
                              .filter(model.Playlist._songs != '[]')
+                             .filter(model.Playlist.user_id != None)
+                             .filter(model.Playlist.session_id != None)
+                             .filter(model.Playlist.hide == 0)
                              .filter(sqlalchemy.not_((model.Playlist.id.in_(used_playlist_ids))))
                              .order_by(model.Playlist.views.desc())
-                             .limit(20)
+                             .limit(12)
                              .all()
             )})
 
