@@ -116,7 +116,7 @@
       <span class="zoomIcon"></span>
     {{'{{'}}/if}}
   </a>
-  <div id="curAlbumInfo">
+  <div class="clearfix" id="curAlbumInfo">
   
     <div id="curSong">
       <h4>${trackName}</h4>
@@ -137,7 +137,7 @@
       <h5>Share this song with your friends</h5>
       <input class="url" value="http://instant.fm/${canonicalize(artistName)}/${canonicalize(trackName)}"></input>
       <div class="likeButton">
-				<fb:like href="${songHref}" layout="standard" show_faces="false" width="340" send="true"></fb:like>
+				<fb:like href="${songHref}" layout="standard" show_faces="false" width="320"></fb:like>
 			</div>
     </div>
     
@@ -149,7 +149,7 @@
 
 {% end %}
 
-{% block meta-description %}{% if share is not None %}Listen to {{ escape(song_name) }} by {{ escape(artist_name) }} and other kick ass songs on http://instant.fm{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
+{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ url_escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
 
 {% block open-graph %}
     {% if share %}

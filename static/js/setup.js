@@ -351,6 +351,9 @@ function onNewPlaylistResponse(data) {
         }
         $('#submitNewPlaylist').removeAttr('disabled', 'disabled');
     }
+    
+    // TODO KLUDGE: Properly load the PlaylistView.
+    window.location = playlist.url;
 }
 
 function setupLogin() {

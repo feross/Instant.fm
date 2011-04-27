@@ -641,7 +641,7 @@ a:hover .zoomIcon {
 }
 
 
-#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 320px; }
+#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 315px; }
 
 #curAlbumBlock h4 {
     display: inline-block;
@@ -668,7 +668,7 @@ a:hover .zoomIcon {
     vertical-align: text-bottom;
 }
 
-#shareSong .likeButton { margin-top: 8px; }
+#shareSong .likeButton { height: 40px; margin-top: 8px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
