@@ -937,10 +937,6 @@ nav, #backgroundMsg {
     text-shadow: #000 0 1px 5px;
 }
 
-.byline {
-    font-style: italic;
-}
-
 nav a,
 nav a:active,
 nav a:visited { color: #fff; display: inline-block; font-weight: bold; text-decoration: none; }
@@ -1003,11 +999,9 @@ nav a:hover { color: inherit; text-decoration: underline; }
     width: 970px;
 }
 
-#footer .left { float: left; }
-#footer .right { float: right; }
+#footer a, #footer span { margin-right: 25px; }
+#footer a:last-child, #footer span:last-child { margin-right: 0; }
 
-#footer .left a, #footer .left span { margin-right: 25px; }
-#footer .right a, #footer .right span { margin-left: 25px; }
 #footer .byline a { margin-left: 0; margin-right: 0; }
 
 
