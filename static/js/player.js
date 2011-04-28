@@ -143,7 +143,7 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist) {
+Player.prototype.playSongBySearch = function(title, artist, _fromSongList) {
     if (!artist) {
         artist = ''; // to prevent 'undefined' or 'null' in search query
     }
@@ -177,11 +177,13 @@ Player.prototype.playSongBySearch = function(title, artist) {
                 
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
-                window.setTimeout(function() {
-                    if (player.songIndex == srcIndex) {
-                        player.playNextSong(false);
-                    }
-                }, 2000);
+                if (!_fromSongList) {
+                    window.setTimeout(function() {
+                        if (player.songIndex == srcIndex) {
+                            player.playNextSong(false);
+                        }
+                    }, 2000);
+                }
                 log('No songs found for: ' + q);
             }
         }

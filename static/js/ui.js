@@ -78,7 +78,7 @@ function SongList(playlist, options) {
     this.onClick = function(song) {
         $('.playing').removeClass('playing');
         $(this).addClass('playing');
-        player.playSongBySearch(cleanSongTitle(song.t), song.a);
+        player.playSongBySearch(cleanSongTitle(song.t), song.a, true);
     };
     this.buttons = [
         {
