@@ -287,7 +287,7 @@ function makeArtistList(artists) {
         
         $('<a></a>', {
 			'class': 'artistResult',
-			href: '/'+canonicalize(artist.name),
+			href: '/'+urlify(artist.name),
 			rel: 'view artist',
 			title: artist.name
 		})
@@ -315,7 +315,7 @@ function makeAlbumList(albums) {
         $('<a></a>', {
 			'class': 'albumResult',
 			'data-artist': album.artist,
-			href: '/'+canonicalize(album.artist)+'/'+canonicalize(album.name),
+			href: '/'+urlify(album.artist)+'/'+urlify(album.name),
 			rel: 'view album',
 			title: album.name
 		})

@@ -484,6 +484,13 @@ Player.prototype.loadPlaylistForSong = function(artist_name, song_name) {
         },
         error: function(code, message) {
             log(code + ' ' + message);
+            
+            // If last.fm can't find the song, we can still
+            // try to play it from YouTube.
+            if (code == 6) { // 6 = Artist Not Found
+                var playlist = Player.playlistFromSimilarTracks(song_name, artist_name, null);
+                player.loadPlaylist(playlist, true);
+            }
         }
     });
 };
@@ -629,7 +636,7 @@ Player.playlistFromArtistTracks = function(trackList) {
     var playlist = {};
     playlist.artist = trackList['@attr'].artist;
     playlist.title = playlist.artist + "'s Top Songs";
-    playlist.url = '/' + canonicalize(playlist.artist);
+    playlist.url = '/' + urlify(playlist.artist);
     playlist.songs = Player._songsFromTrackList(trackList);   
     return playlist;
 };
@@ -639,7 +646,7 @@ Player.playlistFromAlbum = function(album) {
     var playlist = {};
     playlist.artist = album.artist;
     playlist.title = '"' + album.name + '" by ' + album.artist;
-    playlist.url = '/' + canonicalize(album.artist) + '/album/' + canonicalize(album.name);
+    playlist.url = '/' + urlify(album.artist) + '/album/' + urlify(album.name);
     playlist.songs = Player._songsFromTrackList(album.tracks);
     if (album.wiki && album.wiki.summary) {
         playlist.description = album.wiki.summary;
@@ -662,7 +669,7 @@ Player.playlistFromSimilarTracks = function(originalTrackTitle, originalArtist, 
 	
     var playlist = {};
     playlist.title = originalTrack.t;
-    playlist.url = '/' + canonicalize(originalTrack.a) + '/' + canonicalize(originalTrack.t);
+    playlist.url = '/' + urlify(originalTrack.a) + '/' + urlify(originalTrack.t);
     playlist.description = 'Listen to "' + originalTrack.t + '" by ' + originalTrack.a + ' and 10 more songs that go great with it.';
     playlist.songs = Player._songsFromTrackList(similarTracks);
     playlist.songs.splice(0, 0, originalTrack);

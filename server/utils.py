@@ -1,5 +1,7 @@
 import re
 
+# Don't update this function without updating the corresponding function
+# in utils.js
 def urlify(name):
     name = re.sub('[^a-zA-Z0-9]+', ' ', name)
     ' '.join([word.capitalize() for word in name.split()])

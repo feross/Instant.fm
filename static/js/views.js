@@ -767,7 +767,7 @@ var PlaylistView = View.extend({
         var trackLongDesc = track.wiki && track.wiki.content;
 
         if (albumName) {
-            var albumHref = '/'+canonicalize(artistName)+'/album/'+canonicalize(albumName);
+            var albumHref = '/'+urlify(artistName)+'/album/'+urlify(albumName);
             $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="view album">'+albumName+'</a>');
             $('#curAlbum').fadeIn('fast');
         }
@@ -900,10 +900,10 @@ var PlaylistView = View.extend({
         }
 
         if (data.artistName) {
-            data.artistHref = '/'+canonicalize(data.artistName);
+            data.artistHref = '/'+urlify(data.artistName);
         }
 
-        data.songHref = 'http://instant.fm/'+canonicalize(data.artistName)+'/'+canonicalize(data.trackName);
+        data.songHref = 'http://instant.fm/'+urlify(data.artistName)+'/'+urlify(data.trackName);
         if (data.ytId) {
             data.songHref += '?yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg);
         }
@@ -937,7 +937,7 @@ var PlaylistView = View.extend({
 
     renderArtistDesc: function(data) {
         if (data.artistName) {
-            data.artistHref = '/'+canonicalize(data.artistName);
+            data.artistHref = '/'+urlify(data.artistName);
         }
 
         $('#curArtistDesc').fadeOut('fast', function() {

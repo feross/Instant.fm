@@ -99,9 +99,10 @@ function htmlDecode(value){
   return $('<div/>').html(value).text(); 
 }
 
-function canonicalize(name) {
-    // Copied and modified from the canonicalize() function on the server-side.
-    var r = new RegExp('[^a-z0-9]+', 'gi');
+// Don't update this function without updating the corresponding function
+// in utils.py.
+function urlify(name) {
+    var r = new RegExp('[^a-zA-Z0-9]+', 'g');
     words = name
         .toLowerCase()
         .replace(r, '-')
@@ -114,7 +115,6 @@ function canonicalize(name) {
     }
     return words.join('-');
 }
-
 
 // These functions came for free with HTML5 Boilerplate
 
