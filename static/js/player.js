@@ -144,10 +144,11 @@ Player.prototype.moveSongIntoView = function() {
 
 // Play top video for given search query
 Player.prototype.playSongBySearch = function(title, artist, _songNum) {
+    if (!artist) {
+        artist = ''; // to prevent 'undefined' or 'null' in search query
+    }
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
-    
-    document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
     
     var srcIndex = player.songIndex;
     $.ajax({
@@ -160,7 +161,15 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 player.playSongById(videos[0].id);
                 PlaylistView.updateCurPlaying(title, artist, videos[0].id, _songNum);
             } else {
+                
+                // If no results, try without including artist
+                if (artist.length) {
+                    player.playSongBySearch(title, '', _songNum);
+                    return;
+                }
+                
                 player.pause();
+                tts('Not found');
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {

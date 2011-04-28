@@ -656,6 +656,8 @@ var PlaylistView = View.extend({
     // @srcIndex - Song index that generated this Last.fm request. We'll check that the song
     //             hasn't changed before we update the DOM.
     updateCurPlaying: function(t, a, ytId, _srcIndex) {
+        document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
+        
         var that = this;
     	model.lastfm.track.search({
     	    artist: a || '',
