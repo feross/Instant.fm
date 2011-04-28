@@ -41,9 +41,11 @@ function tts(text) {
     }
     
     var hash = hex_sha1(text);
+    var volume = (player.ytplayer && player.ytplayer.getVolume()) || 100;
     var soundObj = soundManager.createSound({
         id: hash,
-        url: '/tts/'+hash+'.mp3?q='+encodeURIComponent(text)
+        url: '/tts/'+hash+'.mp3?q='+encodeURIComponent(text),
+        volume: volume
     });
     soundObj.play({
         onfinish:function() {
