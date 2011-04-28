@@ -170,12 +170,12 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
                 
                 player.pause();
                 tts('Not found');
+                $('.playing').addClass('missing')
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
                     $('.playing')
                         .removeClass('paused')
-                        .addClass('missing')
                         .removeClass('playing');
                     if (player.songIndex == srcIndex) {
                         player.playNextSong(false);
