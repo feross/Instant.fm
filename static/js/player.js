@@ -102,7 +102,7 @@ Player.prototype.playSong = function(i, isUserInitiated) {
         window.webkitNotifications && window.webkitNotifications.requestPermission();
     }
 
-    player.playSongBySearch(title, artist, player.songIndex);
+    player.playSongBySearch(title, artist);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
@@ -143,7 +143,7 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist, _songNum) {
+Player.prototype.playSongBySearch = function(title, artist) {
     if (!artist) {
         artist = ''; // to prevent 'undefined' or 'null' in search query
     }
@@ -159,24 +159,25 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
                 player.playSongById(videos[0].id);
-                PlaylistView.updateCurPlaying(title, artist, videos[0].id, _songNum);
+                PlaylistView.updateCurPlaying(title, artist, videos[0].id, srcIndex);
+                document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
+            
             } else {
                 
                 // If no results, try without including artist
                 if (artist.length) {
-                    player.playSongBySearch(title, '', _songNum);
+                    player.playSongBySearch(title, '', srcIndex);
                     return;
                 }
                 
-                player.pause();
-                tts('Not found');
-                $('.playing').addClass('missing')
+                // TODO: Add this class to the actual missing song
+                // (by DOM id), to ensure it's accurate.
+                $('.playing').addClass('missing');
+                tts('Not found');            
+                
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
                 window.setTimeout(function() {
-                    $('.playing')
-                        .removeClass('paused')
-                        .removeClass('playing');
                     if (player.songIndex == srcIndex) {
                         player.playNextSong(false);
                     }
@@ -735,14 +736,12 @@ function onYouTubePlayerStateChange(newState) {
             // Bugfix: Force first video play to be HD
             player.ytplayer.setPlaybackQuality('hd720');
             
-            $('.playing').removeClass('paused');
             if (player.queuedVideo) {
                 player.playSongById(player.queuedVideo);
                 player.queuedVideo = null;
             }
             break;
         case 2: // paused
-            $('.playing').addClass('paused');
             break;
     }
 }
