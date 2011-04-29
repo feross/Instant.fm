@@ -138,33 +138,6 @@
         </else>
     </if>
     </target>
-    
-    <target name="noimg">
-    <if>
-        <equals arg1="${env}" arg2="dev"/>
-        <then>
-            <!-- Build a dev environment -->
-            <echo message="Building a Development Environment..."/>
-            <antcall target="-noimg.dev" />
-        </then>
-
-        <elseif>
-            <equals arg1="${env}" arg2="test"/>
-            <then>
-                <!-- Build a test environment -->
-                <echo message="Building a Test Environment..."/>
-                <antcall target="-noimg.test" />
-            </then>
-        </elseif>
-
-        <else>
-            <!-- Build a production environment -->
-            <echo message="Building a Production Environment..."/>
-            <antcall target="-noimg.production" />
-        </else>
-    </if>
-    </target>
-
 
     <target name="minify">
     <if>
@@ -340,7 +313,7 @@
     <target name="-build.production"
             depends="-rev,
                      -clean,
-					 -stop-server,
+    			     -stop-server,
                      -prodcopy,
                      -usemin,
                      -js.all.minify,
@@ -352,71 +325,11 @@
                      -css,
                      -html,
                      -htmlclean,
-					 -reload-supervisord-config,
-					 -start-server,
-					 -set-permissions,
+    			     -reload-supervisord-config,
+    			     -start-server,
+    			     -set-permissions,
                      -imagesjpg,
                      -imagespng"/>
-                     
-                     
-     <!-- Target: noimg -->  
-     <target name="-noimg.dev"
-             depends="-rev,
-                      -clean,
- 					  -stop-server,
- 					  -git-pull,
-                      -prodcopy,
-                      -usemin,
-                      -js.all.minify,
-                      -js.main.concat,
-                      -js.mylibs.concat,
-                      -js.scripts.concat,
-                      -js.delete,
-                      -strip-console.log,
-                      -css,
-                      -html,
-                      -htmlclean,
- 					  -reload-supervisord-config,
- 					  -start-server,
- 					  -set-permissions"/>
- 	<target name="-noimg.test"
-             depends="-rev,
-                      -clean,
- 					  -stop-server,
- 					  -git-pull,
-                      -prodcopy,
-                      -usemin,
-                      -js.all.minify,
-                      -js.main.concat,
-                      -js.mylibs.concat,
-                      -js.scripts.concat,
-                      -js.delete,
-                      -strip-console.log,
-                      -css,
-                      -html,
-                      -htmlclean,
- 					  -reload-supervisord-config,
- 					  -start-server,
- 					  -set-permissions"/>               
-     <target name="-noimg.production"
-             depends="-rev,
-                      -clean,
- 					  -stop-server,
- 					  -git-pull,
-                      -prodcopy,
-                      -usemin,
-                      -js.all.minify,
-                      -js.main.concat,
-                      -js.mylibs.concat,
-                      -js.scripts.concat,
-                      -js.delete,
-                      -strip-console.log,
-                      -css,
-                      -html,
-                      -htmlclean,
- 					  -reload-supervisord-config,
- 					  -start-server,
- 					  -set-permissions"/>
 
     <!-- Target: minify -->
     <target name="-minify.dev"
@@ -707,7 +620,7 @@
     <target name="-html" depends="-load-build-info" description="(PRIVATE) Very basic clean up of the HTML">
         <echo message="Update the HTML to reference our concatenated script file: scripts-${build.number}.min.js"/>
         <!-- style.css replacement handled as a replacetoken above -->
-        <replaceregexp match="&lt;!-- scripts concatenated [\d\w\s\W]*?!-- end ((scripts)|(concatenated and minified scripts)) ?--&gt;" replace="&lt;script src='/${dir.js.public}/scripts-${build.number}.min.js\'&gt;&lt;/script&gt;" flags="m">
+        <replaceregexp match="/\* scripts concatenated [\d\w\s\W]*? end ((scripts)|(concatenated and minified scripts)) \*/" replace="'/${dir.js.public}/scripts-${build.number}.min.js\'" flags="m">
             <fileset dir="./${dir.publish}" includes="${page-files}"/>
         </replaceregexp>
         <!--[! use comments like this one to avoid having them get minified -->

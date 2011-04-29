@@ -338,9 +338,7 @@ function setupNewPlaylist() {
 }
 
 function onNewPlaylistResponse(data) {
-    log(data);
     if (data && data.success) {
-        log('hi');
         var playlist = data.result;
         player.loadPlaylist(playlist);
         $.colorbox.close();
@@ -353,6 +351,9 @@ function onNewPlaylistResponse(data) {
         }
         $('#submitNewPlaylist').removeAttr('disabled', 'disabled');
     }
+    
+    // TODO KLUDGE: Properly load the PlaylistView.
+    window.location = playlist.url;
 }
 
 function setupLogin() {

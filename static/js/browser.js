@@ -85,12 +85,10 @@ var MiniBrowser = Base.extend({
     	this.viewStack.push(view);
     	view.willSlide();  // Tell the view to do anything it has to now that content is in DOM	
 
-        this._slideTo(this.viewStack.length);
-
-        window.setTimeout(function() {
+        this._slideTo(this.viewStack.length, function() {
             prevView && prevView.didSleep();
             view && view.didSlide();
-        }, 350);
+        });
     },
 
     // Pop the top-most page off of the browser.
@@ -107,21 +105,22 @@ var MiniBrowser = Base.extend({
         // Tell the new top view that it's about to be awoken
         this.getTopView().willAwake();
 
-        this._slideTo(this.viewStack.length);
-    	window.setTimeout(function() {
-    	    view.didPop();
+        this._slideTo(this.viewStack.length, function() {
+            view.didPop();
     	    browser.getTopView().didAwake();
     		$(view.content).remove();
-    	}, 350);
+        });
+
     },
 
     // Private function used to animate the transition between pages in the browser.
-    _slideTo: function(viewNum) {
+    _slideTo: function(viewNum, callback) {
+        callback = callback || $.noop;
+        
     	var pixels = this.viewWidth * (viewNum - 1);
-
         $('#views').animate({
             left: '-'+pixels
-        }, 300);
+        }, 300, callback);
     },
 
     updateHeader: function(title) {

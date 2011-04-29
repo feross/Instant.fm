@@ -50,7 +50,7 @@ function LastFMCache(){
 
 	/* Create cache if it doesn't exist yet. */
 	if(localStorage.getObject(name) == null){
-		localStorage.setObject(name, []);
+		window.localStorage.setObject(name, []);
 	}
 
 	/* Get expiration time for given parameters. */

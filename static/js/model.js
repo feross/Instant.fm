@@ -5,7 +5,7 @@ function Model(playlist) {
     
     var cache;
     if (Modernizr.localstorage) {
-	    cache = new LastFMCache();
+	    cache = Modernizr.localstorage ? (new LastFMCache()) : undefined;
 	}
 	this.lastfm = new LastFM({
 		apiKey    : '414cf82dc17438b8c880f237a13e5c09',

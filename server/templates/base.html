@@ -42,7 +42,7 @@
   <!--[if lt IE 9]>
   <script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
   <![endif]-->
-  <script src="/js/libs/modernizr.custom.17264.js"></script>
+  <script src="/js/libs/modernizr.custom.79797.js"></script>
 
   {% block head %}{% end %}
 </head>
@@ -52,13 +52,61 @@
 
     <div id="fb-root"></div>
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.js"></script>
-    <script>window.jQuery || document.write("<script src='/js/libs/jquery-1.5.2.min.js'>\x3C/script>")</script>
-    <script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-
     <script>
-    {% block scripts %}{% end %}
+      yepnope([{
+        load: 'http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.js',
+        complete: function () {
+          if (!window.jQuery) {
+            yepnope('/js/libs/jquery-1.5.2.min.js');
+          }
+        }
+      }, {
+        load: 'http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js',
+        complete: function () {
+          if (!swfobject) {
+            yepnope('/js/libs/swfobject.js');
+          }
+        }
+      }, {
+        test: Modernizr.localstorage,
+        yep: '/js/libs/cond/lastfm.api.cache.js'
+      }, {
+        load: [/* scripts concatenated and minified via ant build script */
+               '/js/mylibs/base.js',
+               '/js/mylibs/jquery-ui-1.8.8.custom.min.js',
+               '/js/mylibs/jquery.animate-enhanced.min.js',
+               '/js/mylibs/jquery.autogrow.js',
+               '/js/mylibs/jquery.colorbox.js',
+               '/js/mylibs/jquery.fileupload.js',
+               '/js/mylibs/jquery.jeditable.js',
+               '/js/mylibs/jquery.shorten.js',
+               '/js/mylibs/jquery.jsizes.min.js',
+               '/js/mylibs/jquery.tmpl.min.js',
+               '/js/mylibs/lastfm.api.js',
+               '/js/mylibs/lastfm.api.md5.js',
+               '/js/mylibs/rpc.js',
+               '/js/mylibs/sha1.min.js',
+               '/js/mylibs/soundmanager2-nodebug.min.js',
+               '/js/browser.js',
+               '/js/main.js',
+               '/js/model.js',
+               '/js/player.js',
+               '/js/setup.js',
+               '/js/ui.js',
+               '/js/utils.js',
+               '/js/views.js'
+               /* end scripts */]
+      }, {
+        complete: function() {
+          {% block scripts %}{% end %}
+        }
+      }]);
     </script>
+    
+    <!--[if lt IE 7 ]>
+      <script src="js/libs/cond/dd_belatedpng.js"></script>
+      <script>DD_belatedPNG.fix("img, .png_bg");</script>
+    <![endif]-->
     
     <!-- UserVoice Feedback Widget Start -->
     <script type="text/javascript">
@@ -69,41 +117,6 @@
       })();
     </script>
     <!-- UserVoice Feedback Widget End -->
-    
-    <!-- scripts concatenated and minified via ant build script-->
-
-    <script src="/js/mylibs/base.js"></script>
-    <script src="/js/mylibs/jquery-ui-1.8.8.custom.min.js"></script>
-    <script src="/js/mylibs/jquery.animate-enhanced.min.js"></script>
-    <script src="/js/mylibs/jquery.autogrow.js"></script>
-    <script src="/js/mylibs/jquery.colorbox.js"></script>
-    <script src="/js/mylibs/jquery.fileupload.js"></script>
-    <script src="/js/mylibs/jquery.jeditable.js"></script>
-    <script src="/js/mylibs/jquery.shorten.js"></script>
-    <script src="/js/mylibs/jquery.jsizes.min.js"></script>
-    <script src="/js/mylibs/jquery.tmpl.min.js"></script>
-    <script src="/js/mylibs/lastfm.api.cache.js"></script>
-    <script src="/js/mylibs/lastfm.api.js"></script>
-    <script src="/js/mylibs/lastfm.api.md5.js"></script>
-    <script src="/js/mylibs/rpc.js"></script>
-    <script src="/js/mylibs/sha1.min.js"></script>
-    <script src="/js/mylibs/soundmanager2-nodebug.min.js"></script>
-
-    <script src="/js/browser.js"></script>
-    <script src="/js/main.js"></script>
-    <script src="/js/model.js"></script>
-    <script src="/js/player.js"></script>
-    <script src="/js/setup.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/utils.js"></script>
-    <script src="/js/views.js"></script>
-
-    <!-- end scripts -->
-
-    <!--[if lt IE 7 ]>
-      <script src="js/libs/dd_belatedpng.js"></script>
-      <script>DD_belatedPNG.fix("img, .png_bg");</script>
-    <![endif]-->
 
     <script>
       var _gaq=[["_setAccount","UA-3898076-11"],["_trackPageview"]];

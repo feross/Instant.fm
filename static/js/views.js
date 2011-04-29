@@ -642,6 +642,12 @@ var PlaylistView = View.extend({
             that.shareOnTwitter();
         });
         
+        // Must use 'live' instead of just 'click' since the element is initially hidden
+        $('#shareSong .url').live('click', function(event) {
+            this.focus();
+            this.select();
+        });
+        
         this._renderPlaylistInfo(this.config.playlist);
     },
 
@@ -657,7 +663,6 @@ var PlaylistView = View.extend({
     	    track: t || ''
     	}, {
     	    success: function(data) {
-    	        log(this);
     	        that._handleSongResults(t, a, ytId, _srcIndex, data);
     	    },
     	    error: function(code, message) {
@@ -762,7 +767,7 @@ var PlaylistView = View.extend({
         var trackLongDesc = track.wiki && track.wiki.content;
 
         if (albumName) {
-            var albumHref = '/'+canonicalize(artistName)+'/'+canonicalize(albumName);
+            var albumHref = '/'+urlify(artistName)+'/album/'+urlify(albumName);
             $('#curAlbum h4').html('<a href="'+albumHref+'" title="'+albumName+'" data-artist="'+artistName+'" rel="view album">'+albumName+'</a>');
             $('#curAlbum').fadeIn('fast');
         }
@@ -868,7 +873,6 @@ var PlaylistView = View.extend({
                 }
                 byline.text(model.playlist.user.name);
                 bylineContainer.text('by ').append(byline);
-                log(byline);
             }
 
             $('.editLink').remove(); // remove all edit links
@@ -896,13 +900,12 @@ var PlaylistView = View.extend({
         }
 
         if (data.artistName) {
-            data.artistHref = '/'+canonicalize(data.artistName);
+            data.artistHref = '/'+urlify(data.artistName);
         }
 
-        data.songHref = 'http://instant.fm'+model.playlist.url;
+        data.songHref = 'http://instant.fm/'+urlify(data.artistName)+'/'+urlify(data.trackName);
         if (data.ytId) {
-            data.songHref += '?share=1&yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg)+'&track='+encodeURIComponent(data.trackName)+'&artist='+encodeURIComponent(data.artistName);
-            log(data.songHref);
+            data.songHref += '?yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg);
         }
 
         $('#curAlbumBlock').fadeOut('fast', function() {
@@ -910,8 +913,8 @@ var PlaylistView = View.extend({
             $('#curAlbumBlockTemplate')
                 .tmpl(data)
                 .appendTo('#curAlbumBlock');
-            FB.XFBML.parse($('#curSongLike').get(0), function(reponse) {
-                $('#curSongLike').fadeIn('fast');
+            FB.XFBML.parse($('#shareSong').get(0), function(reponse) {
+                $('#shareSong').fadeIn('fast');
             });
             data.callback && data.callback();
             $('#curAlbumBlock').fadeIn('fast');
@@ -934,7 +937,7 @@ var PlaylistView = View.extend({
 
     renderArtistDesc: function(data) {
         if (data.artistName) {
-            data.artistHref = '/'+canonicalize(data.artistName);
+            data.artistHref = '/'+urlify(data.artistName);
         }
 
         $('#curArtistDesc').fadeOut('fast', function() {
@@ -962,7 +965,7 @@ var PlaylistView = View.extend({
     // Makes the given element editable by adding an edit link.
     // @elem - the element to make editable
     // @updateCallback - the function to call when the value is modified
-    _makeEditable: function(elem, updateCallback) {    
+    _makeEditable: function(elem, updateCallback) {
         var elemId = elem.attr('id');
         var buttonClass, autogrowSettings;
         switch (elemId) {

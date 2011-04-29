@@ -60,15 +60,11 @@
   
   <footer id="footer">
     <nav>
-      <div class="left">
-        <span class="byline">Created by <a href="http://www.feross.org" target="_blank">Feross</a> and <a href="http://www.quora.com/Jake-Becker" target="_blank">Jake</a> from Stanford.</span>
-        <a href="/view/meetTheTeam.html" id="navMeetTheTeam" rel="view static" title="Meet the Team">Meet the Team</a>
-      </div>
-      <div class="right">
-        <a href="javascript:UserVoice.showPopupWidget();" id="navGiveFeedback">Give Us Feedback</a>
-        <a href="#helpBox" id="navShortcuts">Keyboard Shortcuts</a>
+      <span class="byline">Created by <a href="http://www.feross.org" target="_blank">Feross</a> and <a href="http://www.quora.com/Jake-Becker" target="_blank">Jake</a> from Stanford.</span><span class="byline">Powered by <a href="http://www.youtube.com" target="_blank">YouTube</a>, <a href="http://www.last.fm" target="_blank">Last.fm</a>, and magic.</span>
+      <a href="/view/meetTheTeam.html" id="navMeetTheTeam" rel="view static" title="Meet the Team">Meet the Team</a>
+      <a href="javascript:UserVoice.showPopupWidget();" id="navGiveFeedback">Give Us Feedback</a>
+      <a href="#helpBox" id="navShortcuts">Keyboard Shortcuts</a>
         <!-- <a href="#" id="navSettings">Settings</a> -->
-      </div>
     </nav>
   </footer>
 </div> <!-- end of #container -->
@@ -116,7 +112,7 @@
       <span class="zoomIcon"></span>
     {{'{{'}}/if}}
   </a>
-  <div id="curAlbumInfo">
+  <div class="clearfix" id="curAlbumInfo">
   
     <div id="curSong">
       <h4>${trackName}</h4>
@@ -133,13 +129,11 @@
       <h4></h4>
     </div>
     
-    <!-- <div id="curButtons">
-      <a class="small awesome white mp3" href="#mp3">MP3</a>
-    </div> -->
-    
-    <div id="curSongLike" style="display:none;">
+    <div id="shareSong" style="display:none;">
+      <h5>Share this song with your friends</h5>
+      <input class="url" value="http://instant.fm/${urlify(artistName)}/${urlify(trackName)}"></input>
       <div class="likeButton">
-				<fb:like href="${songHref}" layout="standard" show_faces="false" width="340" send="true"></fb:like>
+				<fb:like href="${songHref}" layout="standard" show_faces="false" width="320"></fb:like>
 			</div>
     </div>
     
@@ -151,14 +145,14 @@
 
 {% end %}
 
-{% block meta-description %}{% if share is not None %}Listen to {{ escape(share['track']) }} by {{share['artist']}} and the rest of the {{ playlist.title }} playlist at http://instant.fm{{ playlist.url }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
+{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
 
 {% block open-graph %}
     {% if share %}
-    <meta property="og:title" content="{{ share['track'] + ' by ' + share['artist'] }}" />
+    <meta property="og:title" content="{{ title }}" />
     <meta property="og:type" content="song" />
     <meta property="og:image" content="{{ escape(share['img']) }}" />
-    <meta property="og:url" content="http://instant.fm{{ playlist.url }}?share=1&amp;yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}&amp;track={{ url_escape(share['track']) }}&amp;artist={{ url_escape(share['artist']) }}" />
+    <meta property="og:url" content="http://instant.fm{{ url_escape(request.path) }}?yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}" />
     <meta property="og:site_name" content="Instant.fm" />
     <meta property="og:video" content="http://www.youtube.com/v/{{ escape(share['yt']) }}?autoplay=1&amp;fs=1&amp;rel=0" />
     <meta property="og:video:height" content="259" />
@@ -167,10 +161,10 @@
 {% end %}
 
 {% block scripts %}
-    $(function() {
+    $(document).ready(function() {
         onloadPlaylist({{handler.get_current_session().json}});
         {% if playlist is not None %}
-        player.loadPlaylist({{playlist.json}});
+        player.loadPlaylist({{playlist.json}}, true);
         {% else %}
             {% block lastfm_playlist_loader %}{% end %}
         {% end %}

@@ -102,7 +102,7 @@ Player.prototype.playSong = function(i, isUserInitiated) {
         window.webkitNotifications && window.webkitNotifications.requestPermission();
     }
 
-    player.playSongBySearch(title, artist, player.songIndex);
+    player.playSongBySearch(title, artist);
 
     $('.playing').removeClass('playing');
     $('#song' + i).addClass('playing');
@@ -143,11 +143,12 @@ Player.prototype.moveSongIntoView = function() {
 };
 
 // Play top video for given search query
-Player.prototype.playSongBySearch = function(title, artist, _songNum) {
+Player.prototype.playSongBySearch = function(title, artist, _fromSongList) {
+    if (!artist) {
+        artist = ''; // to prevent 'undefined' or 'null' in search query
+    }
     var q = title+' '+artist;
     var the_url = 'http://gdata.youtube.com/feeds/api/videos?q=' + encodeURIComponent(q) + '&format=5&max-results=1&v=2&alt=jsonc'; // Restrict search to embeddable videos with &format=5.
-    
-    document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
     
     var srcIndex = player.songIndex;
     $.ajax({
@@ -158,20 +159,31 @@ Player.prototype.playSongBySearch = function(title, artist, _songNum) {
             if (responseData.data.items) {
                 var videos = responseData.data.items;
                 player.playSongById(videos[0].id);
-                PlaylistView.updateCurPlaying(title, artist, videos[0].id, _songNum);
+                PlaylistView.updateCurPlaying(title, artist, videos[0].id, srcIndex);
+                document.title = title+' by '+artist+' - '+model.playlist.title+' - Instant.fm';
+            
             } else {
-                player.pause();
+                
+                // If no results, try without including artist
+                if (artist.length) {
+                    player.playSongBySearch(title, '', srcIndex);
+                    return;
+                }
+                
+                // TODO: Add this class to the actual missing song
+                // (by DOM id), to ensure it's accurate.
+                $('.playing').addClass('missing');
+                tts('Not found');            
+                
                 // Go to next song in a few seconds
                 // (to give users using keyboard shortcuts a chance to scroll up past this song)
-                window.setTimeout(function() {
-                    $('.playing')
-                        .removeClass('paused')
-                        .addClass('missing')
-                        .removeClass('playing');
-                    if (player.songIndex == srcIndex) {
-                        player.playNextSong(false);
-                    }
-                }, 2000);
+                if (!_fromSongList) {
+                    window.setTimeout(function() {
+                        if (player.songIndex == srcIndex) {
+                            player.playNextSong(false);
+                        }
+                    }, 2000);
+                }
                 log('No songs found for: ' + q);
             }
         }
@@ -217,7 +229,7 @@ Player.prototype._initPlayer = function(firstVideoId) {
     swfobject.embedSWF('http://www.youtube.com/v/' + firstVideoId +
     '&enablejsapi=1&playerapiid=ytPlayer&rel=0&autoplay=1&egm=0&loop=0' +
     '&fs=1&showsearch=0&showinfo=0&iv_load_policy=3&cc_load_policy=0' +
-    '&version=3&hd=1&color1=0xFFFFFF&color2=0xFFFFFF&disablekb=1',
+    '&version=3&hd=1&disablekb=1',
     'player', '480', '295', '8', null, null, params, atts);
 };
 
@@ -355,7 +367,9 @@ Player.prototype.removeSongFromPlaylist = function(songNum) {
 
 /* Playlist related functions */
 
-Player.prototype.loadPlaylist = function(playlist) {
+// TODO KLUDGE: Remove pushViewOntoStack once we've cleaned up how the PlaylistView works.
+// For now, set it to true to push a PlaylistView onto stack when loading new playlist
+Player.prototype.loadPlaylist = function(playlist, pushViewOntoStack) {
     if (!playlist) {
         log('Attempted to load null playlist.');
         return;
@@ -388,12 +402,15 @@ Player.prototype.loadPlaylist = function(playlist) {
     model.updatePlaylist(playlist);
     player.renderPlaylistInfo(playlist);
 
-    browser.pushView({
-        path: playlist.url,
-        type: 'view playlist',
-        title: playlist.title,
-        playlist: playlist
-    });
+    if (pushViewOntoStack) {
+        browser.pushView({
+            path: playlist.url,
+            type: 'view playlist',
+            title: playlist.title,
+            playlist: playlist
+        });
+    }
+
 
     player.playSong(0, true);
     ownershipStatusChanged();
@@ -428,7 +445,7 @@ Player.prototype.loadPlaylistForArtist = function(artist_name) {
     {
         success: function(data) {
             var playlist = Player.playlistFromArtistTracks(data.toptracks);
-            player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -446,7 +463,7 @@ Player.prototype.loadPlaylistForAlbum = function(artist_name, album_title) {
     {
         success: function(data) {
             var playlist = Player.playlistFromAlbum(data.album);
-            player.loadPlaylist(playlist);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);
@@ -460,15 +477,22 @@ Player.prototype.loadPlaylistForSong = function(artist_name, song_name) {
         track: song_name,
         artist: artist_name,
         autocorrect: 1,
+        limit: 10
     },
     {
         success: function(data) {
-        	log(data);
-            var playlist = Player.playlistFromSimilarTracks(data.similartracks);
-            player.loadPlaylist(playlist);
+            var playlist = Player.playlistFromSimilarTracks(song_name, artist_name, data.similartracks);
+            player.loadPlaylist(playlist, true);
         },
         error: function(code, message) {
             log(code + ' ' + message);
+            
+            // If last.fm can't find the song, we can still
+            // try to play it from YouTube.
+            if (code == 6) { // 6 = Artist Not Found
+                var playlist = Player.playlistFromSimilarTracks(song_name, artist_name, null);
+                player.loadPlaylist(playlist, true);
+            }
         }
     });
 };
@@ -485,7 +509,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
         onClick: player._onClickSong,
         buttons: [{
             action: $.noop,
-            className: 'drag ir',
+            classes: 'drag ir',
             text: 'Drag song to reorder it'
         },
         {
@@ -497,7 +521,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
                 }
                 player.moveSong(songId, 0);
             },
-            className: 'moveToTop ir',
+            classes: 'moveToTop ir',
             text: 'Move to top'
         },
         {
@@ -506,7 +530,7 @@ Player.prototype.renderPlaylistInfo = function(playlist) {
                 var songId = parseInt(songItem.attr('id').substring(4));
                 player.removeSongFromPlaylist(songId);
             },
-            className: 'kill ir',
+            classes: 'kill ir',
             text: 'Delete song'
         },
         ],
@@ -614,7 +638,7 @@ Player.playlistFromArtistTracks = function(trackList) {
     var playlist = {};
     playlist.artist = trackList['@attr'].artist;
     playlist.title = playlist.artist + "'s Top Songs";
-    playlist.url = '/' + canonicalize(playlist.artist);
+    playlist.url = '/' + urlify(playlist.artist);
     playlist.songs = Player._songsFromTrackList(trackList);   
     return playlist;
 };
@@ -624,7 +648,7 @@ Player.playlistFromAlbum = function(album) {
     var playlist = {};
     playlist.artist = album.artist;
     playlist.title = '"' + album.name + '" by ' + album.artist;
-    playlist.url = '/' + canonicalize(album.artist) + '/album/' + canonicalize(album.name);
+    playlist.url = '/' + urlify(album.artist) + '/album/' + urlify(album.name);
     playlist.songs = Player._songsFromTrackList(album.tracks);
     if (album.wiki && album.wiki.summary) {
         playlist.description = album.wiki.summary;
@@ -638,16 +662,17 @@ Player.playlistFromAlbum = function(album) {
 }
 
 
-Player.playlistFromSimilarTracks = function(similarTracks) {
+Player.playlistFromSimilarTracks = function(originalTrackTitle, originalArtist, similarTracks) {
+	
 	var originalTrack = {
-		a: similarTracks["@attr"]["artist"],
-		t: similarTracks["@attr"]["track"],
+		a: originalArtist,
+		t: originalTrackTitle,
 	}
 	
     var playlist = {};
     playlist.title = originalTrack.t;
-    playlist.url = '/' + canonicalize(originalTrack.a) + '/' + canonicalize(originalTrack.t);
-    playlist.description = '"' + originalTrack.t + '" by ' + originalTrack.a + ' and songs like it.';
+    playlist.url = '/' + urlify(originalTrack.a) + '/' + urlify(originalTrack.t);
+    playlist.description = 'Listen to "' + originalTrack.t + '" by ' + originalTrack.a + ' and 10 more songs that go great with it.';
     playlist.songs = Player._songsFromTrackList(similarTracks);
     playlist.songs.splice(0, 0, originalTrack);
     return playlist;
@@ -655,7 +680,7 @@ Player.playlistFromSimilarTracks = function(similarTracks) {
 
 
 Player._songsFromTrackList = function(trackList) {
-    if (trackList === undefined || trackList.track === undefined) {
+    if (!trackList || !$.isArray(trackList.track)) {
         return [];
     }
     
@@ -695,28 +720,37 @@ function onYouTubePlayerReady(playerId) {
     }
 }
 
+var didRecentlyFinishAVideo = false; // Used to prevent a YouTube bug
 function onYouTubePlayerStateChange(newState) {
     switch(newState) {
         case 0: // just finished a video
+            if (didRecentlyFinishAVideo) {
+                return; // Prevent triple video skip YouTube bug
+            }
+        
             if (player.repeat) {
                 player.playSong(songIndex, false);
             } else {
                 player.playNextSong(false);
             }
+            
+            didRecentlyFinishAVideo = true;
+            window.setTimeout(function() {
+               didRecentlyFinishAVideo = false; 
+            }, 200);
+            
             break;
         case 1: // playing
         
             // Bugfix: Force first video play to be HD
             player.ytplayer.setPlaybackQuality('hd720');
             
-            $('.playing').removeClass('paused');
             if (player.queuedVideo) {
                 player.playSongById(player.queuedVideo);
                 player.queuedVideo = null;
             }
             break;
         case 2: // paused
-            $('.playing').addClass('paused');
             break;
     }
 }

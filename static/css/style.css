@@ -29,27 +29,27 @@ h4 { font-size: 16px; margin: 0 0 7px 0; }
 h5 { font-size: 14px; margin: 0 0 4px 0; }
 h6 { font-size: 10px; }
 
-::-webkit-scrollbar {
+body ::-webkit-scrollbar {
     width: 9px;
     height: 9px;
 }
-::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
+body ::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
     display: block;
     height: 0;
     background-color: transparent;
 }
-::-webkit-scrollbar-track-piece {
+body ::-webkit-scrollbar-track-piece {
     background-color: #FAFAFA;
     -webkit-border-radius: 0;
     -webkit-border-bottom-right-radius: 8px;
     -webkit-border-bottom-left-radius:8px;
 }
-::-webkit-scrollbar-thumb:vertical {
+body ::-webkit-scrollbar-thumb:vertical {
     height: 50px;
     background-color: #666;
     -webkit-border-radius: 8px;
 }
-::-webkit-scrollbar-thumb:horizontal {
+body ::-webkit-scrollbar-thumb:horizontal {
     width: 50px;
     background-color: #666;
     -webkit-border-radius: 8px;
@@ -641,7 +641,7 @@ a:hover .zoomIcon {
 }
 
 
-#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 310px; }
+#curAlbumInfo { float: left; margin: 0 0 0 10px; width: 315px; }
 
 #curAlbumBlock h4 {
     display: inline-block;
@@ -652,7 +652,23 @@ a:hover .zoomIcon {
 
 #curSong h4 { font-size: 20px; width: 300px; }
 
-#curSongLike { margin-top: 10px; }
+#shareSong { margin-top: 10px; }
+
+#shareSong h5 { color: #666; display: inline-block; font-size: 17px; }
+
+#shareSong .url {
+    background: #fff;
+    background: rgba(255,255,255,0.5);
+    border: 1px rgba(255,255,255,0.7);
+    display: inline-block;
+    font-size: 12px;
+    margin-top: 3px;
+    padding: 4px;
+    width: 314px;
+    vertical-align: text-bottom;
+}
+
+#shareSong .likeButton { height: 40px; margin-top: 9px; }
 
 #curDescs { margin: 10px 0 0 0; }
 
@@ -921,10 +937,6 @@ nav, #backgroundMsg {
     text-shadow: #000 0 1px 5px;
 }
 
-.byline {
-    font-style: italic;
-}
-
 nav a,
 nav a:active,
 nav a:visited { color: #fff; display: inline-block; font-weight: bold; text-decoration: none; }
@@ -987,11 +999,9 @@ nav a:hover { color: inherit; text-decoration: underline; }
     width: 970px;
 }
 
-#footer .left { float: left; }
-#footer .right { float: right; }
+#footer a, #footer span { margin-right: 25px; }
+#footer a:last-child, #footer span:last-child { margin-right: 0; }
 
-#footer .left a, #footer .left span { margin-right: 25px; }
-#footer .right a, #footer .right span { margin-left: 25px; }
 #footer .byline a { margin-left: 0; margin-right: 0; }
 
 
@@ -1003,6 +1013,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
     margin: 5px auto 5px auto;
     width: 465px;
     
+    background: #fff;
     background-image:
         -webkit-gradient(
             linear,
@@ -1028,7 +1039,7 @@ nav a:hover { color: inherit; text-decoration: underline; }
 }
 
 .searchBox input.search {
-    background: #fff;
+    background-color: transparent;
     border: 0;
     color: #222;
     font-size: 24px;
