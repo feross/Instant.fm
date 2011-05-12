@@ -131,7 +131,7 @@
     
     <div id="shareSong" style="display:none;">
       <h5>Share this song with your friends</h5>
-      <input class="url" value="http://instant.fm/${urlify(artistName)}/${urlify(trackName)}"></input>
+      <input class="url" value="http://instant.fm/${urlify(artistName)}/${urlify(cleanSongTitle(trackName))}"></input>
       <div class="likeButton">
 				<fb:like href="${songHref}" layout="standard" show_faces="false" width="320"></fb:like>
 			</div>

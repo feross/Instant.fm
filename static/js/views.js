@@ -903,7 +903,7 @@ var PlaylistView = View.extend({
             data.artistHref = '/'+urlify(data.artistName);
         }
 
-        data.songHref = 'http://instant.fm/'+urlify(data.artistName)+'/'+urlify(data.trackName);
+        data.songHref = 'http://instant.fm/'+urlify(data.artistName)+'/'+urlify(cleanSongTitle(data.trackName));
         if (data.ytId) {
             data.songHref += '?yt='+encodeURIComponent(data.ytId)+'&img='+encodeURIComponent(data.albumImg);
         }
