@@ -8,7 +8,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
   <!-- Page Info -->
-  <title>{{ title if title is not None else 'Instant.fm' }}</title>
+  <title>{{ escape(title) if title is not None else 'Instant.fm' }}</title>
   <meta name="description" content="{% block meta-description %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}">
   <meta name="keywords" content="music, playlist, share M3U playlist, share music, social music, social playlists">
 

@@ -145,11 +145,11 @@
 
 {% end %}
 
-{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ playlist.description }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
+{% block meta-description %}{% if share is not None %}Listen to '{{ escape(song_name) }}' by {{ escape(artist_name) }} and other kick ass songs at http://instant.fm{{ escape(request.path) }}{% elif playlist is not None and playlist.description %}{{ escape(playlist.description) }}{% else %}The easiest way to share music playlists with friends. Upload playlists directly from iTunes (M3U, TXT, PLS) and share with friends on Facebook and Twitter.{% end %}{% end %}
 
 {% block open-graph %}
     {% if share %}
-    <meta property="og:title" content="{{ title }}" />
+    <meta property="og:title" content="{{ escape(title) }}" />
     <meta property="og:type" content="song" />
     <meta property="og:image" content="{{ escape(share['img']) }}" />
     <meta property="og:url" content="http://instant.fm{{ url_escape(request.path) }}?yt={{ url_escape(share['yt']) }}&amp;img={{ url_escape(share['img']) }}" />
@@ -161,10 +161,11 @@
 {% end %}
 
 {% block scripts %}
+{% import re %}
     $(document).ready(function() {
         onloadPlaylist({{handler.get_current_session().json}});
         {% if playlist is not None %}
-        player.loadPlaylist({{playlist.json}}, true);
+        player.loadPlaylist({{re.sub(r'<', r'&lt;', re.sub(r'>', r'&gt;', playlist.json))}}, true);
         {% else %}
             {% block lastfm_playlist_loader %}{% end %}
         {% end %}

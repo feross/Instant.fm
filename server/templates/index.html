@@ -36,7 +36,7 @@
   		                <img class="cover_art three" src="{{playlist.cover_images[2] if len(playlist.cover_images) > 2 else default_img}}">
   		                <img class="cover_art four" src="{{playlist.cover_images[3] if len(playlist.cover_images) > 3 else default_img}}">
   		            </div>
-		              <h2>{{playlist.title}}</h2>
+		              <h2>{{escape(playlist.title)}}</h2>
 		            </a>
 		        </div>
 	        {% end %}
