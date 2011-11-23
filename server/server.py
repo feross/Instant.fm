@@ -30,7 +30,7 @@ class Application(tornado.web.Application):
             (r"/", handlers.HomeHandler),
             (r".*", handlers.ErrorHandler),
         ]
-        tornado.web.Application.__init__(self, url_handlers, **options.tornado_settings)
+        tornado.web.Application.__init__(self, url_handlers, autoescape=None, **options.tornado_settings)
 
 
 def main():

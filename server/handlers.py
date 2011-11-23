@@ -29,13 +29,10 @@ class HandlerBase(tornado.web.RequestHandler):
         self._current_user = None
         self.xsrf_token  # Sets token
 
-
-    def get_error_html(self, status_code, **kwargs):
+    def write_error(self, status_code, **kwargs):
         """Renders error pages (called internally by Tornado)"""
         if status_code == 404:
-            return open(os.path.join(sys.path[0], '../static/404.html'), 'r').read()
-
-        return super(HandlerBase, self).get_error_html(status_code, **kwargs)
+            self.render(os.path.join(sys.path[0], '../static/404.html'))
 
     def get_current_user(self):
         if self._current_user is not None:
@@ -249,7 +246,6 @@ class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
 
-
 class PlaylistHandler(PlaylistHandlerBase):
     """Landing page for a playlist"""
     def get(self, playlist_alpha_id):
@@ -295,14 +291,14 @@ class SongHandler(PlaylistHandlerBase):
         share = None
         artist_name = utils.deurlify(requested_artist_name)
         song_name = utils.deurlify(requested_song_name)
-        
+
         yt = self.get_argument('yt', None)
         img = self.get_argument('img', None)
-        
+
         if yt is not None and img is not None:
             share = {'yt': yt,
                      'img': img}
-        
+
         self._render_playlist_view('song.html',
                                    artist_name=artist_name,
                                    song_name=song_name,
@@ -446,7 +442,7 @@ class UploadHandler(PlaylistHandlerBase):
     @validation.validated
     def post(self):
         """ Handles the "New Playlist" form post.
-        
+
         This can't be JSON RPC because of the file uploading.
         """
         validator = validation.Validator(immediate_exceptions=True)

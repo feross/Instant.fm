@@ -19,7 +19,7 @@ def base36_10(alpha_id):
     index = 0
     while index < len(alpha_id):
         char = alpha_id[index]
-        if str.isdigit(char):
+        if unicode.isdecimal(char):
             value = int(char)
         else:
             value = ord(char.lower()) - ord('a') + 10
