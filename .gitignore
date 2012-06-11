@@ -2,10 +2,11 @@
 *.log
 static/images/uploaded/*
 
-# Don't commit build folder for python packages
+# Don't commit any of pip/virtualenv's folders
 build/
-
-
+include/
+lib/
+local/
 
 # Don't commit the tts mp3s
 static/tts/*.mp3
