@@ -1,10 +1,13 @@
+## The following requirements were added by pip --freeze:
 MySQL-python==1.2.3
 PIL==1.1.7
 SQLAlchemy==0.7.7
 argparse==1.2.1
 distribute==0.6.24
 jsonrpclib==0.1.3
+lockfile==0.9.1
 py-bcrypt==0.2
+python-daemon==1.6
 tornado==2.3
-git+https://github.com/joshmarshall/tornadorpc.git#egg=tornadorpc==0.1
+-e git://github.com/joshmarshall/tornadorpc.git@fda3e0e4f1d2a365e0e390bd783fe7d75619d25b#egg=tornadorpc-dev
 wsgiref==0.1.2
