@@ -2,6 +2,11 @@
 *.log
 static/images/uploaded/*
 
+# Don't commit build folder for python packages
+build/
+
+
+
 # Don't commit the tts mp3s
 static/tts/*.mp3
 
