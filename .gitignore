@@ -9,6 +9,9 @@ lib/
 local/
 src/
 
+# Don't commit options.py -- it contains passwords and keys!
+options.py
+
 # Don't commit the tts mp3s
 static/tts/*.mp3
 
