@@ -1,7 +1,7 @@
 Instant.fm Readme
 =================
 
-Developed by [Feross Aboukhadijeh](http://feross.org) and [Jake Becker](http://quora.com/Jake-Becker).
+Developed by [Feross Aboukhadijeh](http://feross.org), [Jake Becker](http://quora.com/Jake-Becker), and John Hiesey.
 
 
 Overview
