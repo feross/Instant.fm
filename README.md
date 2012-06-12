@@ -151,7 +151,7 @@ One last thing before building the site. To compress the images, the build scrip
 Build the site:
 
     cd build-site/
-    ant
+    sudo ant   # sudo is needed to start and stop the server
 
 
 Nginx Setup
