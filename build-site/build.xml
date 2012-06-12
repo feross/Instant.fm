@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
-<project name="Boilerplate Build" default="build" basedir="../"> <!-- one back since we're in build/ -->
+<project name="Boilerplate Build" default="build" basedir="../"> <!-- one back since we're in build-site/ -->
 
 
     <!-- Load in Ant-Contrib to give us access to some very useful tasks! -->
     <!-- the .jar file is located in the tools directory -->
     <taskdef resource="net/sf/antcontrib/antcontrib.properties">
         <classpath>
-            <pathelement location="${basedir}/build/tools/ant-contrib-1.0b3.jar"/>
+            <pathelement location="${basedir}/build-site/tools/ant-contrib-1.0b3.jar"/>
         </classpath>
     </taskdef>
 
@@ -14,8 +14,8 @@
     <property environment="ENV" />
 
     <!-- load property files -->
-    <property file="build/config/project.properties"/>
-    <property file="build/config/default.properties"/>
+    <property file="build-site/config/project.properties"/>
+    <property file="build-site/config/default.properties"/>
 
     <!-- merge the stylesheet properties -->
     <var name="stylesheet-files" value="${file.stylesheets}, ${file.default.stylesheets}"/>
@@ -424,7 +424,7 @@
 	<target name="-stop-server" description="Stop the tornado server">
 		<echo>Stopping the tornado server...</echo>
 		<exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl -c ${dir.supervisor.config} stop instantfm:*"/>
+			<arg line="supervisorctl stop instantfm:"/>
 		</exec>
 	</target>
 	
@@ -588,7 +588,7 @@
     
     
     <!-- HTML -->
-    <target name="-usemin" depends="-serverconfig" description="(PRIVATE) Replaces references to non-minified scripts">
+    <target name="-usemin" description="(PRIVATE) Replaces references to non-minified scripts">
         <echo message="Switching to minified js files..."/>
 
         <!-- switch from a regular jquery to minified -->
@@ -690,13 +690,6 @@
             <targetfile/>
         </apply>
     </target>
-
-
-    <target name="-serverconfig" description="(PRIVATE) Upgrades expires headers">
-        <echo message="Upgrading expires header timeouts for js/css to 1yr..."/>
-        <replace file="./${dir.publish}/${file.serverconfig}" token="access plus 2 months" value="access plus 1 year"/>
-    </target>
-
     
     <!-- CSS -->
     <target name="-css" depends="-load-build-info" description="Concatenates and Minifies any stylesheets listed in the file.stylesheets property">
@@ -735,7 +728,7 @@
 	<target name="-reload-supervisord-config" description="Reload the supervisord config settings">
         <echo message="Reloading the supervisord config settings..."/>
 	    <exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl -c ${dir.supervisor.config} update"/>
+			<arg line="supervisorctl update"/>
 	    </exec>
     </target>
 
@@ -753,7 +746,7 @@
       	<echo message="All the *essential* optimizations are done."/>
 	  	<echo message="Starting the server..."/>
 	    <exec executable="sudo" osfamily="unix">
-			<arg line="supervisorctl -c ${dir.supervisor.config} start instantfm:*"/>
+			<arg line="supervisorctl start instantfm:"/>
 	    </exec>
     </target>
     
