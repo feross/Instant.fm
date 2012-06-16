@@ -8,6 +8,7 @@ include/
 lib/
 local/
 src/
+bin/
 
 # Don't commit options.py -- it contains passwords and keys!
 options.py
