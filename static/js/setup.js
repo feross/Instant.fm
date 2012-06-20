@@ -196,23 +196,24 @@ function setupKeyboardShortcuts() {
 }
 
 function setupFBML() {
-    window.fbAsyncInit = function() {
-        FB.init({
-          appId: appSettings.fbAppId,
-          status: true,
-          cookie: true,
-          xfbml: true
-        });
-    };
-    
-    (function() {
-      var e = document.createElement('script');
-      e.type = 'text/javascript';
-      e.src = document.location.protocol +
-        '//connect.facebook.net/en_US/all.js#appId='+appSettings.fbAppId+'&amp;xfbml=1';
-      e.async = true;
-      document.getElementById('fb-root').appendChild(e);
-    }());
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : appSettings.fbAppId, // App ID
+      channelUrl : '//'+window.location.host+'/channel.html', // Channel File
+      status     : true, // check login status
+      cookie     : true, // enable cookies to allow the server to access the session
+      xfbml      : true  // parse XFBML
+    });
+  };
+
+  // Load the SDK Asynchronously
+  (function(d){
+     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement('script'); js.id = id; js.async = true;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     ref.parentNode.insertBefore(js, ref);
+   }(document));
 }
 
 function setupUploader(formElem) {
@@ -438,22 +439,23 @@ function setupSignup() {
                     var form = $('#fbSignupForm');
 
                     // Facepile
-                    FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
-                        // If none of the user's friends have connected to Instant.fm,
-                        // then lets fallback to showing the users who have liked our
-                        // page (including non-friends). We show the like box, but
-                        // use CSS trickery to just show the faces. 
-                        window.setTimeout(function() {
-                            if ($('#fbFacepile').height() < 20) {
-                                $('#fbFacepile')
-                                    .empty()
-                                    .addClass('like')
-                                    .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
-                                FB.XFBML.parse($('#fbFacepile').get(0));
-                            }
-                            $.colorbox.resize();
-                        }, 1000);
-                    });
+                    // BUGFIX: I think this causes "Uncaught TypeError: Cannot read property 'offsetWidth' of null"
+                    // FB.XFBML.parse($('#fbFacepile').get(0), function(response) {
+                    //     // If none of the user's friends have connected to Instant.fm,
+                    //     // then lets fallback to showing the users who have liked our
+                    //     // page (including non-friends). We show the like box, but
+                    //     // use CSS trickery to just show the faces. 
+                    //     window.setTimeout(function() {
+                    //         if ($('#fbFacepile').height() < 20) {
+                    //             $('#fbFacepile')
+                    //                 .empty()
+                    //                 .addClass('like')
+                    //                 .append('<fb:like-box href="'+appSettings.fbPageURL+'" width="410" show_faces="true" stream="false" header="false"></fb:like-box>');
+                    //             FB.XFBML.parse($('#fbFacepile').get(0));
+                    //         }
+                    //         $.colorbox.resize();
+                    //     }, 1000);
+                    // });
 
                     // Connect button
                     $('#fbConnectButton').click(onFBConnect);
@@ -468,7 +470,7 @@ function onFBConnect(event) {
     var form = $('#fbSignupForm');
     
     FB.login(function(login_response) {
-        if (!login_response.session) {
+        if (!login_response.authResponse) {
             log('FB login failed.'); // user cancelled login
             return;
         }
@@ -476,7 +478,7 @@ function onFBConnect(event) {
         // Check that they're not already registered
         FB.api('/me', function (response) {
             var fb_id = response.id,
-                auth_token = login_response.session.access_token;
+                auth_token = FB.getAuthResponse()['accessToken'];
 
             instantfm.is_registered_fbid({
                 params: [fb_id],
