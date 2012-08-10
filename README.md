@@ -11,7 +11,10 @@ We built Instant.fm upon a solid foundation of awesome. All of our tools are fre
 
 We learned a ton during this project. We hope that the source code here helps you. If you found this useful, send us a note to say thanks!
 
-<iframe width="960" height="720" src="http://www.youtube.com/embed/IV3BcvJcxK0" frameborder="0" allowfullscreen></iframe>
+Evolution of the codebase
+-------------------------
+
+Check out this awesome video of this repo's commit history, generated using [Gource](https://github.com/acaudwell/Gource): [http://www.youtube.com/watch?v=IV3BcvJcxK0]
 
 Features
 --------
