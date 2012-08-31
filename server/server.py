@@ -23,6 +23,7 @@ class Application(tornado.web.Application):
             (r"/p/([a-zA-Z0-9]+)/?$", handlers.PlaylistHandler),
             (r"/terms/?$", handlers.TermsHandler),
             (r"/search/?$", handlers.SearchHandler),
+            (r"/maintenance/?", handlers.MaintenanceHandler),
             (r"/tts/[0-9a-f]+.mp3$", handlers.TTSHandler),
             (r"/([^/]+)/album/([^/]+)/?", handlers.AlbumHandler),
             (r"/([^/]+)/([^/]+)/?", handlers.SongHandler),
@@ -34,8 +35,8 @@ class Application(tornado.web.Application):
 
 
 def main():
-	# Code to daemonize tornado.
-	# Not used in production since supervisord requires non-daemonized processes.
+    # Code to daemonize tornado.
+    # Not used in production since supervisord requires non-daemonized processes.
     if options.cli_args.daemonize:
         try:
             import daemon

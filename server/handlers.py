@@ -60,6 +60,10 @@ class HandlerBase(tornado.web.RequestHandler):
 
         return self._current_session
 
+    def clear_old_sessions(self):
+        self.db_session.execute("DELETE FROM sessions WHERE `create_date` < CURDATE() - 30")
+        self.db_session.flush()
+
     def get_profile_url(self):
         user = self.get_current_user()
         return '/user/' + user.profile if user is not None else ''
@@ -245,6 +249,11 @@ class HomeHandler(HandlerBase):
 class TermsHandler(HandlerBase):
     def get(self):
         self.render("terms.html")
+
+class MaintenanceHandler(HandlerBase):
+    def get(self):
+        self.clear_old_sessions()
+        self.render("maintenance.html")
 
 class PlaylistHandler(PlaylistHandlerBase):
     """Landing page for a playlist"""
@@ -500,3 +509,4 @@ class TTSHandler(PlaylistHandlerBase):
 class ErrorHandler(HandlerBase):
     def prepare(self):
         self.send_error(404)
+
