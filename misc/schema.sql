@@ -35,7 +35,7 @@ CREATE TABLE `artist_popularity` (
   KEY `name` (`name`),
   KEY `sortname` (`sortname`),
   KEY `listeners` (`listeners`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -52,7 +52,7 @@ CREATE TABLE `images` (
   `original` varchar(128) DEFAULT NULL,
   `medium` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,7 +67,7 @@ CREATE TABLE `lastfm_cache` (
   `xml` text NOT NULL,
   `cachedTime` datetime NOT NULL,
   PRIMARY KEY (`hash`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,7 +81,7 @@ CREATE TABLE `lastfm_request_queue` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `request_url` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -104,7 +104,7 @@ CREATE TABLE `playlists` (
   `hide` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `owner_id` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=8991 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8991 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -119,7 +119,7 @@ CREATE TABLE `sessions` (
   `create_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=MyISAM AUTO_INCREMENT=279857 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=279857 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -141,7 +141,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `fb_id` (`fb_id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `profile` (`profile`)
-) ENGINE=MyISAM AUTO_INCREMENT=1964 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1964 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
