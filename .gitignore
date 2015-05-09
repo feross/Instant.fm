@@ -44,3 +44,5 @@ pip-log.txt
 .tox
 
 # PYTHON END
+
+.Python
