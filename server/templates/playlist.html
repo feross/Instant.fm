@@ -11,22 +11,22 @@
     </a>
     {% include "partial/headerNav.html" %}
   </header>
-  <div class="clearfix" id="main"> 
-       
+  <div class="clearfix" id="main">
+
     <section id="playlistDisplay">
-    
+
       <div id="videoDiv">
         <div id="player">
           <noscript>This content requires Adobe Flash Player. <a href="http://www.adobe.com/go/getflash/">Get Flash</a>.</noscript>
         </div>
       </div>
-      
+
       <div id="playlistDiv">
         <ul id="playlist">
           <!-- Loaded via JS -->
         </ul>
       </div>
- 
+
       <div id="playlistToolbar">
         <div class="left">
           <a href="#toggleVideo" class="on" id="toggleVideo"><span>Show Video</span></a>
@@ -37,27 +37,27 @@
           <a href="/search" class="mustOwn" id="addSongs" rel="view search" title="Add Songs"><span>Add Songs</span></a>
         </div>
       </div>
-      
+
     </section> <!-- end of #playlistDisplay -->
-  
+
     <section id="browserDisplay">
-        
+
       <header class="iPhoneHeader" id="browserHeader">
         <div class="left"><!-- dynamic --></div>
         <div class="title"><!-- dynamic --></div>
         <div class="right"><!-- dynamic --></div>
       </header>
-      
+
       <div id="browser">
         <div id="views">
           {% block mini-browser %}{% end %}
         </div> <!-- end of #views -->
       </div> <!-- end of #browser -->
-             
+
     </section> <!-- end of #browserDisplay -->
 
   </div> <!-- end of #main -->
-  
+
   <footer id="footer">
     <nav>
       <span class="byline">Created by <a href="http://www.feross.org" target="_blank">Feross</a> and <a href="http://www.quora.com/Jake-Becker" target="_blank">Jake</a> from Stanford.</span><span class="byline">Powered by <a href="http://www.youtube.com" target="_blank">YouTube</a>, <a href="http://www.last.fm" target="_blank">Last.fm</a>, and <a href="https://github.com/feross/Instant.fm" title="Github" target="_blank">magic</a>.</span>
@@ -90,7 +90,7 @@
 
 
 <script id="curSongDescTemplate" type="text/x-jquery-tmpl">
-  <h4>${trackName}</h4> 
+  <h4>${trackName}</h4>
   <article>{{'{{'}}html trackDescription}}</article>
 </script>
 
@@ -113,22 +113,22 @@
     {{'{{'}}/if}}
   </a>
   <div class="clearfix" id="curAlbumInfo">
-  
+
     <div id="curSong">
       <h4>${trackName}</h4>
     </div>
-    
+
     {{'{{'}}if artistName && artistHref}}
       <div id="curArtist">
-        <span class="curLabel">by</span> 
+        <span class="curLabel">by</span>
         <h4><a href="${artistHref}" title="${artistName}" rel="view artist">${artistName}</a></h4>
       </div>
     {{'{{'}}/if}}
     <div id="curAlbum" style="display:none;">
-      <span class="curLabel">on</span> 
+      <span class="curLabel">on</span>
       <h4></h4>
     </div>
-    
+
     <div id="shareSong" style="display:none;">
       <h5>Share this song with your friends</h5>
       <input class="url" value="http://instant.fm/${urlify(artistName)}/${urlify(cleanSongTitle(trackName))}"></input>
@@ -136,7 +136,7 @@
 				<fb:like href="${songHref}" layout="standard" show_faces="false" width="320"></fb:like>
 			</div>
     </div>
-    
+
   </div>
 </script>
 
@@ -163,11 +163,21 @@
 {% block scripts %}
 {% import re %}
     $(document).ready(function() {
+      if (window.YOUTUBE_DATA_READY) onYouTubeDataReady();
+      else window.ON_YOUTUBE_DATA_READY = onYouTubeDataReady;
+
+      function onYouTubeDataReady () {
+        if (window.YOUTUBE_IFRAME_READY) onYouTubeIframeReady();
+        else window.ON_YOUTUBE_IFRAME_READY = onYouTubeIframeReady;
+      }
+
+      function onYouTubeIframeReady () {
         onloadPlaylist({{handler.get_current_session().json}});
         {% if playlist is not None %}
         player.loadPlaylist({{re.sub(r'<', r'&lt;', re.sub(r'>', r'&gt;', playlist.json))}}, true);
         {% else %}
             {% block lastfm_playlist_loader %}{% end %}
         {% end %}
+      }
     });
 {% end %}

@@ -29,7 +29,7 @@ var appSettings = {
         data: function(value, settings) {
             // Turn <br>s into newlines before user edits text.
             var retval = value.replace(/<br>/gi, '\n');
-            
+
             // Decode HTML before the user edits text. (&amp; -> &)
             retval = htmlDecode(retval);
             return retval;
@@ -55,7 +55,7 @@ function onloadHome(session) {
     player = new Player();
 
     setSession(session);
-    
+
     // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
     // If there is saved state, load the correct playlist.
     window.onpopstate = function(event) {
@@ -78,12 +78,12 @@ function onloadPlaylist(session) {
     model = new Model();
     player = new Player();
     browser = new MiniBrowser();
-    
+
     setSession(session);
-    
+
     updateDisplay();
     $(window).resize(updateDisplay);
-    
+
     // Gets called when there is a browser history change event (details: http://goo.gl/rizNN)
     // If there is saved state, load the correct playlist.
     window.onpopstate = function(event) {
@@ -92,7 +92,7 @@ function onloadPlaylist(session) {
             player.loadPlaylistByUrl(state.url);
         }
     };
-    
+
     // Page may scroll in odd circumstances, like when selecting text.
     // Don't allow page to scroll.
     $(window).scroll(function(event) {
@@ -105,7 +105,7 @@ function onloadPlaylist(session) {
             $('#main').scrollTop(0);
         }, 0);
     });
-    
+
     setupKeyboardShortcuts();
     setupFBML();
     setupSignup();

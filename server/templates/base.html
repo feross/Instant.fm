@@ -14,9 +14,9 @@
 
   <!-- Open Graph -->
   {% block open-graph %}{% end %}
-  
+
   <meta property="fb:app_id" content="114871205247916"/>
-  
+
   <!-- Chrome application shortcut -->
   <meta name="application-name" content="Instant.fm"/>
   <meta name="application-url" content="http://instant.fm"/>
@@ -49,6 +49,19 @@
     <div id="fb-root"></div>
 
     <script>
+      window.gapiInit = function () {
+        gapi.client.setApiKey('AIzaSyDqpZlPSMrhLO79-LHvjkF52ZbUZ7qEvCI');
+        gapi.client.load('youtube', 'v3').then(onYouTubeDataAPIReady);
+      }
+      window.onYouTubeDataAPIReady = function () {
+        window.YOUTUBE_DATA_READY = true;
+        if (window.ON_YOUTUBE_DATA_READY) window.ON_YOUTUBE_DATA_READY();
+      }
+      window.onYouTubeIframeAPIReady = function () {
+        window.YOUTUBE_IFRAME_READY = true;
+        if (window.ON_YOUTUBE_IFRAME_READY) window.ON_YOUTUBE_IFRAME_READY();
+      }
+
       yepnope([{
         load: 'http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.js',
         complete: function () {
@@ -57,12 +70,9 @@
           }
         }
       }, {
-        load: 'http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js',
-        complete: function () {
-          if (!swfobject) {
-            yepnope('/js/libs/swfobject.js');
-          }
-        }
+        load: 'https://www.youtube.com/iframe_api'
+      }, {
+        load: 'https://apis.google.com/js/client.js?onload=gapiInit'
       }, {
         test: Modernizr.localstorage,
         yep: '/js/libs/cond/lastfm.api.cache.js'
@@ -98,7 +108,7 @@
         }
       }]);
     </script>
-    
+
     <!-- UserVoice Feedback Widget Start -->
     <script type="text/javascript">
       (function() {
@@ -115,18 +125,18 @@
       g.src=("https:"==location.protocol?"//ssl":"//www")+".google-analytics.com/ga.js";
       s.parentNode.insertBefore(g,s)}(document,"script"));
     </script>
-    
+
     <!-- Start of StatCounter Code -->
     <script type="text/javascript">
-    var sc_project=6522654; 
-    var sc_invisible=1; 
-    var sc_security="31199529"; 
+    var sc_project=6522654;
+    var sc_invisible=1;
+    var sc_security="31199529";
     </script>
     <script type="text/javascript" src="http://www.statcounter.com/counter/counter_xhtml.js"></script>
     <noscript><div class="statcounter"><a title="web analytics" href="http://statcounter.com/" class="statcounter"><img
     class="statcounter" src="http://c.statcounter.com/6522654/0/31199529/1/" /></a></div></noscript>
     <!-- End of StatCounter Code -->
-  
+
     {{ xsrf_form_html() }}
 </body>
 </html>
