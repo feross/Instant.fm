@@ -4,7 +4,7 @@ import io
 import sys
 import tornado.web
 import bcrypt
-import Image
+from PIL import Image
 import urllib2
 import hashlib
 import sqlalchemy

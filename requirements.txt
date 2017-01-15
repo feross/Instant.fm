@@ -1,6 +1,6 @@
 ## The following requirements were added by pip --freeze:
 MySQL-python==1.2.3
-PIL==1.1.7
+Pillow==4.0.0
 SQLAlchemy==0.7.7
 argparse==1.2.1
 distribute==0.6.24
