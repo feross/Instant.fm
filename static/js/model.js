@@ -2,17 +2,17 @@
 
 function Model(playlist) {
     playlist && this.updatePlaylist(playlist);
-    
+
     var cache;
     if (Modernizr.localstorage) {
 	    cache = Modernizr.localstorage ? (new LastFMCache()) : undefined;
 	}
 	this.lastfm = new LastFM({
-		apiKey    : '414cf82dc17438b8c880f237a13e5c09',
+		apiKey    : 'f422d7290325a79c2480c6c0d3957725',
 		cache     : cache
 	});
 }
-    
+
 Model.prototype.updatePlaylist = function(playlist) {
     this.playlist = playlist;
 };
@@ -50,7 +50,7 @@ Model.prototype.saveSongs = function() {
 
 Model.prototype.updateTitle = function(newTitle) {
     model.playlist.title = $.trim(newTitle);
-    
+
     instantfm.update_title({
         "params": [model.playlist.id, model.playlist.title],
     });
@@ -58,10 +58,10 @@ Model.prototype.updateTitle = function(newTitle) {
 
 Model.prototype.updateDesc = function(newDesc) {
     model.playlist.description = $.trim(newDesc);
-    
+
     instantfm.update_description({
         "params": [model.playlist.id, model.playlist.description],
-    });   
+    });
 };
 
 Model.prototype.updateAlbumImg = function(index, albumImg) {
